@@ -15,6 +15,7 @@ spring:
         #        dialect: org.hibernate.dialect.MariaDB53Dialect
         format_sql: true
     hibernate:
+
       ddl-auto: update
     show-sql: true
 
@@ -23,3 +24,9 @@ spring:
       matching-strategy: ant_path_matcher
   banner:
     location: classpath:static/banner.txt
+
+
+
+
+pagination:
+  pageSize: 10
