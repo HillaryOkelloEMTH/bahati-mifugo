@@ -1,5 +1,7 @@
 package com.emtech.dairyapp.Configurations.County;
 
+import com.emtech.dairyapp.Configurations.SubCounty.Subcounty;
+import com.emtech.dairyapp.Configurations.SubCounty.SubcountyRepo;
 import com.emtech.dairyapp.Response.EntityResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,13 +13,14 @@ import java.util.List;
 import java.util.Optional;
 
 
-
 @Service
 @Slf4j
 public class CountyService {
 
     @Autowired
     private CountyRepo countyRepo;
+    @Autowired
+    private SubcountyRepo subcountyRepo;
 
 
     public EntityResponse addCounty(County county) {
@@ -66,7 +69,7 @@ public class CountyService {
         EntityResponse response = new EntityResponse();
         try {
 
-            county.setModifiedAt(new Date());
+            county.setCreatedAt(new Date());
             countyRepo.save(county);
 
             response.setEntity(county);
@@ -97,7 +100,6 @@ public class CountyService {
                 response.setStatusCode(HttpStatus.NOT_FOUND.value());
             }
 
-
         } catch (Exception e) {
             log.error(e.getMessage());
 
@@ -106,6 +108,30 @@ public class CountyService {
 
         }
         return response;
+    }
+
+    public EntityResponse deleteCounty(Long id) {
+        EntityResponse response = new EntityResponse();
+        try {
+            List<Subcounty> subcounties = subcountyRepo.findByCountyFk(id);
+            if (subcounties.size() > 1) {
+                response.setMessage("County cannot be deleted. County is attached to " + subcounties.size() + " sub_counties");
+                response.setStatusCode(HttpStatus.NOT_ACCEPTABLE.value());
+                response.setEntity(subcounties);
+            } else {
+                countyRepo.deleteById(id);
+                response.setMessage(HttpStatus.OK.getReasonPhrase());
+                response.setStatusCode(HttpStatus.OK.value());
+            }
+
+            return response;
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            return response;
+        }
+
     }
 
 

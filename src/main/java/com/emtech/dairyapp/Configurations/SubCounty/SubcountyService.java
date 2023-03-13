@@ -111,4 +111,23 @@ public class SubcountyService {
         return response;
     }
 
+    public EntityResponse deleteSubCounty(Long id) {
+        EntityResponse response = new EntityResponse();
+        try {
+                subcountyRepo.deleteById(id);
+                response.setMessage(HttpStatus.OK.getReasonPhrase());
+                response.setStatusCode(HttpStatus.OK.value());
+
+            return response;
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            return response;
+        }
+
+    }
+
+
+
 }
