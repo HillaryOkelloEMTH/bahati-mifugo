@@ -131,10 +131,42 @@ public class RoleService {
                 roleData.setAccessRights(accessRights);
 
                 rolesData.add(roleData);
+
             });
 
             response.set(RoleResponse.builder().roleData(rolesData).build());
         }
+
+        return response.get();
+    }
+
+    public RoleData fetchRoleById(@NonNull Long roleId){
+        AtomicReference<RoleData> response = new AtomicReference<>();
+
+        roleRepository.findById(roleId).ifPresentOrElse(role -> {
+            RoleData roleData = RoleData.builder()
+                    .id(role.getId())
+                    .name(role.getName())
+                    .creationDate(role.getCreationDate())
+                    .updateDate(role.getUpdateDate())
+                    .status(role.getStatus())
+                    .build();
+
+
+            List<RoleAccessRights> accessRights = new ArrayList<>();
+            if(role.getAccessRights() != null && !role.getAccessRights().isEmpty()){
+                role.getAccessRights().forEach(accessRight -> {
+                    accessRights.add(RoleAccessRights.builder().name(accessRight.name).accessRights(accessRight).build());
+                });
+            }
+
+            roleData.setAccessRights(accessRights);
+
+            response.set(roleData);
+
+        }, () -> {
+            /* todo:: role not found  */
+        });
 
         return response.get();
     }

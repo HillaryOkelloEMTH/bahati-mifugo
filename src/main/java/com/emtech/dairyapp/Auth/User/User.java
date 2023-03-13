@@ -57,7 +57,7 @@ public class User implements Serializable {
 
     @Basic
     @JsonFormat(pattern = "dd-MMM-yyyy HH:mm:ss")
-    @Column(name = "delete_date", nullable = false)
+    @Column(name = "delete_date")
     private Timestamp deletedDate;
 
     @Column(name = "login_status")

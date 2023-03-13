@@ -2,6 +2,7 @@ package com.emtech.dairyapp.Auth.Role;
 
 import com.emtech.dairyapp.Auth.Data.Http.Request.Auth.RoleCreateRequest;
 import com.emtech.dairyapp.Auth.Data.Http.Response.Auth.RecordCreateResponse;
+import com.emtech.dairyapp.Auth.Data.Http.Response.Auth.RoleData;
 import com.emtech.dairyapp.Auth.Data.Http.Response.Auth.RoleResponse;
 import com.emtech.dairyapp.Auth.Data.Role.RoleAccessRights;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -106,6 +107,22 @@ public class RolesController {
            return ResponseEntity.notFound().build();
        }
     }
+
+    @RequestMapping(
+            path = "{roleId}",
+            method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public ResponseEntity<RoleData> getRoleDetails(@PathVariable Long roleId) {
+        RoleData role = roleService.fetchRoleById(roleId);
+
+        if (role != null){
+            return ResponseEntity.ok().body(role);
+        }else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
 
     @RequestMapping(
             path = "/active-roles",
