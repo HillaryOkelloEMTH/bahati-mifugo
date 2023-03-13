@@ -20,8 +20,8 @@ import java.util.Optional;
 @Slf4j
 public class SubcountyService {
 
-    @Value("${pagination.pageSize}")
-    private Integer pageSize;
+//    @Value("${pagination.pageSize}")
+//    private Integer pageSize;
     @Autowired
     private SubcountyRepo subcountyRepo;
 
@@ -50,9 +50,9 @@ public class SubcountyService {
         EntityResponse response = new EntityResponse<>();
         try {
 
-            Pageable paging = PageRequest.of(pageNo, pageSize);
-            Page<Subcounty> data = subcountyRepo.findAll(paging);
-            List<Subcounty> all = data.toList();
+//            Pageable paging = PageRequest.of(pageNo, pageSize);
+//            Page<Subcounty> data = subcountyRepo.findAll(paging);
+            List<com.emtech.dairyapp.Configurations.Interfaces.Subcounty> all = subcountyRepo.selectAll();
 
             response.setMessage(HttpStatus.OK.getReasonPhrase());
             response.setEntity(all);
