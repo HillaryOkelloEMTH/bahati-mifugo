@@ -19,8 +19,7 @@ public class Subcounty {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
-    private Long county_fk;
-
+    private Long countyFk;
     @OneToMany(targetEntity = Ward.class,cascade = CascadeType.ALL,fetch = FetchType.LAZY)
     @JoinColumn(name = "subcounty_id",referencedColumnName = "id")
     private List<Ward> wards;

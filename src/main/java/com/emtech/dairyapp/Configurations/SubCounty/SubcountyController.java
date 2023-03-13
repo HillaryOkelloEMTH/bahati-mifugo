@@ -44,5 +44,12 @@ public class SubcountyController {
         EntityResponse response = subcountyService.getSubcounty(id);
         return  ResponseEntity.ok().body(response);
     }
+    @DeleteMapping("{id}")
+    public ResponseEntity<EntityResponse> deleteSubcountyById(@PathVariable Long id) {
+
+        EntityResponse response = subcountyService.deleteSubCounty(id);
+        return ResponseEntity.ok().body(response);
+
+    }
 
 }

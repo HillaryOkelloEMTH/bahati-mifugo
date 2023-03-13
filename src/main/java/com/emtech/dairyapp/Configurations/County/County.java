@@ -22,8 +22,8 @@ public class County {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
-//    private Long county;
+    private String code;
     private Date createdAt;
-    private Date modifiedAt;
+
 
 }
