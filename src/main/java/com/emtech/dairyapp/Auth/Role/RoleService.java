@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 @Log
 @Service
@@ -39,7 +40,7 @@ public class RoleService {
     public List<RoleAccessRights> accessRights() {
         return Arrays.stream(AccessRight.values())
                 .map(s -> RoleAccessRights.builder().name(s.name).accessRights(s).build())
-                .toList();
+                .collect(Collectors.toList());
     }
 
     public boolean createRole(@NonNull String name, @NonNull List<AccessRight> accessRights) {
