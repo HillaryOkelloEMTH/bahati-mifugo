@@ -24,6 +24,8 @@ public class SubcountyService {
 //    private Integer pageSize;
     @Autowired
     private SubcountyRepo subcountyRepo;
+    @Autowired
+    private WardRepo wardRepo;
 
 
     public EntityResponse addSubcounty(Subcounty subcounty) {
@@ -31,10 +33,32 @@ public class SubcountyService {
         EntityResponse response = new EntityResponse<>();
         try {
 
-            subcountyRepo.save(subcounty);
-            response.setStatusCode(HttpStatus.CREATED.value());
-            response.setEntity(subcounty);
-            response.setMessage(HttpStatus.CREATED.getReasonPhrase());
+            boolean exists= subcountyRepo.existsByName(subcounty.getName());
+            List<Ward> wardList = subcounty.getWards();
+//
+           boolean wardExist= wardList.stream().anyMatch(ward -> wardRepo.existsByName(ward.getName()) );
+
+            if(exists){
+                response.setStatusCode(HttpStatus.NOT_ACCEPTABLE.value());
+                response.setEntity(subcounty);
+                response.setMessage("Sub-county with name "+ subcounty.getName() + " already exists.");
+            }else {
+                if(wardExist) {
+                    log.info("wardExist ");
+                    response.setStatusCode(HttpStatus.NOT_ACCEPTABLE.value());
+                    response.setEntity(subcounty);
+                    response.setMessage("Duplicate ward name detected.");
+                }else {
+                    log.info("clean data ");
+                    subcountyRepo.save(subcounty);
+                    response.setStatusCode(HttpStatus.CREATED.value());
+                    response.setEntity(subcounty);
+                    response.setMessage(HttpStatus.CREATED.getReasonPhrase());
+
+                }
+
+
+            }
         } catch (Exception e) {
             log.error(e.getMessage());
 
@@ -50,11 +74,22 @@ public class SubcountyService {
         EntityResponse response = new EntityResponse<>();
         try {
 
+
+
             List<com.emtech.dairyapp.Configurations.Interfaces.Subcounty> all = subcountyRepo.selectAll();
 
-            response.setMessage(HttpStatus.OK.getReasonPhrase());
-            response.setEntity(all);
-            response.setStatusCode(HttpStatus.OK.value());
+            if(all.size()>0){
+            log.info("Records found "+"\u2713");
+                response.setMessage(HttpStatus.OK.getReasonPhrase());
+                response.setEntity(all);
+                response.setStatusCode(HttpStatus.OK.value());
+            }else {
+                response.setMessage(HttpStatus.OK.getReasonPhrase());
+                response.setEntity(all);
+                response.setStatusCode(HttpStatus.OK.value());
+            }
+
+
 
         } catch (Exception e) {
             log.error(e.getMessage());

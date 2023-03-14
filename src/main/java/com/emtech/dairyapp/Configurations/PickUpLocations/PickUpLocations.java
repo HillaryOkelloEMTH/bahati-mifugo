@@ -24,11 +24,11 @@ public class PickUpLocations {
     @GeneratedValue( strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
+    private String landMark;
     private Long ward_fk;
+    private Long subcounty_fk;
 
-    @OneToMany(targetEntity = Ward.class,cascade = CascadeType.ALL,fetch = FetchType.LAZY)
+    @OneToMany(targetEntity = Collector.class,cascade = CascadeType.ALL,fetch = FetchType.LAZY)
     @JoinColumn(name = "location_id",referencedColumnName = "id")
     private List<Collector> collectors;
-
-
 }

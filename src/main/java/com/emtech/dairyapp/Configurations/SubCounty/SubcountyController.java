@@ -38,7 +38,7 @@ public class SubcountyController {
     }
 
     @GetMapping("{id}")
-    public ResponseEntity<?> GetCostituencyById(@PathVariable Long id){
+    public ResponseEntity<?> GetSubcountyById(@PathVariable Long id){
         EntityResponse response = subcountyService.getSubcounty(id);
         return  ResponseEntity.ok().body(response);
     }

@@ -1,6 +1,7 @@
 package com.emtech.dairyapp.Configurations.PickUpLocations;
 
 
+import com.emtech.dairyapp.Configurations.Interfaces.PickUpLocation;
 import com.emtech.dairyapp.Response.EntityResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,13 +45,13 @@ public class PickUpLocationService {
         return response;
     }
 
-    public EntityResponse getPickUpLocations(Integer pageNo) {
+    public EntityResponse getPickUpLocations() {
         EntityResponse response = new EntityResponse<>();
         try {
 
-            Pageable paging = PageRequest.of(pageNo, pageSize);
-            Page<PickUpLocations> data = pickUpLocationsRepo.findAll(paging);
-            List<PickUpLocations> all = data.toList();
+//            Pageable paging = PageRequest.of(pageNo, pageSize);
+//            List<PickUpLocations> data = pickUpLocationsRepo.findAll(paging);
+            List<PickUpLocation> all = pickUpLocationsRepo.getAllPickUpLocations();
 
             response.setMessage(HttpStatus.OK.getReasonPhrase());
             response.setEntity(all);
@@ -85,7 +86,7 @@ public class PickUpLocationService {
         return response;
     }
 
-    public EntityResponse getPickUpLocations(Long id) {
+    public EntityResponse getPickUpLocationById(Long id) {
         EntityResponse response = new EntityResponse<>();
         try {
             Optional<PickUpLocations> data = pickUpLocationsRepo.findById(id);
