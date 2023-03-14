@@ -4,8 +4,6 @@ public class CONSTANTS {
 
 
 
-    private static final   String YES="YES";
-    private static  final  String NO="N";
-//    private static  final  String Y="YES";
-
+    public static final Character YES = 'Y';
+    public static final Character NO = 'N';
 }
