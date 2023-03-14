@@ -27,7 +27,7 @@ public class ProfileService {
         log.info("saving profile....");
         try{
             Long size= profileRepo.count();
-            if(size>1){
+            if(size>0){
                 response.setMessage("Profile has already been set");
                 response.setStatusCode(HttpStatus.NOT_ACCEPTABLE.value());
                 response.setEntity(profile);
@@ -57,10 +57,18 @@ public class ProfileService {
         try{
 
            List<Profile> profile= profileRepo.findAll();
-            log.info("Profile Saved !");
-            response.setMessage("Profile added.");
-            response.setStatusCode(HttpStatus.OK.value());
-            response.setEntity(profile);
+           if(profile.size()>0){
+               log.info("Profile found !");
+               response.setMessage("Profile Found.");
+               response.setStatusCode(HttpStatus.FOUND.value());
+               response.setEntity(profile);
+           }else {
+               log.info("Profile Not Found !");
+               response.setMessage("Profile Not Found.");
+               response.setStatusCode(HttpStatus.NOT_FOUND.value());
+
+           }
+
             return  response;
 
         }catch (Exception e){
