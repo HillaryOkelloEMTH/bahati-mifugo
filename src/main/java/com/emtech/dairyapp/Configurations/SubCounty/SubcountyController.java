@@ -28,8 +28,8 @@ public class SubcountyController {
 
 
     @GetMapping("fetch")
-    public ResponseEntity<?> getCostituencies(@RequestParam Integer pageNo){
-        EntityResponse response = subcountyService.getSubcounty(pageNo);
+    public ResponseEntity<?> getCostituencies(){
+        EntityResponse response = subcountyService.getSubcounty();
         return  ResponseEntity.ok().body(response);
     }
 

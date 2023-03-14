@@ -46,12 +46,10 @@ public class SubcountyService {
         return response;
     }
 
-    public EntityResponse getSubcounty(Integer pageNo) {
+    public EntityResponse getSubcounty() {
         EntityResponse response = new EntityResponse<>();
         try {
 
-//            Pageable paging = PageRequest.of(pageNo, pageSize);
-//            Page<Subcounty> data = subcountyRepo.findAll(paging);
             List<com.emtech.dairyapp.Configurations.Interfaces.Subcounty> all = subcountyRepo.selectAll();
 
             response.setMessage(HttpStatus.OK.getReasonPhrase());
