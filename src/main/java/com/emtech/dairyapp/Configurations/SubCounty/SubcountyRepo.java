@@ -16,4 +16,7 @@ public interface SubcountyRepo extends JpaRepository<Subcounty,Long> {
     List<com.emtech.dairyapp.Configurations.Interfaces.Subcounty> selectAll();
 
 
+    Boolean existsByName(String name);
+
+
 }

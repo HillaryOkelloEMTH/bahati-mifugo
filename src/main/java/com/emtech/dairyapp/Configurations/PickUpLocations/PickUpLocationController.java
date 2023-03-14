@@ -18,7 +18,7 @@ public class PickUpLocationController {
     private PickUpLocationService service;
 
     @PostMapping("add")
-    public ResponseEntity<EntityResponse> addSubcounty(@RequestBody PickUpLocations location){
+    public ResponseEntity<EntityResponse> addpickup(@RequestBody PickUpLocations location){
         log.info("receiving request ...");
         EntityResponse response = service.addPickUpLocations(location);
         return ResponseEntity.ok().body(response);
@@ -26,20 +26,20 @@ public class PickUpLocationController {
 
 
     @GetMapping("fetch")
-    public ResponseEntity<?> getCostituencies(@RequestParam Integer pageNo){
-        EntityResponse response = service.getPickUpLocations(pageNo);
+    public ResponseEntity<?> getpickup(){
+        EntityResponse response = service.getPickUpLocations();
         return  ResponseEntity.ok().body(response);
     }
 
     @PutMapping("update")
-    public ResponseEntity<?> updateCostituencies(@RequestBody PickUpLocations locations){
+    public ResponseEntity<?> updatePpickup(@RequestBody PickUpLocations locations){
         EntityResponse response = service.update(locations);
         return  ResponseEntity.ok().body(response);
     }
 
     @GetMapping("{id}")
-    public ResponseEntity<?> GetCostituencyById(@PathVariable Long id){
-        EntityResponse response = service.getPickUpLocations(id);
+    public ResponseEntity<?> GetpickupById(@PathVariable Long id){
+        EntityResponse response = service.getPickUpLocationById(id);
         return  ResponseEntity.ok().body(response);
     }
 
