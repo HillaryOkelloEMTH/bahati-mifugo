@@ -27,6 +27,7 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 @Log
 @Service
@@ -68,9 +69,9 @@ public class UserService {
 
     public List<Role> userRoles(@NonNull User user, boolean activeOnly) {
         if (activeOnly) {
-            return this.userRoleRepository.findAllByUser(user).stream().map(UserRole::getRole).toList();
+            return this.userRoleRepository.findAllByUser(user).stream().map(UserRole::getRole).collect(Collectors.toList());
         } else {
-            return this.userRoleRepository.findAllByUserAndStatus(user, 1).stream().map(UserRole::getRole).toList();
+            return this.userRoleRepository.findAllByUserAndStatus(user, 1).stream().map(UserRole::getRole).collect(Collectors.toList());
         }
     }
 
