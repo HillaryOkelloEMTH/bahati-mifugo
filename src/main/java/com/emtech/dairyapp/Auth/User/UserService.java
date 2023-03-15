@@ -1,5 +1,7 @@
 package com.emtech.dairyapp.Auth.User;
 
+import com.emtech.dairyapp.Auth.Data.Http.Request.Auth.AuthRequest;
+import com.emtech.dairyapp.Auth.Data.Http.Response.Auth.AuthResponse;
 import com.emtech.dairyapp.Auth.Data.Http.Response.Auth.UserResponse;
 import com.emtech.dairyapp.Auth.Data.Role.RoleAccessRights;
 import com.emtech.dairyapp.Auth.Data.User.UserData;
@@ -8,16 +10,20 @@ import com.emtech.dairyapp.Auth.Role.Role;
 import com.emtech.dairyapp.Auth.Role.RoleRepository;
 import com.emtech.dairyapp.Auth.UserRole.UserRole;
 import com.emtech.dairyapp.Auth.UserRole.UserRoleRepository;
+import com.emtech.dairyapp.Auth.Utilities.JWTUtil;
+import com.emtech.dairyapp.Auth.Utilities.PasswordUtil;
 import com.emtech.dairyapp.Auth.Utilities.SendCredentialToMail;
 import com.emtech.dairyapp.Auth.Utilities.ToolKit;
 import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.NonNull;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
@@ -26,8 +32,9 @@ import java.util.stream.Collectors;
 @Log
 @Service
 public class UserService {
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+//    @Autowired
+//    private PasswordEncoder passwordEncoder;
+
     @Autowired
     private UserRepository userRepository;
 
@@ -37,12 +44,21 @@ public class UserService {
     @Autowired
     private UserRoleRepository userRoleRepository;
 
+    @Autowired
+    private JWTUtil jwtUtil;
+
+    @Autowired
+    private PasswordUtil passwordUtil;
+
+    @Value("${jwt.password.encoder.secret}")
+    private String passwordSecret;
 
 
-    public List<Role> validateUser(@NonNull String email, @NonNull String password) {
+
+    public List<Role> validateUser(@NonNull String username) {
         List<Role> roles = new ArrayList<>();
 
-        this.userRepository.findByEmail(email.trim().toLowerCase()).ifPresent(user -> {
+        this.userRepository.findByUsername(username.trim()).ifPresent(user -> {
             if (user.getStatus() == "Active") {
                 roles.addAll(this.userRoles(user, true));
             }
@@ -76,6 +92,7 @@ public class UserService {
                         user.get().setFirstName(firstName);
                         user.get().setLastName(lastName.trim());
                         user.get().setEmail(email.trim());
+                        user.get().setMobile(mobile);
                         user.get().setStatus("Active");
                         user.get().setIsLoggedIn(0);
 
@@ -83,11 +100,13 @@ public class UserService {
 
                         String userPassword = tk.generatePassword();
 
-                        user.get().setPassword(passwordEncoder.encode(userPassword));
+                        user.get().setPassword(passwordUtil.encode(userPassword));
 
                         user.set(this.userRepository.save(user.get()));
 
                         log.log(Level.INFO, String.format("User created [ %s ]", user.get()));
+
+                        log.log(Level.INFO, String.format("Role Details [ %s ]", role));
 
                         if (this.assignRole(user.get(), role, true)) {
                             log.log(Level.INFO, String.format("User assigned role [ %s ]", user.get()));
@@ -117,6 +136,46 @@ public class UserService {
         });
 
         return res.get();
+    }
+
+    public AuthResponse authenticateUser(@NonNull String username, @NonNull String password){
+        AtomicReference<AuthResponse> response = new AtomicReference<>();
+
+        userRepository.findByUsername(username).ifPresentOrElse(user -> {
+            log.log(Level.INFO, String.format("User Credentials [credentials=%s]", user));
+
+            if (Objects.equals(user.getStatus(), "Active")){
+                log.log(Level.INFO, String.format("User Credentials [credentials=%s]", user));
+                log.log(Level.INFO, String.format("Encode Password [credentials=%s] ", passwordUtil.matches(password, user.getPassword())));
+                if(passwordUtil.matches(password, user.getPassword())){
+                    log.log(Level.INFO, String.format("Inside password encryption]"));
+                    UserData userData = getUserDetails(user.getId());
+
+                    log.log(Level.INFO, String.format("User Data Details [ %s ]", userData.toString()));
+
+                    String token = jwtUtil.generateToken(userData);
+
+                    AuthResponse authResponse = AuthResponse.builder()
+                            .token(token)
+                            .id(userData.getId())
+                            .username(userData.getUsername())
+                            .mobile(userData.getMobile())
+                            .roles(userData.getRoles())
+                            .build();
+
+                    response.set(authResponse);
+                }else{
+                    /* todo:: Provided an invalid password  */
+                }
+
+            }else{
+                /* todo:: User account not active  */
+            }
+        }, () -> {
+            /* todo:: user not found  */
+        });
+
+        return response.get();
     }
 
     public boolean updateUser(@NonNull Long userId, @NonNull String userName, @NonNull String firstName, @NonNull String lastName, @NonNull String email, @NonNull Long roleId){
@@ -178,7 +237,7 @@ public class UserService {
         AtomicBoolean res = new AtomicBoolean();
 
         this.userRepository.findById(user.getId()).ifPresentOrElse(userData -> {
-            if(userData.getStatus() == "Active"){
+            if(Objects.equals(userData.getStatus(), "Active")){
                 this.roleRepository.findById(role.getId()).ifPresentOrElse(myRole -> {
                     if(myRole.getStatus().compareTo(1) == 0){
                         userRoleRepository.findByUserAndRole(userData, myRole).ifPresentOrElse(ur -> {
