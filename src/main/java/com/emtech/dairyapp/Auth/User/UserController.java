@@ -12,6 +12,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.List;
 
+@CrossOrigin
 @RestController
 @RequestMapping(path = "/api/v1/users")
 public class UserController {
