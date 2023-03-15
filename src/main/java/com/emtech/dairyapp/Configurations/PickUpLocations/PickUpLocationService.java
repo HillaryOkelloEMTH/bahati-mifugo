@@ -2,6 +2,7 @@ package com.emtech.dairyapp.Configurations.PickUpLocations;
 
 
 import com.emtech.dairyapp.Configurations.Interfaces.PickUpLocation;
+import com.emtech.dairyapp.Configurations.Interfaces.PickUpPoints;
 import com.emtech.dairyapp.Response.EntityResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -105,8 +106,49 @@ public class PickUpLocationService {
             response.setStatusCode(HttpStatus.BAD_REQUEST.value());
             response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
         }
-
-
         return response;
     }
+    public EntityResponse deletePickUpLocationById(Long id) {
+        EntityResponse response = new EntityResponse<>();
+        try {
+            Optional<PickUpLocations> data = pickUpLocationsRepo.findById(id);
+            if(data.isPresent()){
+                pickUpLocationsRepo.deleteById(id);
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setMessage(HttpStatus.OK.getReasonPhrase());
+            }else {
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                response.setMessage(HttpStatus.NOT_FOUND.getReasonPhrase());
+            }
+
+        } catch (Exception e) {
+            log.error(e.getLocalizedMessage());
+
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+        }
+        return response;
+    }
+    public EntityResponse getPickUpLocationByUsernameandWard(String username,Long id) {
+        EntityResponse response = new EntityResponse<>();
+        try {
+            List<PickUpPoints> data = pickUpLocationsRepo.getPickUpLocations(username,id);
+            if(data.size()>0){
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setEntity(data);
+                response.setMessage(HttpStatus.OK.getReasonPhrase());
+            }else {
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                response.setMessage(HttpStatus.NOT_FOUND.getReasonPhrase());
+            }
+
+        } catch (Exception e) {
+            log.error(e.getMessage());
+
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+        }
+        return response;
+    }
+
 }
