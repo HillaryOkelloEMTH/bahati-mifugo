@@ -35,6 +35,9 @@ public class UserData implements Serializable {
     private String email = null;
 
     @Builder.Default
+    private String mobile = null;
+
+    @Builder.Default
     private String status = null;
 
     @Builder.Default

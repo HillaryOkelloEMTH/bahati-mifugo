@@ -8,9 +8,12 @@ import com.emtech.dairyapp.Auth.Role.Role;
 import com.emtech.dairyapp.Auth.Role.RoleRepository;
 import com.emtech.dairyapp.Auth.UserRole.UserRole;
 import com.emtech.dairyapp.Auth.UserRole.UserRoleRepository;
+import com.emtech.dairyapp.Auth.Utilities.SendCredentialToMail;
+import com.emtech.dairyapp.Auth.Utilities.ToolKit;
 import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -23,6 +26,8 @@ import java.util.logging.Level;
 @Service
 public class UserService {
     @Autowired
+    private PasswordEncoder passwordEncoder;
+    @Autowired
     private UserRepository userRepository;
 
     @Autowired
@@ -31,7 +36,29 @@ public class UserService {
     @Autowired
     private UserRoleRepository userRoleRepository;
 
-    public boolean createUser(@NonNull String userName, @NonNull String firstName, @NonNull String lastName, @NonNull String email, @NonNull Long roleId){
+
+
+    public List<Role> validateUser(@NonNull String email, @NonNull String password) {
+        List<Role> roles = new ArrayList<>();
+
+        this.userRepository.findByEmail(email.trim().toLowerCase()).ifPresent(user -> {
+            if (user.getStatus() == "Active") {
+                roles.addAll(this.userRoles(user, true));
+            }
+        });
+
+        return roles;
+    }
+
+    public List<Role> userRoles(@NonNull User user, boolean activeOnly) {
+        if (activeOnly) {
+            return this.userRoleRepository.findAllByUser(user).stream().map(UserRole::getRole).toList();
+        } else {
+            return this.userRoleRepository.findAllByUserAndStatus(user, 1).stream().map(UserRole::getRole).toList();
+        }
+    }
+
+    public boolean createUser(@NonNull String userName, @NonNull String firstName, @NonNull String lastName, @NonNull String email, @NonNull String mobile, @NonNull Long roleId){
         AtomicBoolean res = new AtomicBoolean();
 
         this.userRepository.findByUsername(userName).ifPresentOrElse(user -> {
@@ -50,12 +77,33 @@ public class UserService {
                         user.get().setEmail(email.trim());
                         user.get().setStatus("Active");
                         user.get().setIsLoggedIn(0);
+
+                        ToolKit tk = new ToolKit();
+
+                        String userPassword = tk.generatePassword();
+
+                        user.get().setPassword(passwordEncoder.encode(userPassword));
+
                         user.set(this.userRepository.save(user.get()));
+
                         log.log(Level.INFO, String.format("User created [ %s ]", user.get()));
 
                         if (this.assignRole(user.get(), role, true)) {
                             log.log(Level.INFO, String.format("User assigned role [ %s ]", user.get()));
                         }
+
+                        try {
+                            SendCredentialToMail sm = new SendCredentialToMail();
+
+                            log.log(Level.INFO, String.format("User Email [ %s ]", user.get().getEmail()));
+
+                            sm.sendMail(user.get().getEmail(), user.get().getUsername(), userPassword);
+
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
+
 
                         res.set(true);
                     }else {
@@ -180,10 +228,12 @@ public class UserService {
         if(users != null && !users.isEmpty()){
             users.forEach(user -> {
                 UserData userData = UserData.builder()
+                        .id(user.getId())
                         .firstName(user.getFirstName())
                         .lastName(user.getLastName())
                         .username(user.getUsername())
                         .email(user.getEmail())
+                        .mobile(user.getMobile())
                         .status(user.getStatus())
                         .creationDate(user.getCreationDate())
                         .updateDate(user.getUpdateDate())
@@ -228,10 +278,12 @@ public class UserService {
 
         this.userRepository.findById(userId).ifPresentOrElse(user -> {
             UserData data = UserData.builder()
+                    .id(userId)
                     .username(user.getUsername())
                     .firstName(user.getFirstName())
                     .lastName(user.getLastName())
                     .email(user.getEmail())
+                    .mobile(user.getMobile())
                     .status(user.getStatus())
                     .creationDate(user.getCreationDate())
                     .updateDate(user.getUpdateDate())
@@ -280,10 +332,12 @@ public class UserService {
         if(users != null && !users.isEmpty()){
             users.forEach(user -> {
                 UserData userData = UserData.builder()
+                        .id(user.getId())
                         .firstName(user.getFirstName())
                         .lastName(user.getLastName())
                         .username(user.getUsername())
                         .email(user.getEmail())
+                        .mobile(user.getMobile())
                         .status(user.getStatus())
                         .creationDate(user.getCreationDate())
                         .updateDate(user.getUpdateDate())

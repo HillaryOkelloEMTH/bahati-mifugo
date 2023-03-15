@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 
@@ -24,7 +25,7 @@ public class UserController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     public ResponseEntity<RecordCreateResponse> createUser(@RequestBody UserCreateRequest body){
-        if(this.userService.createUser(body.getUsername(), body.getFirstName(), body.getLastName(), body.getEmail(), body.getRole())){
+        if(this.userService.createUser(body.getUsername(), body.getFirstName(), body.getLastName(), body.getEmail(), body.getMobile(), body.getRole())){
             return ResponseEntity.ok().body(RecordCreateResponse.builder().message("User created successfully !").build());
         }else {
             return ResponseEntity.internalServerError().body(RecordCreateResponse.builder().message("Sorry, an error occurred").build());
@@ -145,13 +146,13 @@ public class UserController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
 
-    public ResponseEntity<UserResponse> fetchAllActiveUserAccounts(){
+    public Mono<ResponseEntity<UserResponse>> fetchAllActiveUserAccounts(){
         UserResponse users = this.userService.getUsersByStatus("Active");
 
         if(users != null){
-            return ResponseEntity.ok().body(users);
+            return Mono.just(ResponseEntity.ok().body(users));
         }else {
-            return ResponseEntity.notFound().build();
+            return Mono.just(ResponseEntity.notFound().build());
         }
 
     }

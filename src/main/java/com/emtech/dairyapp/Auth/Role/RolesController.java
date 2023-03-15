@@ -63,7 +63,7 @@ public class RolesController {
     @RequestMapping(
             path = "/deactivate-role/{roleId}",
             method = RequestMethod.PUT,
-            consumes = MediaType.APPLICATION_JSON_VALUE,
+//            consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     public ResponseEntity<RecordCreateResponse> deactivateRole(

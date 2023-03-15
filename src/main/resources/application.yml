@@ -17,11 +17,14 @@ spring:
     hibernate:
 
       ddl-auto: update
-    show-sql: true
+    show-sql: false
+  main:
+    web-application-type: reactive
 
-  mvc:
-    pathmatch:
-      matching-strategy: ant_path_matcher
+
+#  mvc:
+#    pathmatch:
+#      matching-strategy: ant_path_matcher
   banner:
     location: classpath:static/banner.txt
 

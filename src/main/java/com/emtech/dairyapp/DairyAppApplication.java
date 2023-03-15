@@ -3,7 +3,9 @@ package com.emtech.dairyapp;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.web.reactive.config.EnableWebFlux;
 
+@EnableWebFlux
 @SpringBootApplication
 @Slf4j
 public class DairyAppApplication {
