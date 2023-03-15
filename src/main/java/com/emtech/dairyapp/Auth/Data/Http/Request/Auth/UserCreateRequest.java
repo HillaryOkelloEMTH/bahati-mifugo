@@ -29,6 +29,9 @@ public class UserCreateRequest implements Serializable {
     @JsonProperty(value = "email")
     private String email;
 
+    @JsonProperty(value = "mobile")
+    private String mobile;
+
     @JsonProperty(value = "role")
     private Long role;
 

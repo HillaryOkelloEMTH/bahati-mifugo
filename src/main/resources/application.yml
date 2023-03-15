@@ -6,8 +6,8 @@ server:
 spring:
   datasource:
     url: jdbc:mariadb://localhost:3306/dairy
-    username: ibrahim
-    password: kali
+    username: admin
+    password: password
     driver-class-name: org.mariadb.jdbc.Driver
   jpa:
     properties:
@@ -19,9 +19,10 @@ spring:
       ddl-auto: update
     show-sql: false
 
-  mvc:
-    pathmatch:
-      matching-strategy: ant_path_matcher
+
+#  mvc:
+#    pathmatch:
+#      matching-strategy: ant_path_matcher
   banner:
     location: classpath:static/banner.txt
 
