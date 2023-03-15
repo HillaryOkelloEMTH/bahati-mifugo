@@ -13,7 +13,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
-import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+//import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+//import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -26,10 +27,11 @@ import reactor.core.publisher.Mono;
 import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 @Log
 @Configuration
-@EnableWebFluxSecurity
+//@EnableWebFluxSecurity
 public class HttpConfigurer {
 
     @Autowired
@@ -59,7 +61,12 @@ public class HttpConfigurer {
                         log.log(Level.FINE, String.format("Http validate auth [ principal=%s, credentials=%s, data=%s ]", authentication.getPrincipal(), authentication.getCredentials(), authentication));
                         List<Role> roles = this.userService.validateUser(String.valueOf(authentication.getPrincipal()), String.valueOf(authentication.getCredentials()));
                         if (roles != null && !roles.isEmpty()) {
-                            return Mono.just(new UsernamePasswordAuthenticationToken(authentication.getPrincipal(), authentication.getCredentials(), roles.stream().map(Role::getAccessRights).toList().stream().flatMap(Collection::stream).toList().stream().map(s -> new SimpleGrantedAuthority(s.name())).distinct().toList()));
+                            return Mono.just(new UsernamePasswordAuthenticationToken(authentication.getPrincipal(),
+                                    authentication.getCredentials(),
+                                    roles.stream().map(Role::getAccessRights)
+                                            .collect(Collectors.toList()).stream().flatMap(Collection::stream)
+                                            .collect(Collectors.toList()).stream().map(s -> new SimpleGrantedAuthority(s.name())).distinct()
+                                            .collect(Collectors.toList())));
                         } else {
                             return Mono.just(authentication);
                         }

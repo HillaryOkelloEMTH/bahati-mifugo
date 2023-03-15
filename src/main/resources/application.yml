@@ -18,8 +18,6 @@ spring:
 
       ddl-auto: update
     show-sql: false
-  main:
-    web-application-type: reactive
 
 
 #  mvc:
@@ -28,8 +26,14 @@ spring:
   banner:
     location: classpath:static/banner.txt
 
-
-
-
 pagination:
   pageSize: 10
+
+
+
+#logging:
+#  level:
+#    org.springframework.web: DEBUG
+#    org.hibernate: ERROR
+#debug: true
+

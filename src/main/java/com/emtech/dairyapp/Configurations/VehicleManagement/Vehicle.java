@@ -1,4 +1,4 @@
-package com.emtech.dairyapp.Configurations.County;
+package com.emtech.dairyapp.Configurations.VehicleManagement;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -16,13 +16,16 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-public class County {
+public class Vehicle {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    private String name;
-    private String code;
+    @GeneratedValue(strategy= GenerationType.IDENTITY)
+    private  Long id;
+    private String type;
+    private String regNo;
+    private String assignmentStatus;
+    private String assignedTo;
+    private Date assignmentDate;
     private Date createdAt;
 
 

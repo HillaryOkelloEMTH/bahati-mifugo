@@ -17,8 +17,6 @@ public class SubcountyController {
     @Autowired
     private SubcountyService subcountyService;
 
-
-
     @PostMapping("add")
     public ResponseEntity<EntityResponse> addSubcounty(@RequestBody Subcounty subcounty){
         log.info("receiving request ...");
@@ -28,21 +26,28 @@ public class SubcountyController {
 
 
     @GetMapping("fetch")
-    public ResponseEntity<?> getCostituencies(@RequestParam Integer pageNo){
-        EntityResponse response = subcountyService.getSubcounty(pageNo);
+    public ResponseEntity<?> getSubcounty(){
+        EntityResponse response = subcountyService.getSubcounty();
         return  ResponseEntity.ok().body(response);
     }
 
     @PutMapping("update")
-    public ResponseEntity<?> updateCostituencies(@RequestBody Subcounty subcounty){
+    public ResponseEntity<?> updateSubcounty(@RequestBody Subcounty subcounty){
         EntityResponse response = subcountyService.update(subcounty);
         return  ResponseEntity.ok().body(response);
     }
 
     @GetMapping("{id}")
-    public ResponseEntity<?> GetCostituencyById(@PathVariable Long id){
+    public ResponseEntity<?> GetSubcountyById(@PathVariable Long id){
         EntityResponse response = subcountyService.getSubcounty(id);
         return  ResponseEntity.ok().body(response);
+    }
+    @DeleteMapping("{id}")
+    public ResponseEntity<EntityResponse> deleteSubcountyById(@PathVariable Long id) {
+
+        EntityResponse response = subcountyService.deleteSubCounty(id);
+        return ResponseEntity.ok().body(response);
+
     }
 
 }

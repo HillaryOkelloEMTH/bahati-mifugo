@@ -11,4 +11,6 @@ public interface WardRepo extends JpaRepository<Ward,Long> {
 
     @Query(value = "select * from ward where subcounty_id= :subcounty_id",nativeQuery = true)
     List<Ward> findBySubcounty(Long subcounty_id);
+
+    boolean existsByName(String name);
 }
