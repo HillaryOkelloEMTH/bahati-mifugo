@@ -42,6 +42,17 @@ public class PickUpLocationController {
         EntityResponse response = service.getPickUpLocationById(id);
         return  ResponseEntity.ok().body(response);
     }
+    @DeleteMapping("{id}")
+    public ResponseEntity<?> deletePickupById(@PathVariable Long id){
+        EntityResponse response = service.deletePickUpLocationById(id);
+        return  ResponseEntity.ok().body(response);
+    }
+
+    @GetMapping("{username}/{wardId}")
+    public ResponseEntity<?> GetpickupById(@PathVariable String username,@PathVariable Long wardId){
+        EntityResponse response = service.getPickUpLocationByUsernameandWard(username,wardId);
+        return  ResponseEntity.ok().body(response);
+    }
 
 
 }
