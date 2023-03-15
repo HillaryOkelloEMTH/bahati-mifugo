@@ -38,10 +38,10 @@ public class UserService {
 
 
 
-    public List<Role> validateUser(@NonNull String email, @NonNull String password) {
+    public List<Role> validateUser(@NonNull String username) {
         List<Role> roles = new ArrayList<>();
 
-        this.userRepository.findByEmail(email.trim().toLowerCase()).ifPresent(user -> {
+        this.userRepository.findByUsername(username.trim()).ifPresent(user -> {
             if (user.getStatus() == "Active") {
                 roles.addAll(this.userRoles(user, true));
             }
