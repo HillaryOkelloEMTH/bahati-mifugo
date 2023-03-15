@@ -2,7 +2,6 @@ package com.emtech.dairyapp.Auth.Utilities;
 
 
 import com.emtech.dairyapp.Auth.Data.User.UserData;
-import com.emtech.dairyapp.Auth.User.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -50,16 +49,15 @@ public class JWTUtil {
     public String generateToken(UserData user) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", user.getRoles());
-        return doGenerateToken(claims, user.getUsername());
+        return doGenerateToken(user.getUsername());
     }
 
-    private String doGenerateToken(Map<String, Object> claims, String username) {
+    private String doGenerateToken(String username) {
         Long expirationTimeLong = Long.parseLong(expirationTime); //in second
         final Date createdDate = new Date();
         final Date expirationDate = new Date(createdDate.getTime() + expirationTimeLong * 1000);
 
         return Jwts.builder()
-                .setClaims(claims)
                 .setSubject(username)
                 .setIssuedAt(createdDate)
                 .setExpiration(expirationDate)

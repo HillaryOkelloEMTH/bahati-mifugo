@@ -51,7 +51,7 @@ public class SecurityContextRepository implements ServerSecurityContextRepositor
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             authToken = authHeader.substring(7);
         }else {
-            log.log(Level.WARNING, String.format("couldn't find bearer string, will ignore the header."));
+//            log.log(Level.WARNING, String.format("couldn't find bearer string, will ignore the header."));
         }
         if (authToken != null) {
             Authentication auth = new UsernamePasswordAuthenticationToken(authToken, authToken);

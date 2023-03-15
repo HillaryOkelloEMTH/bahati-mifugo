@@ -1,9 +1,12 @@
 package com.emtech.dairyapp.Auth.User;
 
+import com.emtech.dairyapp.Auth.Data.Http.Request.Auth.AuthRequest;
 import com.emtech.dairyapp.Auth.Data.Http.Request.Auth.UserCreateRequest;
+import com.emtech.dairyapp.Auth.Data.Http.Response.Auth.AuthResponse;
 import com.emtech.dairyapp.Auth.Data.Http.Response.Auth.RecordCreateResponse;
 import com.emtech.dairyapp.Auth.Data.Http.Response.Auth.UserResponse;
 import com.emtech.dairyapp.Auth.Data.User.UserData;
+import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -11,7 +14,9 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.logging.Level;
 
+@Log
 @RestController
 @RequestMapping(path = "/api/v1/users")
 public class UserController {
@@ -29,6 +34,23 @@ public class UserController {
             return ResponseEntity.ok().body(RecordCreateResponse.builder().message("User created successfully !").build());
         }else {
             return ResponseEntity.internalServerError().body(RecordCreateResponse.builder().message("Sorry, an error occurred").build());
+        }
+    }
+
+    @RequestMapping(
+            path = "/login",
+            method = RequestMethod.POST,
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest body){
+        log.log(Level.WARNING, String.format("User Credentials [credentials=%s]", body));
+        AuthResponse authResponse = this.userService.authenticateUser(body.getUsername(), body.getPassword());
+
+        if(authResponse != null){
+            return ResponseEntity.ok().body(authResponse);
+        }else {
+            return ResponseEntity.badRequest().build();
         }
     }
 
