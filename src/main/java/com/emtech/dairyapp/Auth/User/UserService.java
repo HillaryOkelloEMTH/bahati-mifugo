@@ -1,6 +1,5 @@
 package com.emtech.dairyapp.Auth.User;
 
-import com.emtech.dairyapp.Auth.Data.Http.Request.Auth.AuthRequest;
 import com.emtech.dairyapp.Auth.Data.Http.Response.Auth.AuthResponse;
 import com.emtech.dairyapp.Auth.Data.Http.Response.Auth.UserResponse;
 import com.emtech.dairyapp.Auth.Data.Role.RoleAccessRights;
@@ -18,7 +17,6 @@ import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.NonNull;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -59,7 +57,7 @@ public class UserService {
         List<Role> roles = new ArrayList<>();
 
         this.userRepository.findByUsername(username.trim()).ifPresent(user -> {
-            if (user.getStatus() == "Active") {
+            if (Objects.equals(user.getStatus(), "Active")) {
                 roles.addAll(this.userRoles(user, true));
             }
         });

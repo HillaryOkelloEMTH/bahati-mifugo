@@ -63,6 +63,10 @@ public class HttpConfigurer {
                 .pathMatchers(HttpMethod.POST, "/api/v1/**").permitAll()
                 .pathMatchers(HttpMethod.PUT, "/api/v1/**").permitAll()
                 .pathMatchers(HttpMethod.DELETE, "/api/v1/**").permitAll()
+                .pathMatchers(HttpMethod.GET, "/admin/api/v1/**").permitAll()
+                .pathMatchers(HttpMethod.POST, "/admin/api/v1/**").permitAll()
+                .pathMatchers(HttpMethod.PUT, "/admin/api/v1/**").permitAll()
+                .pathMatchers(HttpMethod.DELETE, "/admin/api/v1/**").permitAll()
                 .anyExchange()
                 .authenticated();
         return http.build();
