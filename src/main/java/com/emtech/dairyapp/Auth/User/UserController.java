@@ -1,6 +1,7 @@
 package com.emtech.dairyapp.Auth.User;
 
 import com.emtech.dairyapp.Auth.Data.Http.Request.Auth.AuthRequest;
+import com.emtech.dairyapp.Auth.Data.Http.Request.Auth.UpdateUserPasswordRequest;
 import com.emtech.dairyapp.Auth.Data.Http.Request.Auth.UserCreateRequest;
 import com.emtech.dairyapp.Auth.Data.Http.Response.Auth.AuthResponse;
 import com.emtech.dairyapp.Auth.Data.Http.Response.Auth.RecordCreateResponse;
@@ -10,6 +11,7 @@ import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.NonNull;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
@@ -51,6 +53,22 @@ public class UserController {
     public Mono<ResponseEntity<RecordCreateResponse>> updateUser(@RequestBody UserCreateRequest body, @PathVariable Long userId){
         if(this.userService.updateUser(userId, body.getUsername(), body.getFirstName(), body.getLastName(), body.getEmail(), body.getRole())){
             return Mono.just(ResponseEntity.ok().body(RecordCreateResponse.builder().message("User updated successfully !").build()));
+        }else {
+            return Mono.just(ResponseEntity.internalServerError().body(RecordCreateResponse.builder().message("Sorry, an error occurred").build()));
+        }
+    }
+
+    //    @PreAuthorize(value = "hasAuthority('UPDATE_USER')")
+    @RequestMapping(
+            path = "/update-user-password",
+            method = RequestMethod.PUT,
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+
+    public Mono<ResponseEntity<RecordCreateResponse>> updateUserPassword(@RequestBody UpdateUserPasswordRequest body){
+        if(this.userService.updateUserPassword(body.getUsername(), body.getPassword())){
+            return Mono.just(ResponseEntity.ok().body(RecordCreateResponse.builder().message("User password updated successfully !").build()));
         }else {
             return Mono.just(ResponseEntity.internalServerError().body(RecordCreateResponse.builder().message("Sorry, an error occurred").build()));
         }
@@ -119,7 +137,7 @@ public class UserController {
         }
     }
 
-    @PreAuthorize(value = "hasAuthority('VIEW_USERS')")
+//    @PreAuthorize(value = "hasAuthority('VIEW_USERS')")
     @RequestMapping(
             path = "/all-accounts",
             method = RequestMethod.GET,
