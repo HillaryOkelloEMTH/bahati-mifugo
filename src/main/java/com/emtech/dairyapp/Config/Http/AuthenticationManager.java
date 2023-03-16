@@ -1,6 +1,7 @@
 package com.emtech.dairyapp.Config.Http;
 
 
+
 import com.emtech.dairyapp.Auth.Role.Role;
 import com.emtech.dairyapp.Auth.User.UserService;
 import com.emtech.dairyapp.Auth.Utilities.JWTUtil;
@@ -62,8 +63,8 @@ public class AuthenticationManager implements ReactiveAuthenticationManager {
                 return Mono.just(new UsernamePasswordAuthenticationToken(authentication.getPrincipal(),
                         authentication.getCredentials(),
                         roles.stream().map(Role::getAccessRights)
-                                .toList().stream().flatMap(Collection::stream)
-                                .toList().stream().map(s -> new SimpleGrantedAuthority(s.name())).distinct()
+                                .collect(Collectors.toList()).stream().flatMap(Collection::stream)
+                                .collect(Collectors.toList()).stream().map(s -> new SimpleGrantedAuthority(s.name())).distinct()
                                 .collect(Collectors.toList())));
             } else {
                 return Mono.just(authentication);
