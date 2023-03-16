@@ -13,13 +13,15 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections,Long> 
 
 
     List<MilkCollections> findByMember(Long memberId);
-    List<MilkCollections> findByCollectionDateAndAndCollectorId(Date collection_date,Long collectorId);
+
+    @Query(value = "select * from collections c where c.collector_id =:collector_id and c.collection_date = :collectionDate",nativeQuery = true)
+    List<MilkCollections> fetchByCollectorandDate(Long collector_id,String collectionDate);
 
 
 
-//    @Query(value = "",nativeQuery = true)
-//    List<MilkCollections>
-//    List<MilkCollections> getCollectionsByDate(Long collectorId,Date from,Date to);
+
+    @Query(value = "select * from collections c join farmer f on f.id =c.member where c.collector_id =:collector_id and collection_date BETWEEN :from and :to ;",nativeQuery = true)
+    List<MilkCollections> getCollectionsByDate(Long collector_id,String from,String to);
 
 
 
