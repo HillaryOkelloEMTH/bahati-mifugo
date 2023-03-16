@@ -11,13 +11,10 @@ import java.util.List;
 public interface MilkCollectionRepo extends JpaRepository<MilkCollections,Long> {
 
 
-
     List<MilkCollections> findByMember(Long memberId);
 
     @Query(value = "select * from collections c where c.collector_id =:collector_id and c.collection_date = :collectionDate",nativeQuery = true)
     List<MilkCollections> fetchByCollectorandDate(Long collector_id,String collectionDate);
-
-
 
 
     @Query(value = "select * from collections c join farmer f on f.id =c.member where c.collector_id =:collector_id and collection_date BETWEEN :from and :to ;",nativeQuery = true)
