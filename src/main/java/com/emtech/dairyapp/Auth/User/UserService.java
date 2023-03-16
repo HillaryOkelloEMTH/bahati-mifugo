@@ -213,6 +213,43 @@ public class UserService {
         return res.get();
     }
 
+    public boolean updateUserPassword(@NonNull String username, @NonNull String password){
+        AtomicBoolean res = new AtomicBoolean();
+
+        this.userRepository.findByUsername(username).ifPresentOrElse(userData -> {
+
+            if(Objects.equals(userData.getStatus(), "Active")){
+                AtomicReference<User> user = new AtomicReference<>(userData);
+
+                user.get().setPassword(passwordUtil.encode(password));
+
+                user.set(this.userRepository.save(user.get()));
+
+                try {
+                    SendCredentialToMail sm = new SendCredentialToMail();
+
+                    log.log(Level.INFO, String.format("User Email [ %s ]", user.get().getEmail()));
+
+                    sm.sendMail(user.get().getEmail(), user.get().getUsername(), password);
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                res.set(true);
+            }else {
+                /* todo:: User not active  */
+            }
+
+
+
+        }, () -> {
+            /* todo:: User not found  */
+        });
+
+        return res.get();
+    }
+
     public boolean logoutUser(@NonNull Long userId, @NonNull Integer status){
         AtomicBoolean res = new AtomicBoolean();
 
@@ -431,6 +468,46 @@ public class UserService {
 
             response.set(UserResponse.builder().userData(usersResponse).build());
         }
+
+        return response.get();
+    }
+
+    public AuthResponse forgotPassword(@NonNull String username, @NonNull String password){
+        AtomicReference<AuthResponse> response = new AtomicReference<>();
+
+        userRepository.findByUsername(username).ifPresentOrElse(user -> {
+            log.log(Level.INFO, String.format("User Credentials [credentials=%s]", user));
+
+            if (Objects.equals(user.getStatus(), "Active")){
+                log.log(Level.INFO, String.format("User Credentials [credentials=%s]", user));
+                log.log(Level.INFO, String.format("Encode Password [credentials=%s] ", passwordUtil.matches(password, user.getPassword())));
+                if(passwordUtil.matches(password, user.getPassword())){
+                    log.log(Level.INFO, String.format("Inside password encryption]"));
+                    UserData userData = getUserDetails(user.getId());
+
+                    log.log(Level.INFO, String.format("User Data Details [ %s ]", userData.toString()));
+
+                    String token = jwtUtil.generateToken(userData);
+
+                    AuthResponse authResponse = AuthResponse.builder()
+                            .token(token)
+                            .id(userData.getId())
+                            .username(userData.getUsername())
+                            .mobile(userData.getMobile())
+                            .roles(userData.getRoles())
+                            .build();
+
+                    response.set(authResponse);
+                }else{
+                    /* todo:: Provided an invalid password  */
+                }
+
+            }else{
+                /* todo:: User account not active  */
+            }
+        }, () -> {
+            /* todo:: user not found  */
+        });
 
         return response.get();
     }

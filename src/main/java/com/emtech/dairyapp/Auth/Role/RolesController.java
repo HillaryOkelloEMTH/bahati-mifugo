@@ -117,7 +117,7 @@ public class RolesController {
        }
     }
 
-    @PreAuthorize(value = "hasAuthority('VIEW_ROLES')")
+//    @PreAuthorize(value = "hasAuthority('VIEW_ROLES')")
     @RequestMapping(
             path = "{roleId}",
             method = RequestMethod.GET,
@@ -133,7 +133,7 @@ public class RolesController {
         }
     }
 
-    @PreAuthorize(value = "hasAuthority('VIEW_ROLES')")
+//    @PreAuthorize(value = "hasAuthority('VIEW_ROLES')")
     @RequestMapping(
             path = "/active-roles",
             method = RequestMethod.GET,
@@ -149,7 +149,7 @@ public class RolesController {
         }
     }
 
-    @PreAuthorize(value = "hasAuthority('VIEW_ROLES')")
+//    @PreAuthorize(value = "hasAuthority('VIEW_ROLES')")
     @RequestMapping(
             path = "/inactive-roles",
             method = RequestMethod.GET,
