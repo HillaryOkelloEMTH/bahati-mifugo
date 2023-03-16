@@ -7,6 +7,7 @@ import com.emtech.dairyapp.Auth.Utilities.JWTUtil;
 import io.jsonwebtoken.Claims;
 import lombok.AllArgsConstructor;
 import lombok.extern.java.Log;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -23,8 +24,11 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @Log
 public class AuthenticationManager implements ReactiveAuthenticationManager {
+
+    @Autowired
     private UserService userService;
 
+    @Autowired
     private JWTUtil jwtUtil;
 
     @Override
@@ -43,15 +47,18 @@ public class AuthenticationManager implements ReactiveAuthenticationManager {
 //                            rolesMap.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList())
 //                    );
 //                });
-        if (authentication != null && authentication.getCredentials() != null) {
-            log.log(Level.FINE, String.format("Http validate auth [credentials=%s, data=%s ]",  authentication.getCredentials(), authentication));
+        log.log(Level.FINE, String.format("Http validate auth [ Principal=%s ]",  authentication.getPrincipal()));
 
-            String authToken = authentication.getCredentials().toString();
+        if (authentication.getPrincipal() != null) {
+            log.log(Level.FINE, String.format("Http validate auth [ Principal=%s, ]",  authentication.getPrincipal()));
+
+            String authToken = authentication.getPrincipal().toString();
 
             String username = jwtUtil.getUsernameFromToken(authToken);
 
             List<Role> roles = this.userService.validateUser(username);
             if (roles != null && !roles.isEmpty()) {
+                log.log(Level.WARNING, String.format("Authenticated user roles [ %s ] ", roles));
                 return Mono.just(new UsernamePasswordAuthenticationToken(authentication.getPrincipal(),
                         authentication.getCredentials(),
                         roles.stream().map(Role::getAccessRights)

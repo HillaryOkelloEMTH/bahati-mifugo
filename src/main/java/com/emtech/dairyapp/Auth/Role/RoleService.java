@@ -30,7 +30,12 @@ public class RoleService {
         UPDATE_USER("Update user"),
         ACTIVATE_USER("Activate user"),
         DEACTIVATE_USER("Deactivate user"),
-        ASSIGN_ROLE("Assign role");
+        DELETE_USER("Update user"),
+        ASSIGN_ROLE("Assign role"),
+        VIEW_ROLES("View roles"),
+        CREATE_ROLE("Create role"),
+        UPDATE_ROLE("Update role"),
+        DELETE_ROLE("Delete role");
         private final String name;
         AccessRight(String name) {
             this.name = name;
