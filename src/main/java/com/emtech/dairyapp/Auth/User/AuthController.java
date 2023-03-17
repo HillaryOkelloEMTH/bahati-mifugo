@@ -16,7 +16,9 @@ import reactor.core.publisher.Mono;
 import java.util.logging.Level;
 
 @Log
+
 @CrossOrigin
+
 @RestController
 @RequestMapping(path = "/api/v1/authentication")
 public class AuthController {
