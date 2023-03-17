@@ -3,6 +3,7 @@ package com.emtech.dairyapp.Config.Http;
 
 import com.emtech.dairyapp.Auth.User.UserService;
 import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,10 +20,19 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.savedrequest.NoOpServerRequestCache;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.reactive.CorsWebFilter;
+import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
+import org.springframework.web.reactive.config.CorsRegistry;
 import reactor.core.publisher.Mono;
 
+import java.util.logging.Level;
+
 @Log
-//@Configuration
+@Slf4j
+@Configuration
 @EnableWebFluxSecurity
 @EnableReactiveMethodSecurity
 public class HttpConfigurer {
@@ -36,11 +46,15 @@ public class HttpConfigurer {
     @Autowired
     private SecurityContextRepository securityContextRepository;
 
+
+
+
     @Bean
     @Primary
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
         http.exceptionHandling()
                 .authenticationEntryPoint((swe, e) -> {
+                    log.log(Level.INFO,e.getMessage());
                     swe.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
                     throw new AccessDeniedException(String.format("%s Unauthorized access denied", HttpStatus.UNAUTHORIZED.value()));
                 })

@@ -14,7 +14,7 @@ import reactor.core.publisher.Mono;
 import java.util.logging.Level;
 
 @Log
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "http://localhost:4200")
 @RestController
 @RequestMapping(path = "/api/v1/authentication")
 public class AuthController {

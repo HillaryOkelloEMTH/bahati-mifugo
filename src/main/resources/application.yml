@@ -1,7 +1,7 @@
 server:
   error:
     include-message: always
-  port: 9600
+  port: 9700
 
 spring:
   datasource:
