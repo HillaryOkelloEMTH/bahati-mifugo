@@ -46,15 +46,11 @@ public class HttpConfigurer {
     @Autowired
     private SecurityContextRepository securityContextRepository;
 
-
-
-
     @Bean
     @Primary
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
         http.exceptionHandling()
                 .authenticationEntryPoint((swe, e) -> {
-                    log.log(Level.INFO,e.getMessage());
                     swe.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
                     throw new AccessDeniedException(String.format("%s Unauthorized access denied", HttpStatus.UNAUTHORIZED.value()));
                 })
