@@ -19,7 +19,16 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -48,8 +57,8 @@ public class UserService {
     @Autowired
     private PasswordUtil passwordUtil;
 
-    @Value("${jwt.password.encoder.secret}")
-    private String passwordSecret;
+    @Value("${jwt.password.token.expirationMs}")
+    private String resetPasswordTokenExpiration;
 
 
 
@@ -144,7 +153,7 @@ public class UserService {
 
             if (Objects.equals(user.getStatus(), "Active")){
                 log.log(Level.INFO, String.format("User Credentials [credentials=%s]", user));
-                log.log(Level.INFO, String.format("Encode Password [credentials=%s] ", passwordUtil.matches(password, user.getPassword())));
+                log.log(Level.INFO, String.format("Encoded Password: [credentials=%s] User Password: [ password=%s ]", passwordUtil.encode(password), user.getPassword()));
                 if(passwordUtil.matches(password, user.getPassword())){
                     log.log(Level.INFO, String.format("Inside password encryption]"));
                     UserData userData = getUserDetails(user.getId());
@@ -164,13 +173,18 @@ public class UserService {
                     response.set(authResponse);
                 }else{
                     /* todo:: Provided an invalid password  */
+
+                    log.log(Level.WARNING, String.format("Password do not match"));
                 }
 
             }else{
                 /* todo:: User account not active  */
+
+                log.log(Level.WARNING, String.format("User account not active"));
             }
         }, () -> {
             /* todo:: user not found  */
+            log.log(Level.WARNING, String.format("User with the username not found"));
         });
 
         return response.get();
@@ -472,35 +486,35 @@ public class UserService {
         return response.get();
     }
 
-    public AuthResponse forgotPassword(@NonNull String username, @NonNull String password){
-        AtomicReference<AuthResponse> response = new AtomicReference<>();
+    public boolean forgotPassword(@NonNull String username){
+        AtomicBoolean res = new AtomicBoolean();
 
         userRepository.findByUsername(username).ifPresentOrElse(user -> {
-            log.log(Level.INFO, String.format("User Credentials [credentials=%s]", user));
-
             if (Objects.equals(user.getStatus(), "Active")){
-                log.log(Level.INFO, String.format("User Credentials [credentials=%s]", user));
-                log.log(Level.INFO, String.format("Encode Password [credentials=%s] ", passwordUtil.matches(password, user.getPassword())));
-                if(passwordUtil.matches(password, user.getPassword())){
-                    log.log(Level.INFO, String.format("Inside password encryption]"));
-                    UserData userData = getUserDetails(user.getId());
+                UserData userData =  getUserDetails(user.getId());
+                String resetPasswordToken = jwtUtil.generateToken(userData);
+                AtomicReference<User> data = new AtomicReference<>(user);
+                Instant tokenExpirationTime = Instant.now().plusMillis(Long.parseLong(resetPasswordTokenExpiration));
 
-                    log.log(Level.INFO, String.format("User Data Details [ %s ]", userData.toString()));
+                data.get().setResetPasswordToken(resetPasswordToken);
+                data.get().setResetPasswordTokenExpire(Timestamp.from(tokenExpirationTime));
 
-                    String token = jwtUtil.generateToken(userData);
+                data.set(this.userRepository.save(data.get()));
 
-                    AuthResponse authResponse = AuthResponse.builder()
-                            .token(token)
-                            .id(userData.getId())
-                            .username(userData.getUsername())
-                            .mobile(userData.getMobile())
-                            .roles(userData.getRoles())
-                            .build();
+                String resetPasswordUrl = "http://localhost:4200/auth/reset-password" + resetPasswordToken;
 
-                    response.set(authResponse);
-                }else{
-                    /* todo:: Provided an invalid password  */
+                try {
+                    SendCredentialToMail sm = new SendCredentialToMail();
+
+                    log.log(Level.INFO, String.format("User Email [ %s ]", data.get().getEmail()));
+
+                    sm.sendPassWordReset(data.get().getEmail(), resetPasswordUrl);
+
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
+
+                res.set(true);
 
             }else{
                 /* todo:: User account not active  */
@@ -509,6 +523,61 @@ public class UserService {
             /* todo:: user not found  */
         });
 
-        return response.get();
+        return res.get();
+    }
+
+    public boolean resetPassword(@NonNull String resetPasswordToken, @NonNull String password){
+        AtomicBoolean res = new AtomicBoolean();
+
+        String username = jwtUtil.getUsernameFromToken(resetPasswordToken);
+
+        if(username != null && !username.isEmpty()){
+            userRepository.findByUsername(username).ifPresentOrElse(user -> {
+                if (Objects.equals(user.getStatus(), "Active")){
+                    AtomicReference<User> data = new AtomicReference<>(user);
+                    try {
+                        LocalDateTime tokenExpiryTime = convertTimestampToLocalDateTime(user.getResetPasswordTokenExpire(), "dd-MMM-yyyy HH:mm:ss");
+
+                        log.log(Level.INFO, String.format("Compare Password Reset Token Time  To Current Time [ %s ]", LocalDateTime.now().isAfter(tokenExpiryTime)));
+                        if(LocalDateTime.now().isAfter(tokenExpiryTime)){
+                            data.get().setResetPasswordToken(null);
+                            data.get().setResetPasswordTokenExpire(null);
+                            /* todo:: Password reset token has expired  */
+                        }else{
+                            data.get().setPassword( passwordUtil.encode(password));
+                            data.get().setResetPasswordToken(null);
+                            data.get().setResetPasswordTokenExpire(null);
+
+                            data.set(userRepository.save(data.get()));
+
+                            res.set(true);
+                        }
+                    } catch (ParseException e) {
+                        throw new RuntimeException(e);
+                    }
+                }else{
+                    /* todo:: User account not active  */
+                }
+            }, () -> {
+                /* todo:: user not found  */
+            });
+        }
+        return res.get();
+    }
+
+    public static LocalDateTime convertTimestampToLocalDateTime(Timestamp timestamp, String format) throws ParseException {
+        SimpleDateFormat sdf = new SimpleDateFormat(format);
+        log.log(Level.INFO, String.format("Token Expiry Time [ Time=%s]", timestamp));
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MMM-yyyy HH:mm:ss")
+                .withZone(ZoneId.systemDefault());
+
+        String timestampAsString = formatter.format(timestamp.toInstant());
+        System.out.println(timestampAsString);
+
+        Date date = sdf.parse(timestampAsString);
+        Instant instant = date.toInstant();
+        ZoneId zoneId = ZoneId.systemDefault();
+        return LocalDateTime.ofInstant(instant, zoneId);
     }
 }

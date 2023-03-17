@@ -159,7 +159,7 @@ public class SendCredentialToMail {
 
 
     //Send Password reset details
-    public void sendPassWordReset(String recipient,int token) throws MessagingException, IOException {
+    public void sendPassWordReset(String recipient,String token) throws MessagingException, IOException {
         Properties props = new Properties();
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");

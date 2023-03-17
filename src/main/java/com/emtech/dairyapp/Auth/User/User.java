@@ -68,4 +68,11 @@ public class User implements Serializable {
 
     @Column(name = "login_status")
     private Integer isLoggedIn;
+
+    @Column(name = "reset_password_token")
+    private String resetPasswordToken;
+
+    @JsonFormat(pattern = "dd-MMM-yyyy HH:mm:ss")
+    @Column(name = "reset_password_token_expire")
+    private Timestamp resetPasswordTokenExpire;
 }
