@@ -57,6 +57,22 @@ public class MilkCollectionController {
         EntityResponse response = collectionService.getCollectionsByCollectorAndDate(collectorId,from,to);
         return ResponseEntity.ok().body(response);
     }
-    
-    
+
+    @GetMapping("collector")
+    public ResponseEntity<EntityResponse> getCollectionsByCollectors(@RequestParam Long collectorId){
+        EntityResponse response = collectionService.getCollectionsByColelctor(collectorId);
+        return ResponseEntity.ok().body(response);
+    }
+    @GetMapping("collections/tracking")
+    public ResponseEntity<EntityResponse> getCollectionsTrackers(){
+        EntityResponse response = collectionService.collectionsTracker();
+        return ResponseEntity.ok().body(response);
+    }
+
+    @GetMapping("collections/today")
+    public ResponseEntity<EntityResponse> getDailyCollections(){
+        EntityResponse response = collectionService.collectionsDailyRecords();
+        return ResponseEntity.ok().body(response);
+    }
+
 }
