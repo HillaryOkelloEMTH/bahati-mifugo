@@ -2,12 +2,15 @@ package com.emtech.dairyapp.Dairy.Supply;
 
 import com.emtech.dairyapp.Configurations.ProductConfig.ProductConfig;
 import com.emtech.dairyapp.Configurations.ProductConfig.ProductConfigRepo;
+import com.emtech.dairyapp.Dairy.FloatTracking.FloatManager;
+import com.emtech.dairyapp.Dairy.FloatTracking.FloatManagerRepo;
+import com.emtech.dairyapp.Dairy.Interface.CollectionTracker;
+import com.emtech.dairyapp.Dairy.Interface.DailyRecords;
 import com.emtech.dairyapp.Response.EntityResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,11 +21,13 @@ public class MilkCollectionService {
 
     private final MilkCollectionRepo milkCollectionRepo;
     private final ProductConfigRepo productConfigRepo;
+    private final FloatManagerRepo floatManagerRepo;
 
 
-    public MilkCollectionService(MilkCollectionRepo milkCollectionRepo, ProductConfigRepo productConfigRepo) {
+    public MilkCollectionService(MilkCollectionRepo milkCollectionRepo, ProductConfigRepo productConfigRepo, FloatManagerRepo floatManagerRepo) {
         this.milkCollectionRepo = milkCollectionRepo;
         this.productConfigRepo = productConfigRepo;
+        this.floatManagerRepo = floatManagerRepo;
     }
 
 
@@ -43,6 +48,13 @@ public class MilkCollectionService {
                 collections.setAmount(totalAmount);
                 collections.setCurrentPrice(buyingPrice);
 
+                FloatManager manager = floatManagerRepo.findByCollectorId(collections.getCollectorId());
+                Double famount= manager.getFloatAmount();
+                Double balance = famount-totalAmount;
+                manager.setBalance(balance);
+
+                floatManagerRepo.save(manager);
+
             }else {
                 log.info("selling event");
 
@@ -53,12 +65,6 @@ public class MilkCollectionService {
                 response.setMessage(HttpStatus.OK.getReasonPhrase());
 
             }
-
-
-
-
-
-
 
             MilkCollections c= milkCollectionRepo.save(collections);
             response.setStatusCode(HttpStatus.OK.value());
@@ -96,6 +102,8 @@ public class MilkCollectionService {
 
         EntityResponse response = new EntityResponse();
         try {
+
+
 
             MilkCollections cdata = milkCollectionRepo.save(collections);
             response.setStatusCode(HttpStatus.OK.value());
@@ -192,7 +200,60 @@ public class MilkCollectionService {
         }
         return response;
     }
-//
+
+    public EntityResponse getCollectionsByColelctor(Long collectorId){
+
+        EntityResponse response = new EntityResponse();
+        try {
+
+            List<MilkCollections> farmerrecord= milkCollectionRepo.findByCollectorId(collectorId);
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(farmerrecord);
+            response.setMessage(HttpStatus.OK.getReasonPhrase());
+
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+        }
+        return response;
+    }
+    public EntityResponse collectionsTracker(){
+
+        EntityResponse response = new EntityResponse();
+        try {
+
+            List<CollectionTracker> colelctionRecords= milkCollectionRepo.getCollectionTracker();
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(colelctionRecords);
+            response.setMessage(HttpStatus.OK.getReasonPhrase());
+
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+        }
+        return response;
+    }
+    public EntityResponse collectionsDailyRecords(){
+
+        EntityResponse response = new EntityResponse();
+        try {
+
+            List<DailyRecords> todaysCollections= milkCollectionRepo.getTodaysCollections();
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(todaysCollections);
+            response.setMessage(HttpStatus.OK.getReasonPhrase());
+
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+        }
+        return response;
+    }
+
+
 
 }
 

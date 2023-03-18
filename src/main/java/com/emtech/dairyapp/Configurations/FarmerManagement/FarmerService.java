@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 
 @Service
 @Slf4j
@@ -18,6 +19,17 @@ public class FarmerService {
 
 
     private final FarmerRepo farmerRepo;
+
+
+    public static String generatecSystemCode(int len) {
+        String chars = "01234567890GOODWAY";
+        Random rnd = new Random();
+        String S = "S";
+        StringBuilder sb = new StringBuilder(len);
+        for (int i = 0; i < 10; i++)
+            sb.append(chars.charAt(rnd.nextInt(chars.length()))).toString();
+        return S + sb;
+    }
 
     public FarmerService(FarmerRepo farmerRepo) {
         this.farmerRepo = farmerRepo;
