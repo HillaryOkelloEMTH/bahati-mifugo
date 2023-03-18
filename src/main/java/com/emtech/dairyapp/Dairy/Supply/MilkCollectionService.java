@@ -235,7 +235,24 @@ public class MilkCollectionService {
         }
         return response;
     }
-    public EntityResponse collectionsDailyRecords(){
+    public EntityResponse collectionsDailyRecordsPerColelctor(){
+
+        EntityResponse response = new EntityResponse();
+        try {
+
+            List<DailyRecords> todaysCollections= milkCollectionRepo.getTodaysCollectionsPerCollector();
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(todaysCollections);
+            response.setMessage(HttpStatus.OK.getReasonPhrase());
+
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+        }
+        return response;
+    }
+    public EntityResponse collectionsTodayRecords(){
 
         EntityResponse response = new EntityResponse();
         try {
