@@ -69,9 +69,14 @@ public class MilkCollectionController {
         return ResponseEntity.ok().body(response);
     }
 
-    @GetMapping("collections/today")
+    @GetMapping("collections/today/collector")
     public ResponseEntity<EntityResponse> getDailyCollections(){
-        EntityResponse response = collectionService.collectionsDailyRecords();
+        EntityResponse response = collectionService.collectionsDailyRecordsPerColelctor();
+        return ResponseEntity.ok().body(response);
+    }
+    @GetMapping("collections/today")
+    public ResponseEntity<EntityResponse> getTodayCollections(){
+        EntityResponse response = collectionService.collectionsTodayRecords();
         return ResponseEntity.ok().body(response);
     }
 
