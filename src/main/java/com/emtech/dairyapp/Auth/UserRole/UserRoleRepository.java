@@ -14,6 +14,8 @@ import java.util.Optional;
 public interface UserRoleRepository extends JpaRepository<UserRole, Long> {
     Optional<UserRole> findByUserAndRole(@NonNull User u, @NonNull Role r);
 
+    Optional<UserRole> findByUser(@NonNull User u);
+
     List<UserRole> findAllByUser(@NonNull User u);
 
  List<UserRole> findAllByUserAndStatus(@NonNull User user,  Integer s);

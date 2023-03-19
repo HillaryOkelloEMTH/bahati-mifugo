@@ -8,11 +8,13 @@ import com.emtech.dairyapp.Auth.Data.Http.Response.Auth.AuthResponse;
 import com.emtech.dairyapp.Auth.Data.Http.Response.Auth.RecordCreateResponse;
 import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
+import java.util.Objects;
 import java.util.logging.Level;
 
 @Log
@@ -52,10 +54,11 @@ public class AuthController {
     )
 
     public Mono<ResponseEntity<RecordCreateResponse>> updateUserPassword(@RequestBody UpdateUserPasswordRequest body){
-        if(this.userService.updateUserPassword(body.getUsername(), body.getPassword())){
-            return Mono.just(ResponseEntity.ok().body(RecordCreateResponse.builder().message("User password updated successfully !").build()));
+        RecordCreateResponse response = this.userService.updateUserPassword(body.getUsername(), body.getPreviousPassword(), body.getPassword());
+        if(!Objects.equals(response.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())){
+            return Mono.just(ResponseEntity.ok().body(response));
         }else {
-            return Mono.just(ResponseEntity.internalServerError().body(RecordCreateResponse.builder().message("Sorry, an error occurred").build()));
+            return Mono.just(ResponseEntity.internalServerError().body(response));
         }
     }
 
@@ -67,11 +70,30 @@ public class AuthController {
     )
 
     public Mono<ResponseEntity<RecordCreateResponse>> forgotPassword(@RequestBody ForgotPasswordRequest body){
-        if(this.userService.forgotPassword(body.getUsername())){
-            return Mono.just(ResponseEntity.ok().body(RecordCreateResponse.builder().message("Password reset token requested successfully !").build()));
-        }else {
-            return Mono.just(ResponseEntity.internalServerError().body(RecordCreateResponse.builder().message("Sorry, an error occurred").build()));
+        RecordCreateResponse message = null;
+        if(body.getUsername() != null && !body.getUsername().isEmpty()){
+            if(this.userService.forgotPassword(body.getUsername())){
+                message = RecordCreateResponse.builder().message("Password reset token requested successfully !").build();
+            }else {
+                message = RecordCreateResponse.builder().message("Sorry, an error occurred").build();
+            }
+        } else if (body.getEmail() != null && !body.getEmail().isEmpty()) {
+            if(this.userService.resetPasswordTokenRequestedByEmail(body.getEmail())){
+                message = RecordCreateResponse.builder().message("Password reset token requested successfully !").build();
+            }else {
+                message = RecordCreateResponse.builder().message("Sorry, an error occurred").build();
+            }
+        } else if (body.getMobile() != null && !body.getMobile().isEmpty()) {
+            if(this.userService.resetPasswordTokenRequestedByMobile(body.getMobile())){
+                message = RecordCreateResponse.builder().message("Password reset token requested successfully !").build();
+            }else {
+                message = RecordCreateResponse.builder().message("Sorry, an error occurred").build();
+            }
+        }else{
+            message = RecordCreateResponse.builder().message("Sorry, an error occurred").build();
         }
+
+        return Mono.just(ResponseEntity.ok().body(message));
     }
 
     @RequestMapping(

@@ -14,6 +14,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByEmail(@NonNull String e);
 
+    Optional<User> findByMobile(@NonNull String mobile);
+
     List<User> findByStatus(@NonNull String status);
 
     @Query(value = "select count(*) from  users",nativeQuery = true)

@@ -110,6 +110,8 @@ public class RoleService {
 
             res.set(true);
         }, () -> {
+            log.log(Level.SEVERE, String.format("Role with the id [ %s ] not active ", id));
+
             res.set(false);
         });
         return res.get();
@@ -175,7 +177,8 @@ public class RoleService {
             response.set(roleData);
 
         }, () -> {
-            /* todo:: role not found  */
+            log.log(Level.SEVERE, "Role not found ");
+
         });
 
         return response.get();
