@@ -87,7 +87,6 @@ public class RolesController {
     @RequestMapping(
             path = "/activate-role/{roleId}",
             method = RequestMethod.PUT,
-            consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     public Mono<ResponseEntity<RecordCreateResponse>>  activateRole(

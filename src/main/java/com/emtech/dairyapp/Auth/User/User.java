@@ -20,6 +20,7 @@ import java.sql.Timestamp;
 @Table(name = "users", uniqueConstraints = {
         @UniqueConstraint(name = "user_id", columnNames = {"id"}),
         @UniqueConstraint(name = "user_email", columnNames = {"email"}),
+        @UniqueConstraint(name = "User_mobile", columnNames = {"mobile"}),
         @UniqueConstraint(name = "user_name", columnNames = {"user_name"}),
 })
 

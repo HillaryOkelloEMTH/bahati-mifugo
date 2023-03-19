@@ -13,4 +13,7 @@ import java.io.Serializable;
 public class RecordCreateResponse implements Serializable {
     @Builder.Default
     private String message = HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase();
+
+    @Builder.Default
+    private Integer statusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
 }

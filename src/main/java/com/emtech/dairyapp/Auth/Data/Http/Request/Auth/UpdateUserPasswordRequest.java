@@ -11,6 +11,8 @@ import lombok.ToString;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UpdateUserPasswordRequest {
+    @JsonProperty(value = "previousPassword")
+    private String previousPassword;
     @JsonProperty(value = "username")
     private String username;
 

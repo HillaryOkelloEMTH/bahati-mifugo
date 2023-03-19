@@ -10,13 +10,10 @@ import lombok.ToString;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ForgotPasswordRequest {
+public class UpdateUserRoleRequest {
+    @JsonProperty(value = "roleId")
+    private Long roleId;
+
     @JsonProperty(value = "username")
-    private String username;
-
-    @JsonProperty(value = "mobile")
-    private String mobile;
-
-    @JsonProperty(value = "email")
-    private String email;
+    private  String username;
 }
