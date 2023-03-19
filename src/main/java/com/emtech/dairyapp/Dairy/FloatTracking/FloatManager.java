@@ -24,7 +24,7 @@ public class FloatManager {
     private Long collectorId;//collector id
     private Double floatAmount; //100000
 //    private Double floatBalance; //100000
-    private Double balance;//9000
+    private Double balance=0.0;//9000
     private Date date;
     private String allocatedBy;
 
