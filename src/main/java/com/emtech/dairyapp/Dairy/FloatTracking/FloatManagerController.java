@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @CrossOrigin
 @RestController
@@ -21,14 +22,26 @@ public class FloatManagerController {
 
     @PostMapping("allocate")
     public ResponseEntity<?> allocateAmount(@RequestBody FloatAllocationRequest request){
-        FloatManager manager = new FloatManager();
-        manager.setDate(new Date());
-        manager.setCollectorId(request.getCollectorId());
-        manager.setFloatAmount(request.getAllocationAmount());
-        floatManagerRepo.save(manager);
-
         EntityResponse response = new EntityResponse<>();
-        response.setEntity(manager);
+        Optional<FloatManager> manager = floatManagerRepo.findByCollectorId(request.getCollectorId());
+        if(manager.isPresent()) {
+            Double rmfloat = manager.get().getFloatAmount();
+            manager.get().setDate(new Date());
+            manager.get().setCollectorId(request.getCollectorId());
+            manager.get().setFloatAmount(request.getAllocationAmount()+rmfloat);
+            floatManagerRepo.save(manager.get());
+            response.setEntity(manager);
+        }else {
+            FloatManager newfm = new FloatManager();
+            newfm.setDate(new Date());
+            newfm.setCollectorId(request.getCollectorId());
+            newfm.setFloatAmount(request.getAllocationAmount());
+            floatManagerRepo.save(newfm);
+            response.setEntity(newfm);
+        }
+
+
+
         response.setMessage(HttpStatus.CREATED.getReasonPhrase());
         response.setStatusCode(HttpStatus.CREATED.value());
         return  ResponseEntity.ok().body(response);

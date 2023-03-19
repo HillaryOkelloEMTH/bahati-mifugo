@@ -28,21 +28,20 @@ public class MilkCollections {
     private Double currentPrice;
     private Date collectionDate=new Date();
 
-    //quantity
     private Double quantity=0.0;//litres
-    //quality percentage
     private Double proteinContent=0.0;
     private Double fatContent=0.0;
-    private Double temperature=0.0;
     private Double longitude;
     private Double latitude;
 
 
     private String remarks;
-    private String contaminationStatus;//
     private Double amount;
+    @Column(nullable = false)
     private Long collectorId;
+    @Column(nullable = false)
     private Long pickUpLocation;
+    @Column(nullable = false)
     private Long wardFk;
 
     private  Character status= CONSTANTS.NO;
