@@ -21,7 +21,7 @@ public class Subcounty {
     @Column(unique = true)
     private String name;
     private Long countyFk;
-    @OneToMany(targetEntity = Ward.class,cascade = CascadeType.ALL,fetch = FetchType.LAZY)
+    @OneToMany(targetEntity = Ward.class,cascade = CascadeType.ALL,fetch = FetchType.EAGER)
     @JoinColumn(name = "subcounty_id",referencedColumnName = "id")
     private List<Ward> wards;
 }

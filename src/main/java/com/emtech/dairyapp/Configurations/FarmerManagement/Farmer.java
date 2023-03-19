@@ -35,6 +35,7 @@ public class Farmer {
     private String alternativeMobileNo;
     private String memberType;
     private String address;
+    private String paymentFreequency;
 
     private Date createdAt=new Date();
     private Character deletedFlag;

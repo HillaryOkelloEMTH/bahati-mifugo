@@ -121,12 +121,14 @@ public class SubcountyService {
     }
 
     public EntityResponse getSubcounty(Long id) {
+        log.info("Receiving request ...");
         EntityResponse response = new EntityResponse<>();
         try {
             Optional<Subcounty> data = subcountyRepo.findById(id);
             if(data.isPresent()){
+                System.out.println(data.get());
                 response.setStatusCode(HttpStatus.OK.value());
-                response.setEntity(data);
+                response.setEntity(data.get());
                 response.setMessage(HttpStatus.OK.getReasonPhrase());
             }else {
                 response.setStatusCode(HttpStatus.NOT_FOUND.value());
