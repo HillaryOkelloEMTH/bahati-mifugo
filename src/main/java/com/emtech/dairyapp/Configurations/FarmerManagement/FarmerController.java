@@ -48,7 +48,16 @@ public class FarmerController {
         EntityResponse response = farmerService.fetchFarmersByward(wardId);
         return ResponseEntity.ok().body(response);
     }
-
+    @GetMapping("farmers/details")
+    public ResponseEntity<EntityResponse> getfarmerDetails(@RequestParam Long farmerId){
+        EntityResponse response = farmerService.fetchFarmerById(farmerId);
+        return ResponseEntity.ok().body(response);
+    }
+    @GetMapping("farmers/collector")
+    public ResponseEntity<EntityResponse> getfarmerByCollector(@RequestParam Long collectorId){
+        EntityResponse response = farmerService.fetchFarmerByCollector(collectorId);
+        return ResponseEntity.ok().body(response);
+    }
 
 
 }

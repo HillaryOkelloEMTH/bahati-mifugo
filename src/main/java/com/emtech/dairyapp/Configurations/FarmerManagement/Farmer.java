@@ -33,7 +33,8 @@ public class Farmer {
     @NotBlank @Column(precision = 0)
     private String mobileNo;
     private String alternativeMobileNo;
-    private String memberType;
+    private String memberType;//individual/group
+
     private String address;
     private String paymentFreequency;
 

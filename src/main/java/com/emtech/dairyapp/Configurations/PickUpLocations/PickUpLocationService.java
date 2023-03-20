@@ -170,5 +170,25 @@ public class PickUpLocationService {
         }
         return response;
     }
+    public EntityResponse getPickUpLocationsByCollector(Long collectorId) {
+        EntityResponse response = new EntityResponse<>();
+        try {
+            List<Locations> data = pickUpLocationsRepo.getPickUpLcoationsByCollectorId(collectorId);
+            if(data.size()>0){
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setEntity(data);
+                response.setMessage(HttpStatus.OK.getReasonPhrase());
+            }else {
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                response.setMessage(HttpStatus.NOT_FOUND.getReasonPhrase());
+            }
 
+        } catch (Exception e) {
+            log.error(e.getMessage());
+
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+        }
+        return response;
+    }
 }

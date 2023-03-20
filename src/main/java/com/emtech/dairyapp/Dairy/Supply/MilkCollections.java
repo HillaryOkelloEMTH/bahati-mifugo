@@ -23,6 +23,9 @@ public class MilkCollections {
     private Long id;
     @Column(nullable = false)
     private Long member;//farmer id
+    @Column(unique = true)
+    private String collectionNumber;
+    private String canNo;
     private String productType;
     private String event;//buying or selling
     private Double currentPrice;
@@ -33,6 +36,7 @@ public class MilkCollections {
     private Double fatContent=0.0;
     private Double longitude;
     private Double latitude;
+    private String session;
 
 
     private String remarks;
