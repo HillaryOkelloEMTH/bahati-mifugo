@@ -20,16 +20,25 @@ import java.util.Optional;
 public class MilkCollectionService {
 
 
+
+
     private final MilkCollectionRepo milkCollectionRepo;
     private final ProductConfigRepo productConfigRepo;
     private final FloatManagerRepo floatManagerRepo;
+    private final Codenerator codenerator;
 
 
-    public MilkCollectionService(MilkCollectionRepo milkCollectionRepo, ProductConfigRepo productConfigRepo, FloatManagerRepo floatManagerRepo) {
+
+
+
+
+    public MilkCollectionService(MilkCollectionRepo milkCollectionRepo, ProductConfigRepo productConfigRepo, FloatManagerRepo floatManagerRepo, Codenerator codenerator) {
         this.milkCollectionRepo = milkCollectionRepo;
         this.productConfigRepo = productConfigRepo;
         this.floatManagerRepo = floatManagerRepo;
+        this.codenerator = codenerator;
     }
+
 
 
 
@@ -38,6 +47,8 @@ public class MilkCollectionService {
         EntityResponse response = new EntityResponse();
         try{
 
+            String code = codenerator.codeGenerator(collections.getCollectorId());
+            collections.setCollectionNumber(code);
             collections.setProductType("Milk");
             collections.setEvent("Buying");
             String event= collections.getEvent();

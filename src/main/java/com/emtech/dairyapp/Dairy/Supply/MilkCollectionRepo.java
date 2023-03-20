@@ -48,6 +48,11 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections,Long> 
 
 
 
+    @Query(value = "select  max(id) from collections",nativeQuery = true)
+    Long getMaxVaue();
+
+
+
 
 
 

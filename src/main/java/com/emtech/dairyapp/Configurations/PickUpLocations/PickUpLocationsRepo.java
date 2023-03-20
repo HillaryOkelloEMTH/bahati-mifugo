@@ -20,6 +20,8 @@ public interface PickUpLocationsRepo extends JpaRepository<PickUpLocations, Long
 
     @Query(value = "SELECT p.id,p.name ,p.land_mark as landmark,w.name as ward from pick_up_locations p join ward w on w.id =p.ward_fk  join collector c ON p.id =c.location_id join users u on c.username =u.user_name WHERE u.id = :collectorId and w.id = :ward_fk",nativeQuery = true)
     List<Locations> getPickUpLcoationsBywardandCollectorId(Long collectorId, Long ward_fk );
+    @Query(value = "SELECT p.id,p.name ,p.land_mark as landmark,w.name as ward from pick_up_locations p join ward w on w.id =p.ward_fk  join collector c ON p.id =c.location_id join users u on c.username =u.user_name WHERE u.id = :collectorId",nativeQuery = true)
+    List<Locations> getPickUpLcoationsByCollectorId(Long collectorId );
 
 
 
