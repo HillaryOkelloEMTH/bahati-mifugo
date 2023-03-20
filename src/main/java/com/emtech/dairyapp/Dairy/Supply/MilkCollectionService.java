@@ -188,7 +188,7 @@ public class MilkCollectionService {
         EntityResponse response = new EntityResponse();
         try {
 
-            List<MilkCollections> farmerrecord= milkCollectionRepo.fetchByCollectorandDate(collectorId,date);
+            List<CollectionsData> farmerrecord= milkCollectionRepo.fetchByCollectorandDate(collectorId,date);
             response.setStatusCode(HttpStatus.OK.value());
             response.setEntity(farmerrecord);
             response.setMessage(HttpStatus.OK.getReasonPhrase());
@@ -204,7 +204,7 @@ public class MilkCollectionService {
 
         EntityResponse response = new EntityResponse();
         try {
-            List<MilkCollections> farmerrecord= milkCollectionRepo.getCollectionsByDate(collector,from,to);
+            List<CollectionsData> farmerrecord= milkCollectionRepo.getCollectionsByDate(collector,from,to);
             response.setStatusCode(HttpStatus.OK.value());
             response.setEntity(farmerrecord);
             response.setMessage(HttpStatus.OK.getReasonPhrase());

@@ -1,6 +1,7 @@
 package com.emtech.dairyapp.Configurations.PickUpLocations;
 
 
+import com.emtech.dairyapp.Configurations.Interfaces.Locations;
 import com.emtech.dairyapp.Configurations.Interfaces.PickUpLocation;
 import com.emtech.dairyapp.Configurations.Interfaces.PickUpPoints;
 import com.emtech.dairyapp.Response.EntityResponse;
@@ -53,6 +54,25 @@ public class PickUpLocationService {
 //            Pageable paging = PageRequest.of(pageNo, pageSize);
 //            List<PickUpLocations> data = pickUpLocationsRepo.findAll(paging);
             List<PickUpLocation> all = pickUpLocationsRepo.getAllPickUpLocations();
+
+            response.setMessage(HttpStatus.OK.getReasonPhrase());
+            response.setEntity(all);
+            response.setStatusCode(HttpStatus.OK.value());
+
+        } catch (Exception e) {
+            log.error(e.getMessage());
+
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+
+        }
+        return response;
+    }
+    public EntityResponse getPickUpLocationsByColectorIdandWard(Long collectorid,Long wardId) {
+        EntityResponse response = new EntityResponse<>();
+        try {
+
+            List<Locations> all = pickUpLocationsRepo.getPickUpLcoationsBywardandCollectorId(collectorid,wardId);
 
             response.setMessage(HttpStatus.OK.getReasonPhrase());
             response.setEntity(all);

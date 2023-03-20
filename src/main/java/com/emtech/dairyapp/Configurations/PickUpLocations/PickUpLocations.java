@@ -28,7 +28,7 @@ public class PickUpLocations {
     private Long ward_fk;
     private Long subcounty_fk;
 
-    @OneToMany(targetEntity = Collector.class,cascade = CascadeType.ALL,fetch = FetchType.LAZY)
+    @OneToMany(targetEntity = Collector.class,cascade = CascadeType.ALL,fetch = FetchType.EAGER)
     @JoinColumn(name = "location_id",referencedColumnName = "id")
     private List<Collector> collectors;
 }
