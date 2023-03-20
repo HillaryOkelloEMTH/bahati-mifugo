@@ -53,6 +53,10 @@ public class PickUpLocationController {
         EntityResponse response = service.getPickUpLocationByUsernameandWard(username,wardId);
         return  ResponseEntity.ok().body(response);
     }
-
+    @GetMapping("collector/ward")
+    public ResponseEntity<?> GetpickupBywardandcollector(@RequestParam Long collectorId,@RequestParam Long wardId){
+        EntityResponse response = service.getPickUpLocationsByColectorIdandWard(collectorId,wardId);
+        return  ResponseEntity.ok().body(response);
+    }
 
 }
