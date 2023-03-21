@@ -70,35 +70,34 @@ public class AuthController {
     )
 
     public Mono<ResponseEntity<RecordCreateResponse>> forgotPassword(@RequestBody ForgotPasswordRequest body){
-        RecordCreateResponse message = null;
         RecordCreateResponse response;
 
         if(body.getUsername() != null && !body.getUsername().isEmpty()){
             response = this.userService.forgotPassword(body.getUsername().trim());
-            if(!Objects.equals(response.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())){
-                message = RecordCreateResponse.builder().message("Password reset token requested successfully !").build();
-            }else {
-                message = RecordCreateResponse.builder().message("Sorry, an error occurred").build();
-            }
+//            if(!Objects.equals(response.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())){
+//                response = RecordCreateResponse.builder().message("Password reset token requested successfully !").build();
+//            }else {
+//                re = RecordCreateResponse.builder().message("Sorry, an error occurred").build();
+//            }
         } else if (body.getEmail() != null && !body.getEmail().isEmpty()) {
             response = this.userService.resetPasswordTokenRequestedByEmail(body.getEmail().trim());
-            if(!Objects.equals(response.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())){
-                message = RecordCreateResponse.builder().message("Password reset token requested successfully !").build();
-            }else {
-                message = RecordCreateResponse.builder().message("Sorry, an error occurred").build();
-            }
+//            if(!Objects.equals(response.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())){
+//                message = RecordCreateResponse.builder().message("Password reset token requested successfully !").build();
+//            }else {
+//                message = RecordCreateResponse.builder().message("Sorry, an error occurred").build();
+//            }
         } else if (body.getMobile() != null && !body.getMobile().isEmpty()) {
             response = this.userService.resetPasswordTokenRequestedByMobile(body.getMobile().trim());
-            if(!Objects.equals(response.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())){
-                message = RecordCreateResponse.builder().message("Password reset token requested successfully !").build();
-            }else {
-                message = RecordCreateResponse.builder().message("Sorry, an error occurred").build();
-            }
+//            if(!Objects.equals(response.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())){
+//                message = RecordCreateResponse.builder().message("Password reset token requested successfully !").build();
+//            }else {
+//                message = RecordCreateResponse.builder().message("Sorry, an error occurred").build();
+//            }
         }else{
-            message = RecordCreateResponse.builder().message("Sorry, an error occurred").build();
+            response = RecordCreateResponse.builder().message("Sorry, an error occurred").build();
         }
 
-        return Mono.just(ResponseEntity.ok().body(message));
+        return Mono.just(ResponseEntity.ok().body(response));
     }
 
     @RequestMapping(
