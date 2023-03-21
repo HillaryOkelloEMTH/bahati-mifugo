@@ -243,7 +243,7 @@ public class SendCredentialToMail {
                 "              </td>\n" +
                 "            <tr>\n" +
                 "              <td style=\"padding:30px;background-color:#ffffff;\">\n" +
-                "                 <h2 style=\"margin-top:0;margin-bottom:16px;font-size:26px;line-height:32px;font-weight:bold;letter-spacing:-0.02em;\">"+  subject +"</h2>\n" + greetings+body3+token+body4+reseturl+body5+reseturl+"?email="+recipient+body6+signoff+
+                "                 <h2 style=\"margin-top:0;margin-bottom:16px;font-size:26px;line-height:32px;font-weight:bold;letter-spacing:-0.02em;\">"+  subject +"</h2>\n" + greetings+body3+body4+token+body5+body6+signoff+
                 "              </td>\n" +
                 "            </tr>\n" +
                 "              <td style=\"padding:0px; margin-bottom: 0px;text-align:center;font-size:12px;background-color:#ffffff;\">\n" +

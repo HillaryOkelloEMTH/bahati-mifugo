@@ -640,7 +640,7 @@ public class UserService {
 
                 data.set(this.userRepository.save(data.get()));
 
-                String resetPasswordUrl = "http://localhost:4200/auth/reset-password" + resetPasswordToken;
+                String resetPasswordUrl = "http://localhost:4200/#/authentication/reset-password/" + resetPasswordToken;
 
                 try {
                     SendCredentialToMail sm = new SendCredentialToMail();
@@ -648,6 +648,8 @@ public class UserService {
                     log.log(Level.INFO, String.format("User Email [ %s ]", data.get().getEmail()));
 
                     sm.sendPassWordReset(data.get().getEmail(), resetPasswordUrl);
+
+                    log.log(Level.INFO, String.format("Reset Password URL: %s ", resetPasswordUrl));
 
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -684,7 +686,9 @@ public class UserService {
 
                 data.set(this.userRepository.save(data.get()));
 
-                String resetPasswordUrl = "http://localhost:4200/auth/reset-password" + resetPasswordToken;
+                String resetPasswordUrl = "http://localhost:4200/#/authentication/reset-password/" + resetPasswordToken;
+
+                log.log(Level.INFO, String.format("Reset Password URL: %s ", resetPasswordUrl));
 
                 try {
                     SendCredentialToMail sm = new SendCredentialToMail();
@@ -728,7 +732,9 @@ public class UserService {
 
                 data.set(this.userRepository.save(data.get()));
 
-                String resetPasswordUrl = "http://localhost:4200/auth/reset-password" + resetPasswordToken;
+                String resetPasswordUrl = "http://localhost:4200/#/authentication/reset-password/" + resetPasswordToken;
+
+                log.log(Level.INFO, String.format("Reset Password URL: %s ", resetPasswordUrl));
 
                 try {
                     SendCredentialToMail sm = new SendCredentialToMail();
