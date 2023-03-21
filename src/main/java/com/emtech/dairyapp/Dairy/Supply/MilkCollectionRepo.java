@@ -1,5 +1,6 @@
 package com.emtech.dairyapp.Dairy.Supply;
 
+import com.emtech.dairyapp.Analytics.AnalyticsData;
 import com.emtech.dairyapp.Dairy.Interface.CollectionTracker;
 import com.emtech.dairyapp.Dairy.Interface.CollectionsData;
 import com.emtech.dairyapp.Dairy.Interface.DailyRecords;
@@ -7,8 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface MilkCollectionRepo extends JpaRepository<MilkCollections,Long> {
@@ -16,11 +17,11 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections,Long> 
 
     List<MilkCollections> findByMember(Long memberId);
 
-    @Query(value = "SELECT c.id ,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer ,c.amount,c.quantity,c.collection_date,w.name as ward,p.name as pickUpLocation from collections c join users u on c.collector_id =u.id join farmer f on f.id=c.member join pick_up_locations p on p.id=c.pick_up_location  join ward w on w.id=c.ward_fk where c.collector_id =:collectorId and  DATE(c.collection_date)= :date",nativeQuery = true)
+    @Query(value = "SELECT c.id, c.collection_number as collectionCode,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer ,c.amount,c.quantity,c.collection_date,w.name as ward,p.name as pickUpLocation from collections c join users u on c.collector_id =u.id join farmer f on f.id=c.member join pick_up_locations p on p.id=c.pick_up_location  join ward w on w.id=c.ward_fk where c.collector_id =:collectorId and  DATE(c.collection_date)= :date",nativeQuery = true)
     List<CollectionsData> fetchByCollectorandDate(Long collectorId,String date);
 
 
-    @Query(value = "SELECT c.id ,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer ,c.amount,c.quantity,c.collection_date,w.name as ward,p.name as pickUpLocation from collections c join users u on c.collector_id =u.id join farmer f on f.id=c.member join pick_up_locations p on p.id=c.pick_up_location  join ward w on w.id=c.ward_fk where c.collector_id =:collectorId  and DATE(collection_date) BETWEEN :from and :to",nativeQuery = true)
+    @Query(value = "SELECT c.id, c.collection_number as collectionCode ,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer ,c.amount,c.quantity,c.collection_date,w.name as ward,p.name as pickUpLocation from collections c join users u on c.collector_id =u.id join farmer f on f.id=c.member join pick_up_locations p on p.id=c.pick_up_location  join ward w on w.id=c.ward_fk where c.collector_id =:collectorId  and DATE(collection_date) BETWEEN :from and :to",nativeQuery = true)
     List<CollectionsData> getCollectionsByDate(Long collectorId,String from,String to);
 
     List<MilkCollections> findByCollectorId(Long collectorId);
@@ -36,13 +37,15 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections,Long> 
     List<DailyRecords> getTodaysCollections();
 
 
-    @Query(value = "SELECT c.id ,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer,c.amount,c.quantity,c.collection_date,w.name as ward,p.name as pickUpLocation from collections c join users u on c.collector_id =u.id join farmer f on f.id=c.member join pick_up_locations p on p.id=c.pick_up_location join ward w on w.id=c.ward_fk where DATE(c.collection_date)= :date",nativeQuery = true)
+    @Query(value = "SELECT c.id, c.collection_number as collectionCode ,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer,c.amount,c.quantity,c.collection_date,w.name as ward,p.name as pickUpLocation from collections c join users u on c.collector_id =u.id join farmer f on f.id=c.member join pick_up_locations p on p.id=c.pick_up_location join ward w on w.id=c.ward_fk where DATE(c.collection_date)= :date",nativeQuery = true)
     List<CollectionsData> getCollectionsbyDate(String date);
-    @Query(value = "SELECT c.id ,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer,c.amount,c.quantity,c.collection_date,w.name as ward,p.name as pickUpLocation  from collections c join users u on c.collector_id =u.id join farmer f on f.id=c.member join pick_up_locations p on p.id=c.pick_up_location join ward w on w.id=c.ward_fk where f.id =:farmerId",nativeQuery = true)
+    @Query(value = "SELECT c.id, c.collection_number as collectionCode ,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer,c.amount,c.quantity,c.collection_date,w.name as ward,p.name as pickUpLocation from collections c join users u on c.collector_id =u.id join farmer f on f.id=c.member join pick_up_locations p on p.id=c.pick_up_location join ward w on w.id=c.ward_fk",nativeQuery = true)
+    List<CollectionsData> getAllCollections();
+    @Query(value = "SELECT c.id, c.collection_number as collectionCode,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer,c.amount,c.quantity,c.collection_date,w.name as ward,p.name as pickUpLocation  from collections c join users u on c.collector_id =u.id join farmer f on f.id=c.member join pick_up_locations p on p.id=c.pick_up_location join ward w on w.id=c.ward_fk where f.id =:farmerId",nativeQuery = true)
     List<CollectionsData> getCollectionsbyFarmer(Long farmerId);
-    @Query(value = "SELECT c.id ,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer ,c.amount,c.quantity,c.collection_date,w.name as ward,p.name as pickUpLocation from collections c join users u on c.collector_id =u.id join farmer f on f.id=c.member join pick_up_locations p on p.id=c.pick_up_location  join ward w on w.id=c.ward_fk where c.collector_id =:collectorId",nativeQuery = true)
+    @Query(value = "SELECT c.id, c.collection_number as collectionCode ,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer ,c.amount,c.quantity,c.collection_date,w.name as ward,p.name as pickUpLocation from collections c join users u on c.collector_id =u.id join farmer f on f.id=c.member join pick_up_locations p on p.id=c.pick_up_location  join ward w on w.id=c.ward_fk where c.collector_id =:collectorId",nativeQuery = true)
     List<CollectionsData> getCollectionsbyCollector(Long collectorId);
-    @Query(value = "SELECT c.id ,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer ,c.amount,c.quantity,c.collection_date,w.name as ward,p.name as pickUpLocation from collections c join users u on c.collector_id =u.id join farmer f on f.id=c.member join pick_up_locations p on p.id=c.pick_up_location  join ward w on w.id=c.ward_fk where DATE(c.collection_date) BETWEEN :fromDate and :toDate",nativeQuery = true)
+    @Query(value = "SELECT c.id , c.collection_number as collectionCode,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer ,c.amount,c.quantity,c.collection_date,w.name as ward,p.name as pickUpLocation from collections c join users u on c.collector_id =u.id join farmer f on f.id=c.member join pick_up_locations p on p.id=c.pick_up_location  join ward w on w.id=c.ward_fk where DATE(c.collection_date) BETWEEN :fromDate and :toDate",nativeQuery = true)
     List<CollectionsData> getCollectionByDateRange(String fromDate,String toDate);
 
 
@@ -50,6 +53,16 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections,Long> 
 
     @Query(value = "select  max(id) from collections",nativeQuery = true)
     Long getMaxVaue();
+
+
+    @Query(value = "SELECT sum(c.amount) as amount,SUM(c.quantity) as quantity ,u.user_name as collector  from collections c join users u on u.id=c.collector_id  WHERE DATE(c.collection_date)=:date  GROUP BY c.collector_id",nativeQuery = true)
+    List<AnalyticsData> getCollectorDataPerDate(String date);
+
+    @Query(value = "SELECT sum(c.amount) as amount,SUM(c.quantity) as quantity,MONTHNAME(c.collection_date) as month from collections c where YEAR (c.collection_date)=:year GROUP BY MONTH(c.collection_date)",nativeQuery = true)
+    List<AnalyticsData> getCollectorDataPerYear(Integer year);
+
+    @Query(value = "SELECT c.id, c.collection_number as collectionCode,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer,c.amount,c.quantity,c.collection_date,w.name as ward,p.name as pickUpLocation  from collections c join users u on c.collector_id =u.id join farmer f on f.id=c.member join pick_up_locations p on p.id=c.pick_up_location join ward w on w.id=c.ward_fk where c.collection_number =:collectionCode",nativeQuery = true)
+    Optional<CollectionsData> getCollectionsbyCollectionCode(String collectionCode);
 
 
 

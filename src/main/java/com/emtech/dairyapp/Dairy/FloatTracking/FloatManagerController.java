@@ -58,6 +58,21 @@ public class FloatManagerController {
         response.setStatusCode(HttpStatus.CREATED.value());
         return  ResponseEntity.ok().body(response);
     }
+    @GetMapping("get/allocations/collector")
+    public ResponseEntity<?> getAllocationsPerCollector(@RequestParam Long collectorId){
+        EntityResponse response = new EntityResponse<>();
+        Optional<FloatManager> floatM =floatManagerRepo.findByCollectorId(collectorId);
+        if(floatM.isPresent()){
+            response.setEntity(floatM);
+            response.setMessage(HttpStatus.OK.getReasonPhrase());
+            response.setStatusCode(HttpStatus.OK.value());
+        }else {
+//            response.setEntity(floatM);
+            response.setMessage(HttpStatus.NOT_FOUND.getReasonPhrase());
+            response.setStatusCode(HttpStatus.NOT_FOUND.value());
+        }
+                return  ResponseEntity.ok().body(response);
+    }
 
 
 

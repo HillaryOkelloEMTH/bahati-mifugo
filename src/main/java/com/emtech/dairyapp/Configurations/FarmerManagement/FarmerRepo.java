@@ -16,7 +16,7 @@ public interface FarmerRepo extends JpaRepository<Farmer,Long> {
     List<Farmer> findByDeletedFlag(Character deletedFlag);
     List<Farmer> findByWardFk(Long wardId);
     Optional<Farmer> findById(Long id);
-    @Query(value = "SELECT f.username ,f.first_name,f.address ,f.alternative_mobile_no ,f.bank_account_no ,f.last_name ,f.id_number ,f.created_at ,f.deleted_flag,f.mobile_no ,f.member_type ,f.no_of_cows ,f.member_code ,s.name as subcounty,c.name as county from farmer f join ward w  on f.ward_fk =w.id join subcounty s on s.id =f.subcounty_fk join county c on c.id =s.county_fk where f.id=:farmerId",nativeQuery = true)
+    @Query(value = "SELECT f.username,f.payment_freequency ,f.first_name,f.address ,f.alternative_mobile_no ,f.bank_account_no ,f.last_name ,f.id_number ,f.created_at ,f.deleted_flag,f.mobile_no ,f.member_type ,f.no_of_cows ,f.member_code ,s.name as subcounty,c.name as county from farmer f join ward w  on f.ward_fk =w.id join subcounty s on s.id =f.subcounty_fk join county c on c.id =s.county_fk where f.id=:farmerId",nativeQuery = true)
     Optional<FarmerInfo> getfarmerDetails(Long farmerId);
 
     @Query(value = "SELECT DISTINCT  f.*  from farmer f join ward w  on f.ward_fk =w.id join subcounty s on s.id =f.subcounty_fk join county c on c.id =s.county_fk\n" +

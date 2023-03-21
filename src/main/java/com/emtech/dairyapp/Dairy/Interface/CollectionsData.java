@@ -16,5 +16,9 @@ public interface CollectionsData {
     Double getCurrentPrice();
     String getProductType();
     Character getpaymentStatus();
+    String getCollectionCode();
+
+
+
 
 }

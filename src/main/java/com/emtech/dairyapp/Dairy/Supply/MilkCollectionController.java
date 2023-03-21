@@ -101,5 +101,10 @@ public class MilkCollectionController {
         return ResponseEntity.ok().body(response);
     }
 
+    @GetMapping("all")
+    public ResponseEntity<EntityResponse> getAllCollections(){
+        EntityResponse response = collectionService.getAllCollections();
+        return ResponseEntity.ok().body(response);
+    }
 
 }
