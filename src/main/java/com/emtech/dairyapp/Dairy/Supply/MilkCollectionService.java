@@ -69,7 +69,10 @@ public class MilkCollectionService {
                        log.info("Collector allocation found ..");
                        Double famount = manager.get().getFloatAmount();
                        Double balance = famount - totalAmount;
+                       Double spent = famount-balance;
+                       manager.get().setFloatSpent(spent);
                        manager.get().setBalance(balance);
+
                        floatManagerRepo.save(manager.get());
                    } else {
                        log.info("Collector allocation Not Found!! ..");

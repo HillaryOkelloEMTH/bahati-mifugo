@@ -8,6 +8,7 @@ public interface CollectionTracker {
     Double getFloat_amount();
     Double getBalance();
     Double getQuantity();
+    Double getFloat_spent();
 
 
 

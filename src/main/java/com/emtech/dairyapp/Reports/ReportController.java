@@ -1,6 +1,8 @@
 package com.emtech.dairyapp.Reports;
 
 
+import com.emtech.dairyapp.Configurations.Profile.Profile;
+import com.emtech.dairyapp.Configurations.Profile.ProfileRepo;
 import com.emtech.dairyapp.Dairy.Interface.CollectionsData;
 import com.emtech.dairyapp.Response.EntityResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +18,6 @@ import java.io.FileInputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -29,6 +30,7 @@ public class ReportController {
 
 
     private final  ReportService reportService;
+    private final ProfileRepo profileRepo;
 
 
     @Value("${dairy.company_logo_path}")
@@ -44,8 +46,9 @@ public class ReportController {
     @Value("${spring.datasource.password}")
     private String dbpassword;
 
-    public ReportController(ReportService reportService) {
+    public ReportController(ReportService reportService, ProfileRepo profileRepo) {
         this.reportService = reportService;
+        this.profileRepo = profileRepo;
     }
 
 
@@ -58,11 +61,17 @@ public class ReportController {
                 log.info("Data found");
 
                 Connection connection = DriverManager.getConnection(this.db, this.dbusername, this.dbpassword);
-                JasperReport compileReport = JasperCompileManager.compileReport(new FileInputStream(report_path + "/action_items_user_all.jrxml"));
+                JasperReport compileReport = JasperCompileManager.compileReport(new FileInputStream(report_path + "/collection.jrxml"));
+
+                Profile profile = profileRepo.getProfile();
 
                 Map<String, Object> parameters = new HashMap<>();
-                parameters.put("code", collectionCode);
-                parameters.put("report_icon", report_icon);
+                parameters.put("collection_code", collectionCode);
+                parameters.put("logo", report_icon);
+                parameters.put("location", profile.getLocation());
+                parameters.put("company", profile.getCompanyName());
+                parameters.put("address", profile.getPhysicalAddress());
+
 
                 JasperPrint print = JasperFillManager.fillReport(compileReport, parameters, connection);
                 byte[] data = JasperExportManager.exportReportToPdf(print);

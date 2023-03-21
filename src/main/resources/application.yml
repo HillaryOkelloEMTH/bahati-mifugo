@@ -29,6 +29,8 @@ spring:
 dairy:
   company_logo_path: /home/ubuntu/prod/EMT_012_DairyApp/resources/dairy_logo.jpg
   report-path: /home/ubuntu/prod/EMT_012_DairyApp/resources/reports
+#  company_logo_path: /home/ibrahim/Downloads/dairy_logo.jpg
+#  report-path: /home/ibrahim/JaspersoftWorkspace/MyReports
 
 
 pagination:
@@ -36,9 +38,4 @@ pagination:
 
 
 
-#logging:
-#  level:
-#    org.springframework.web: DEBUG
-#    org.hibernate: ERROR
-#debug: true
 
