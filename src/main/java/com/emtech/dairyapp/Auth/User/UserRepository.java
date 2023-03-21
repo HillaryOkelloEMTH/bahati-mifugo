@@ -20,4 +20,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query(value = "select count(*) from  users",nativeQuery = true)
     Integer countUsers();
+
+    @Query(value = "select count(*) from  users where status != 'Active'",nativeQuery = true)
+    Integer inactiveUsers();
 }

@@ -203,7 +203,7 @@ public class UserService {
         return response.get();
     }
 
-    public RecordCreateResponse updateUser(@NonNull Long userId, @NonNull String firstName, @NonNull String lastName, @NonNull Long roleId){
+    public RecordCreateResponse updateUser(@NonNull Long userId, @NonNull String firstName, @NonNull String lastName){
 //        AtomicBoolean res = new AtomicBoolean();
         AtomicReference<RecordCreateResponse> response = new AtomicReference<>();
 
@@ -625,8 +625,8 @@ public class UserService {
         return response.get();
     }
 
-    public boolean forgotPassword(String username){
-        AtomicBoolean res = new AtomicBoolean();
+    public RecordCreateResponse forgotPassword(String username){
+        AtomicReference<RecordCreateResponse> response = new AtomicReference<>();
 
         userRepository.findByUsername(username).ifPresentOrElse(user -> {
             if (Objects.equals(user.getStatus(), "Active")){
@@ -653,24 +653,24 @@ public class UserService {
                     e.printStackTrace();
                 }
 
-                res.set(true);
+                response.set(RecordCreateResponse.builder().message("Password reset token requested successfully !").statusCode(HttpStatus.OK.value()).build());
 
             }else{
                 log.log(Level.SEVERE, String.format("Account with username [ %s ] not found ", username));
 
-                res.set(false);
+                response.set(RecordCreateResponse.builder().message( String.format("Account with username  %s  not found ", username)).statusCode(HttpStatus.BAD_REQUEST.value()).build());
             }
         }, () -> {
             log.log(Level.SEVERE, String.format("Account with username [ %s ] not active ", username));
 
-            res.set(false);
+            response.set(RecordCreateResponse.builder().message( String.format("Account with username %s not active  ", username)).statusCode(HttpStatus.BAD_REQUEST.value()).build());
         });
 
-        return res.get();
+        return response.get();
     }
 
-    public boolean resetPasswordTokenRequestedByEmail(@NonNull String email){
-        AtomicBoolean res = new AtomicBoolean();
+    public RecordCreateResponse resetPasswordTokenRequestedByEmail(@NonNull String email){
+        AtomicReference<RecordCreateResponse> response = new AtomicReference<>();
 
         userRepository.findByEmail(email).ifPresentOrElse(user -> {
             if (Objects.equals(user.getStatus(), "Active")){
@@ -697,24 +697,24 @@ public class UserService {
                     e.printStackTrace();
                 }
 
-                res.set(true);
+                response.set(RecordCreateResponse.builder().message("Password reset token requested successfully !").statusCode(HttpStatus.OK.value()).build());
 
             }else{
                 log.log(Level.SEVERE, String.format("Account with email [ %s ] not found ", email));
 
-                res.set(false);
+                response.set(RecordCreateResponse.builder().message( String.format("Account with email %s not found ", email)).statusCode(HttpStatus.BAD_REQUEST.value()).build());
             }
         }, () -> {
             log.log(Level.SEVERE, String.format("Account with email [ %s ] is not active ", email));
 
-            res.set(false);
+            response.set(RecordCreateResponse.builder().message( String.format("Account with email %s is not active ", email)).statusCode(HttpStatus.BAD_REQUEST.value()).build());
         });
 
-        return res.get();
+        return response.get();
     }
 
-    public boolean resetPasswordTokenRequestedByMobile(@NonNull String mobile){
-        AtomicBoolean res = new AtomicBoolean();
+    public RecordCreateResponse resetPasswordTokenRequestedByMobile(@NonNull String mobile){
+        AtomicReference<RecordCreateResponse> response = new AtomicReference<>();
 
         userRepository.findByMobile(mobile).ifPresentOrElse(user -> {
             if (Objects.equals(user.getStatus(), "Active")){
@@ -741,20 +741,20 @@ public class UserService {
                     e.printStackTrace();
                 }
 
-                res.set(true);
+                response.set(RecordCreateResponse.builder().message("Password reset token requested successfully !").statusCode(HttpStatus.OK.value()).build());
 
             }else{
                 log.log(Level.SEVERE, String.format("Account with mobile [ %s ] not found ", mobile));
 
-                res.set(false);
+                response.set(RecordCreateResponse.builder().message( String.format("Account with mobile %s not found ", mobile)).statusCode(HttpStatus.BAD_REQUEST.value()).build());
             }
         }, () -> {
             log.log(Level.SEVERE, String.format("Account with mobile [ %s ] not active ", mobile));
 
-            res.set(false);
+            response.set(RecordCreateResponse.builder().message( String.format("Account with mobile %s not active ", mobile)).statusCode(HttpStatus.BAD_REQUEST.value()).build());
         });
 
-        return res.get();
+        return response.get();
     }
 
 

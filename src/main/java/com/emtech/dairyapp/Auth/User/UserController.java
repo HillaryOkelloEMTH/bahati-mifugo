@@ -3,6 +3,7 @@ package com.emtech.dairyapp.Auth.User;
 import com.emtech.dairyapp.Auth.Data.Http.Request.Auth.AdminUpdateUserPassword;
 import com.emtech.dairyapp.Auth.Data.Http.Request.Auth.UpdateUserRoleRequest;
 import com.emtech.dairyapp.Auth.Data.Http.Request.Auth.UserCreateRequest;
+import com.emtech.dairyapp.Auth.Data.Http.Request.Auth.UserUpdateRequest;
 import com.emtech.dairyapp.Auth.Data.Http.Response.Auth.RecordCreateResponse;
 import com.emtech.dairyapp.Auth.Data.Http.Response.Auth.UserResponse;
 import com.emtech.dairyapp.Auth.Data.User.UserData;
@@ -48,8 +49,8 @@ public class UserController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public Mono<ResponseEntity<RecordCreateResponse>> updateUser(@RequestBody UserCreateRequest body, @PathVariable Long userId){
-        RecordCreateResponse response = this.userService.updateUser(userId, body.getUsername(), body.getFirstName(), body.getRole());
+    public Mono<ResponseEntity<RecordCreateResponse>> updateUser(@PathVariable Long userId, @RequestBody UserUpdateRequest body){
+        RecordCreateResponse response = this.userService.updateUser(userId, body.getFirstName(), body.getFirstName());
         if(!Objects.equals(response.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())){
             return Mono.just(ResponseEntity.ok().body(response));
         }else {

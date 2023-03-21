@@ -23,7 +23,9 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections,Long> 
     @Query(value = "SELECT c.id ,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer ,c.amount,c.quantity,c.collection_date,w.name as ward,p.name as pickUpLocation from collections c join users u on c.collector_id =u.id join farmer f on f.id=c.member join pick_up_locations p on p.id=c.pick_up_location  join ward w on w.id=c.ward_fk where c.collector_id =:collectorId  and DATE(collection_date) BETWEEN :from and :to",nativeQuery = true)
     List<CollectionsData> getCollectionsByDate(Long collectorId,String from,String to);
 
-    List<MilkCollections> findByCollectorId(Long collectorId);
+
+    @Query(value = "select * from collections c where c.collector_id = :collectorId" ,nativeQuery = true)
+    List<CollectionsData> findByCollectorId(Long collectorId);
 
 
     @Query(value = "select sum(c.quantity) as quantity,f.float_amount,f.balance,u.user_name from collections c join float_manager f on c.collector_id= f.collector_id join users u on u.id=c.collector_id group by c.collector_id",nativeQuery = true)

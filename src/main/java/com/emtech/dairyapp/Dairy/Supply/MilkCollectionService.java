@@ -233,7 +233,7 @@ public class MilkCollectionService {
         EntityResponse response = new EntityResponse();
         try {
 
-            List<MilkCollections> farmerrecord= milkCollectionRepo.findByCollectorId(collectorId);
+            List<CollectionsData> farmerrecord= milkCollectionRepo.findByCollectorId(collectorId);
             response.setStatusCode(HttpStatus.OK.value());
             response.setEntity(farmerrecord);
             response.setMessage(HttpStatus.OK.getReasonPhrase());

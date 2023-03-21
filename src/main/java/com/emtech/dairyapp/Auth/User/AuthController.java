@@ -71,20 +71,25 @@ public class AuthController {
 
     public Mono<ResponseEntity<RecordCreateResponse>> forgotPassword(@RequestBody ForgotPasswordRequest body){
         RecordCreateResponse message = null;
+        RecordCreateResponse response;
+
         if(body.getUsername() != null && !body.getUsername().isEmpty()){
-            if(this.userService.forgotPassword(body.getUsername())){
+            response = this.userService.forgotPassword(body.getUsername().trim());
+            if(!Objects.equals(response.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())){
                 message = RecordCreateResponse.builder().message("Password reset token requested successfully !").build();
             }else {
                 message = RecordCreateResponse.builder().message("Sorry, an error occurred").build();
             }
         } else if (body.getEmail() != null && !body.getEmail().isEmpty()) {
-            if(this.userService.resetPasswordTokenRequestedByEmail(body.getEmail())){
+            response = this.userService.resetPasswordTokenRequestedByEmail(body.getEmail().trim());
+            if(!Objects.equals(response.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())){
                 message = RecordCreateResponse.builder().message("Password reset token requested successfully !").build();
             }else {
                 message = RecordCreateResponse.builder().message("Sorry, an error occurred").build();
             }
         } else if (body.getMobile() != null && !body.getMobile().isEmpty()) {
-            if(this.userService.resetPasswordTokenRequestedByMobile(body.getMobile())){
+            response = this.userService.resetPasswordTokenRequestedByMobile(body.getMobile().trim());
+            if(!Objects.equals(response.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())){
                 message = RecordCreateResponse.builder().message("Password reset token requested successfully !").build();
             }else {
                 message = RecordCreateResponse.builder().message("Sorry, an error occurred").build();
