@@ -11,4 +11,5 @@ public interface FarmerRepo extends JpaRepository<Farmer,Long> {
 
 
     List<Farmer> findByDeletedFlag(Character deletedFlag);
+    List<Farmer> findByWardFk(Long wardId);
 }

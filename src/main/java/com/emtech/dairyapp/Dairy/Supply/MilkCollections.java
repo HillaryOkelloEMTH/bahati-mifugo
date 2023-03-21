@@ -21,38 +21,31 @@ public class MilkCollections {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @NotBlank
-    private Long member;
-    private String idNumber;
+    @Column(nullable = false)
+    private Long member;//farmer id
+    private String productType;
+    private String event;//buying or selling
+    private Double currentPrice;
     private Date collectionDate=new Date();
-    //quantity
+
     private Double quantity=0.0;//litres
-    //quality percentage
-    private Double poteinContent=0.0;
+    private Double proteinContent=0.0;
     private Double fatContent=0.0;
-    private Double temperature=0.0;
+    private Double longitude;
+    private Double latitude;
+
 
     private String remarks;
-    private String contaminationStatus;
-
-
-
-
-//    private Double morningLitres;
-//    private Double noonLitres;
-//    private Double eveningLitres;
-    private String collectorName;
+    private Double amount;
+    @Column(nullable = false)
+    private Long collectorId;
+    @Column(nullable = false)
     private Long pickUpLocation;
+    @Column(nullable = false)
     private Long wardFk;
+
     private  Character status= CONSTANTS.NO;
-
-
-
-
-
-
-
-
+    private Character paymentStatus=CONSTANTS.NO;
 
 
 

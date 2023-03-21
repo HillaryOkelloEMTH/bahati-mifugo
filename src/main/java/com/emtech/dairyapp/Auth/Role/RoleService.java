@@ -47,6 +47,10 @@ public class RoleService {
                 .map(s -> RoleAccessRights.builder().name(s.name).accessRights(s).build())
                 .collect(Collectors.toList());
     }
+    public List<AccessRight> getaccessRights() {
+        return Arrays.stream(AccessRight.values()).collect(Collectors.toList());
+    }
+
 
     public boolean createRole(@NonNull String name, @NonNull List<AccessRight> accessRights) {
         AtomicBoolean res = new AtomicBoolean();

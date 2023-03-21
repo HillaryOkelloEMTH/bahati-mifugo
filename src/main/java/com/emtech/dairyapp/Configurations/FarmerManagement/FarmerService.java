@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 
 @Service
 @Slf4j
@@ -18,6 +19,17 @@ public class FarmerService {
 
 
     private final FarmerRepo farmerRepo;
+
+
+    public static String generatecSystemCode(int len) {
+        String chars = "01234567890GOODWAY";
+        Random rnd = new Random();
+        String S = "S";
+        StringBuilder sb = new StringBuilder(len);
+        for (int i = 0; i < 10; i++)
+            sb.append(chars.charAt(rnd.nextInt(chars.length()))).toString();
+        return S + sb;
+    }
 
     public FarmerService(FarmerRepo farmerRepo) {
         this.farmerRepo = farmerRepo;
@@ -68,6 +80,32 @@ public class FarmerService {
             return response;
         }
     }
+
+    public EntityResponse fetchFarmersByward(Long wardId) {
+        log.info("Fetching Farmers ...");
+        EntityResponse response = new EntityResponse();
+        try {
+            List<Farmer> Farmers = farmerRepo.findByWardFk(wardId);
+            if(Farmers.size()>0) {
+                log.info("Farmers Found "+ "("+Farmers.size()+")"+ " in ward "+ wardId);
+                response.setEntity(Farmers);
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setMessage(HttpStatus.FOUND.getReasonPhrase());
+            }else {
+                log.info("Farmers Not Found "+ "("+Farmers.size()+")");
+                response.setEntity(Farmers);
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setMessage(HttpStatus.NO_CONTENT.getReasonPhrase());
+            }
+            return response;
+        } catch (Exception e) {
+            log.error("Error: " + e.getLocalizedMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+            return response;
+        }
+    }
+
     public EntityResponse updateFarmer(Farmer farmer) {
         EntityResponse response = new EntityResponse();
         try {
