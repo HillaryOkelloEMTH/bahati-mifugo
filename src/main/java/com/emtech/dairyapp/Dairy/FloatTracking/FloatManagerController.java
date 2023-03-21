@@ -4,6 +4,7 @@ package com.emtech.dairyapp.Dairy.FloatTracking;
 import com.emtech.dairyapp.Response.EntityResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
@@ -21,19 +22,23 @@ public class FloatManagerController {
     }
 
     @PostMapping("allocate")
-    public ResponseEntity<?> allocateAmount(@RequestBody FloatAllocationRequest request){
+    public ResponseEntity<?> allocateAmount(@RequestBody FloatAllocationRequest request, Authentication authentication){
         EntityResponse response = new EntityResponse<>();
         Optional<FloatManager> manager = floatManagerRepo.findByCollectorId(request.getCollectorId());
         if(manager.isPresent()) {
             Double rmfloat = manager.get().getFloatAmount();
+            Double rmbalance = manager.get().getBalance();
             manager.get().setDate(new Date());
+            manager.get().setAllocatedBy(authentication.getName());
             manager.get().setCollectorId(request.getCollectorId());
             manager.get().setFloatAmount(request.getAllocationAmount()+rmfloat);
+            manager.get().setBalance(request.getAllocationAmount()+rmbalance);
             floatManagerRepo.save(manager.get());
             response.setEntity(manager);
         }else {
             FloatManager newfm = new FloatManager();
             newfm.setDate(new Date());
+            newfm.setAllocatedBy(authentication.getName());
             newfm.setCollectorId(request.getCollectorId());
             newfm.setFloatAmount(request.getAllocationAmount());
             floatManagerRepo.save(newfm);
@@ -57,6 +62,21 @@ public class FloatManagerController {
         response.setMessage(HttpStatus.CREATED.getReasonPhrase());
         response.setStatusCode(HttpStatus.CREATED.value());
         return  ResponseEntity.ok().body(response);
+    }
+    @GetMapping("get/allocations/collector")
+    public ResponseEntity<?> getAllocationsPerCollector(@RequestParam Long collectorId){
+        EntityResponse response = new EntityResponse<>();
+        Optional<FloatManager> floatM =floatManagerRepo.findByCollectorId(collectorId);
+        if(floatM.isPresent()){
+            response.setEntity(floatM);
+            response.setMessage(HttpStatus.OK.getReasonPhrase());
+            response.setStatusCode(HttpStatus.OK.value());
+        }else {
+//            response.setEntity(floatM);
+            response.setMessage(HttpStatus.NOT_FOUND.getReasonPhrase());
+            response.setStatusCode(HttpStatus.NOT_FOUND.value());
+        }
+                return  ResponseEntity.ok().body(response);
     }
 
 

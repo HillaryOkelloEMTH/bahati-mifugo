@@ -10,4 +10,5 @@ public interface FloatManagerRepo extends JpaRepository<FloatManager,Long> {
 
 
     Optional<FloatManager> findByCollectorId(Long id);
+
 }

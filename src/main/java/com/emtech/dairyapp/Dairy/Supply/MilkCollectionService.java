@@ -69,7 +69,10 @@ public class MilkCollectionService {
                        log.info("Collector allocation found ..");
                        Double famount = manager.get().getFloatAmount();
                        Double balance = famount - totalAmount;
+                       Double spent = famount-balance;
+                       manager.get().setFloatSpent(spent);
                        manager.get().setBalance(balance);
+
                        floatManagerRepo.save(manager.get());
                    } else {
                        log.info("Collector allocation Not Found!! ..");
@@ -336,6 +339,23 @@ public class MilkCollectionService {
         try {
 
             List<CollectionsData> todaysCollections= milkCollectionRepo.getCollectionsbyDate(date);
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(todaysCollections);
+            response.setMessage(HttpStatus.OK.getReasonPhrase());
+
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+        }
+        return response;
+    }
+    public EntityResponse getAllCollections(){
+
+        EntityResponse response = new EntityResponse();
+        try {
+
+            List<CollectionsData> todaysCollections= milkCollectionRepo.getAllCollections();
             response.setStatusCode(HttpStatus.OK.value());
             response.setEntity(todaysCollections);
             response.setMessage(HttpStatus.OK.getReasonPhrase());

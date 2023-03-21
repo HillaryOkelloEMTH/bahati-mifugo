@@ -16,5 +16,12 @@ public interface CollectionsData {
     Double getCurrentPrice();
     String getProductType();
     Character getpaymentStatus();
+    String getCollectionCode();
+    String getFirst_name();
+    String getLast_name();
+    String getMember_code();
+
+
+
 
 }
