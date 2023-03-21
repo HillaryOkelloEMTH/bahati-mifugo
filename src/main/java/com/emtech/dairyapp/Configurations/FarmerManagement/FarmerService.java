@@ -1,6 +1,8 @@
 package com.emtech.dairyapp.Configurations.FarmerManagement;
 
+import com.emtech.dairyapp.Analytics.LinkedStringInteger;
 import com.emtech.dairyapp.Configurations.Interfaces.FarmerInfo;
+import com.emtech.dairyapp.Configurations.Interfaces.FarmersPerWard;
 import com.emtech.dairyapp.Configurations.Utils.CONSTANTS;
 import com.emtech.dairyapp.Response.EntityResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -8,10 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -205,6 +204,37 @@ public class FarmerService {
         }
     }
 
+
+    public LinkedStringInteger farmersPerLocation(){
+
+        LinkedStringInteger data = new LinkedStringInteger();
+        try{
+
+            List<FarmersPerWard> farmersPerWards = farmerRepo.getFarmersPerWard();
+
+
+
+
+
+            LinkedList<String> names= new LinkedList<>();
+            LinkedList<Integer> counts= new LinkedList<>();
+
+            for (FarmersPerWard f:farmersPerWards ) {
+//                    map.put(a.getRole(),a.getUsers());
+
+                names.add(f.getWard());
+                counts.add(f.getFarmers());
+
+            }
+            data.setCount(counts);
+            data.setNames(names);
+            return  data;
+
+        }catch (Exception e){
+            log.error(e.getMessage());
+            return data;
+        }
+    }
 
 
 }

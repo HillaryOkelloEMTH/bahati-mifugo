@@ -1,6 +1,7 @@
 package com.emtech.dairyapp.Configurations.FarmerManagement;
 
 import com.emtech.dairyapp.Configurations.Interfaces.FarmerInfo;
+import com.emtech.dairyapp.Configurations.Interfaces.FarmersPerWard;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -25,5 +26,7 @@ public interface FarmerRepo extends JpaRepository<Farmer,Long> {
 
     @Query(value = "select  max(id) from farmer",nativeQuery = true)
     Long getMaxVaue();
+    @Query(value = "select count(*) as farmers,w.name as ward  from farmer f join ward w on w.id =f.ward_fk  GROUP by w.name",nativeQuery = true)
+    List<FarmersPerWard> getFarmersPerWard();
 
 }

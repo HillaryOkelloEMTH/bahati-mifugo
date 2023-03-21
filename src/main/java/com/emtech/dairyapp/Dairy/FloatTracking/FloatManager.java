@@ -27,6 +27,7 @@ public class FloatManager {
     private Double balance=0.0;//9000
     private Date date;
     private String allocatedBy;
+    private Character deletedFlag='N';
 
 //    @OneToMany(targetEntity = FloatDetails.class,cascade = CascadeType.ALL,fetch = FetchType.LAZY)
 //    @JoinColumn(name = "float_manager_id",referencedColumnName = "id")

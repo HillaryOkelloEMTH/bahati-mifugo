@@ -1,6 +1,7 @@
 package com.emtech.dairyapp.Analytics;
 
 
+import com.emtech.dairyapp.Configurations.Interfaces.FarmersPerWard;
 import com.emtech.dairyapp.Dairy.Interface.CollectionsData;
 import com.emtech.dairyapp.Dairy.Supply.MilkCollectionRepo;
 import com.emtech.dairyapp.Response.EntityResponse;
@@ -8,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.LinkedList;
 import java.util.List;
 
 @Service
@@ -20,14 +22,36 @@ public class CollectionsAnalytics {
         this.collectionRepo = collectionRepo;
     }
 
-    public EntityResponse getCollectionByDate(String date){
+    public EntityResponse getCollectionByDate(String date) {
 
         EntityResponse response = new EntityResponse();
         try {
 
-            List<AnalyticsData> todaysCollections= collectionRepo.getCollectorDataPerDate(date);
+            List<AnalyticsData> collections = collectionRepo.getCollectorDataPerDate(date);
+
+            LinkedStringInteger data = new LinkedStringInteger();
+
+
+            LinkedList<String> names = new LinkedList<>();
+            LinkedList<Double> amount = new LinkedList<>();
+            LinkedList<Double> quantity = new LinkedList<>();
+
+            for (AnalyticsData c : collections) {
+
+                names.add(c.getCollector());
+                amount.add(c.getAmount());
+                quantity.add(c.getAmount());
+
+
+            }
+            data.setQuantiy(quantity);
+            data.setNames(names);
+            data.setAmount(amount);
+
+
+
             response.setStatusCode(HttpStatus.OK.value());
-            response.setEntity(todaysCollections);
+            response.setEntity(collections);
             response.setMessage(HttpStatus.OK.getReasonPhrase());
 
         } catch (Exception e) {
@@ -37,27 +61,44 @@ public class CollectionsAnalytics {
         }
         return response;
     }
-    public EntityResponse getCollectionByYear(Integer year){
+
+    public EntityResponse getCollectionByYear(Integer year) {
 
         EntityResponse response = new EntityResponse();
         try {
 
-            List<AnalyticsData> todaysCollections= collectionRepo.getCollectorDataPerYear(year);
-            response.setStatusCode(HttpStatus.OK.value());
-            response.setEntity(todaysCollections);
-            response.setMessage(HttpStatus.OK.getReasonPhrase());
+            List<AnalyticsData> collections = collectionRepo.getCollectorDataPerYear(year);
+            LinkedStringInteger data = new LinkedStringInteger();
 
-        } catch (Exception e) {
-            log.error(e.getMessage());
-            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
-            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+
+                LinkedList<String> names = new LinkedList<>();
+                LinkedList<Double> amount = new LinkedList<>();
+                LinkedList<Double> quantity = new LinkedList<>();
+
+                for (AnalyticsData c : collections) {
+
+                    names.add(c.getMonth());
+                    amount.add(c.getAmount());
+                    quantity.add(c.getAmount());
+
+
+                }
+                data.setQuantiy(quantity);
+                data.setNames(names);
+                data.setAmount(amount);
+
+
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setEntity(data);
+                response.setMessage(HttpStatus.OK.getReasonPhrase());
+
+            } catch (Exception e) {
+                log.error(e.getMessage());
+                response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+                response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+            }
+            return response;
         }
-        return response;
+
+
     }
-
-
-
-
-
-
-}

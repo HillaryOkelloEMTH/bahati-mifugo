@@ -1,6 +1,7 @@
 package com.emtech.dairyapp.Configurations.FarmerManagement;
 
 
+import com.emtech.dairyapp.Analytics.LinkedStringInteger;
 import com.emtech.dairyapp.Response.EntityResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -56,6 +57,11 @@ public class FarmerController {
     @GetMapping("farmers/collector")
     public ResponseEntity<EntityResponse> getfarmerByCollector(@RequestParam Long collectorId){
         EntityResponse response = farmerService.fetchFarmerByCollector(collectorId);
+        return ResponseEntity.ok().body(response);
+    }
+    @GetMapping("farmers/location")
+    public ResponseEntity<?> getfarmerByCollector(){
+        LinkedStringInteger response = farmerService.farmersPerLocation();
         return ResponseEntity.ok().body(response);
     }
 
