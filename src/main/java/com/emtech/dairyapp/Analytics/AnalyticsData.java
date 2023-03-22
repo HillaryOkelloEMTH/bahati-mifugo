@@ -6,5 +6,6 @@ public interface AnalyticsData {
     Double getQuantity();
     String getCollector();
     String getMonth();
+    String getLocation();
 
 }

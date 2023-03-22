@@ -66,7 +66,6 @@ public class CollectionsAnalytics {
 
         EntityResponse response = new EntityResponse();
         try {
-
             List<AnalyticsData> collections = collectionRepo.getCollectorDataPerYear(year);
             LinkedStringInteger data = new LinkedStringInteger();
 
@@ -99,6 +98,41 @@ public class CollectionsAnalytics {
             }
             return response;
         }
+
+    public EntityResponse getCollectionPerLocation() {
+
+        EntityResponse response = new EntityResponse();
+        try {
+            List<AnalyticsData> collections = collectionRepo.getQuantityPerLocation();
+            LinkedStringInteger data = new LinkedStringInteger();
+
+
+            LinkedList<String> names = new LinkedList<>();
+            LinkedList<Double> quantity = new LinkedList<>();
+
+            for (AnalyticsData a : collections) {
+
+                names.add(a.getLocation());
+                quantity.add(a.getQuantity());
+
+
+
+            }
+            data.setQuantiy(quantity);
+            data.setNames(names);
+
+
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(data);
+            response.setMessage(HttpStatus.OK.getReasonPhrase());
+
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+        }
+        return response;
+    }
 
 
     }

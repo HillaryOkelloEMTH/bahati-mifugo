@@ -30,7 +30,6 @@ public class MilkCollections {
     private String event;//buying or selling
     private Double currentPrice;
     private Date collectionDate=new Date();
-
     private Double quantity=0.0;//litres
     private Double proteinContent=0.0;
     private Double fatContent=0.0;
@@ -45,6 +44,7 @@ public class MilkCollections {
     private Long collectorId;
     @Column(nullable = false)
     private Long pickUpLocation;
+
     @Column(nullable = false)
     private Long wardFk;
 

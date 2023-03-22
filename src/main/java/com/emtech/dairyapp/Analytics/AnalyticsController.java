@@ -27,10 +27,10 @@ public class AnalyticsController {
         EntityResponse response = analyticsService.getCollectionByYear(year);
         return  ResponseEntity.ok().body(response);
     }
-//    @GetMapping("farmers/location")
-//    public ResponseEntity<?> getfarmerByCollector(){
-//        LinkedStringInteger response = farmerService.farmersPerLocation();
-//        return ResponseEntity.ok().body(response);
-//    }
+    @GetMapping("quantity/location")
+    public ResponseEntity<?> getquanityperLocation(){
+        EntityResponse response = analyticsService.getCollectionPerLocation();
+        return ResponseEntity.ok().body(response);
+    }
 
 }

@@ -23,7 +23,7 @@ public class FarmerService {
 
 
     public static String generatecSystemCode(int len) {
-        String chars = "01234567890GOODWAY";
+        String chars = "01234567890";
         Random rnd = new Random();
         String S = "S";
         StringBuilder sb = new StringBuilder(len);
