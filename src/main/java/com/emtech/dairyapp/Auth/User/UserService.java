@@ -764,8 +764,8 @@ public class UserService {
     }
 
 
-    public boolean resetPassword(@NonNull String resetPasswordToken, @NonNull String password){
-        AtomicBoolean res = new AtomicBoolean();
+    public RecordCreateResponse resetPassword(@NonNull String resetPasswordToken, @NonNull String password){
+        AtomicReference<RecordCreateResponse> response = new AtomicReference<>();
 
         String username = jwtUtil.getUsernameFromToken(resetPasswordToken);
 
@@ -773,43 +773,49 @@ public class UserService {
             userRepository.findByUsername(username).ifPresentOrElse(user -> {
                 if (Objects.equals(user.getStatus(), "Active")){
                     AtomicReference<User> data = new AtomicReference<>(user);
-                    try {
-                        LocalDateTime tokenExpiryTime = convertTimestampToLocalDateTime(user.getResetPasswordTokenExpire(), "dd-MMM-yyyy HH:mm:ss");
+                    if(data.get().getResetPasswordToken() != null && !data.get().getResetPasswordToken().isEmpty()){
+                        try {
+                            LocalDateTime tokenExpiryTime = convertTimestampToLocalDateTime(user.getResetPasswordTokenExpire(), "dd-MMM-yyyy HH:mm:ss");
 
-                        log.log(Level.INFO, String.format("Compare Password Reset Token Time  To Current Time [ %s ]", LocalDateTime.now().isAfter(tokenExpiryTime)));
-                        if(LocalDateTime.now().isAfter(tokenExpiryTime)){
-                            data.get().setResetPasswordToken(null);
-                            data.get().setResetPasswordTokenExpire(null);
+                            log.log(Level.INFO, String.format("Compare Password Reset Token Time  To Current Time [ %s ]", LocalDateTime.now().isAfter(tokenExpiryTime)));
+                            if(LocalDateTime.now().isAfter(tokenExpiryTime)){
+                                data.get().setResetPasswordToken(null);
+                                data.get().setResetPasswordTokenExpire(null);
 
-                            log.log(Level.SEVERE, String.format("Reset password token has expired ", username));
+                                log.log(Level.SEVERE, String.format("Reset password token has expired ", username));
 
-                            res.set(false);
-                        }else{
-                            data.get().setPassword( passwordUtil.encode(password));
-                            data.get().setResetPasswordToken(null);
-                            data.get().setResetPasswordTokenExpire(null);
+                                response.set(RecordCreateResponse.builder().message("Reset password token has expired, please request for a new token").statusCode(HttpStatus.BAD_REQUEST.value()).build());
+                            }else{
+                                data.get().setPassword( passwordUtil.encode(password));
+                                data.get().setResetPasswordToken(null);
+                                data.get().setResetPasswordTokenExpire(null);
 
-                            data.set(userRepository.save(data.get()));
+                                data.set(userRepository.save(data.get()));
 
-                            res.set(true);
+                                response.set(RecordCreateResponse.builder().message("Password changed successfully !").statusCode((HttpStatus.OK.value())).build());
+                            }
+                        } catch (ParseException e) {
+                            throw new RuntimeException(e);
                         }
-                    } catch (ParseException e) {
-                        throw new RuntimeException(e);
+                    }else {
+                        response.set(RecordCreateResponse.builder().message("Token has already been used, please request for a new one").statusCode(HttpStatus.BAD_REQUEST.value()).build());
                     }
                 }else{
                     log.log(Level.SEVERE, String.format("Account with username [ %s ] not active ", username));
 
-                    res.set(false);
+                    response.set(RecordCreateResponse.builder().message(String.format("Account with username %s not active ", username)).statusCode(HttpStatus.BAD_REQUEST.value()).build());
                 }
             }, () -> {
                 /* todo:: user not found  */
 
                 log.log(Level.SEVERE, String.format("Account with username [ %s ] not found ", username));
 
-                res.set(false);
+                response.set(RecordCreateResponse.builder().message(String.format("Account with username %s not active ", username)).statusCode(HttpStatus.BAD_REQUEST.value()).build());
+
+
             });
         }
-        return res.get();
+        return response.get();
     }
 
     public static LocalDateTime convertTimestampToLocalDateTime(Timestamp timestamp, String format) throws ParseException {
