@@ -27,6 +27,7 @@ public class PickUpLocations {
     private String landMark;
     private Long ward_fk;
     private Long subcounty_fk;
+    private Long route_fk;
 
     @OneToMany(targetEntity = Collector.class,cascade = CascadeType.ALL,fetch = FetchType.EAGER)
     @JoinColumn(name = "location_id",referencedColumnName = "id")

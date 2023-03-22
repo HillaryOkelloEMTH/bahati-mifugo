@@ -40,11 +40,16 @@ public class FarmerService {
         log.info("Adding new Farmer ...");
         EntityResponse response = new EntityResponse();
         try{
+            String username = farmer.getFirstName()+ " " +farmer.getLastName();
+            farmer.setUsername(username);
             StringBuilder sb=new StringBuilder();
             LocalDate date = LocalDate.now();
             String year = String.valueOf(date.getYear()).substring(2,4);
+            Random random = new Random();
+           Integer val= random.nextInt(100);
+           log.info(val.toString());
             Long maxValue = farmerRepo.getMaxVaue()+1;
-            String code=  sb.append(year).append(maxValue).toString();
+            String code=  sb.append(year).append(val).append(maxValue).toString();
             farmer.setMemberCode(code);
             farmer.setCreatedAt(new Date());
             farmer.setDeletedFlag(CONSTANTS.NO);
@@ -99,6 +104,30 @@ public class FarmerService {
                 response.setMessage(HttpStatus.FOUND.getReasonPhrase());
             }else {
                 log.info("Farmers Not Found "+ "("+farmer.get().getCounty()+")");
+                response.setEntity(farmer);
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setMessage(HttpStatus.NO_CONTENT.getReasonPhrase());
+            }
+            return response;
+        } catch (Exception e) {
+            log.error("Error: " + e.getLocalizedMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+            return response;
+        }
+    }
+    public EntityResponse fetchFarmerByMemberNO(String memberNO) {
+        log.info("Fetching Farmers ...");
+        EntityResponse response = new EntityResponse();
+        try {
+            Optional<FarmerInfo> farmer = farmerRepo.findByMemberCode(memberNO);
+            if(farmer.isPresent()) {
+                log.info("Farmers Found "+ "("+farmer.get().getUsername()+")");
+                response.setEntity(farmer.get());
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setMessage(HttpStatus.FOUND.getReasonPhrase());
+            }else {
+                log.info("Farmers Not Found "+ "("+farmer.get().getUsername()+")");
                 response.setEntity(farmer);
                 response.setStatusCode(HttpStatus.OK.value());
                 response.setMessage(HttpStatus.NO_CONTENT.getReasonPhrase());
