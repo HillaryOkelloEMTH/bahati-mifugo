@@ -50,13 +50,14 @@ public class MilkCollectionService {
             String code = codenerator.codeGenerator(collections.getCollectorId());
             collections.setCollectionNumber(code);
             collections.setProductType("Milk");
+            collections.setEvent("Buying");
             String event= collections.getEvent();
            Optional<ProductConfig> productConfig =productConfigRepo.findByProductName(collections.getProductType().trim());
            if(productConfig.isPresent()) {
                if (event.equalsIgnoreCase("Buying")) {
                    log.info("buying event");
                    Double buyingPrice = productConfig.get().getBuyingPrice();
-                   log.info("buying price ", +buyingPrice);
+                   log.info("buying price ", + buyingPrice);
                    Double totalAmount = buyingPrice * collections.getQuantity();
                    log.info("total amount " + totalAmount);
                    collections.setAmount(totalAmount);
@@ -65,6 +66,7 @@ public class MilkCollectionService {
                    Optional<FloatManager> manager = floatManagerRepo.findByCollectorId(collections.getCollectorId());
                    if (manager.isPresent()) {
                        log.info("Collector allocation found ..");
+
                        Double famount = manager.get().getFloatAmount();
                        Double balance = famount - totalAmount;
                        Double spent = famount-balance;
@@ -81,7 +83,12 @@ public class MilkCollectionService {
 
                } else if (event.equalsIgnoreCase("Collection")){
                    log.info("----Collection event----");
-
+                   Double buyingPrice = productConfig.get().getBuyingPrice();
+                   log.info("buying price ", +buyingPrice);
+                   Double totalAmount = buyingPrice * collections.getQuantity();
+                   log.info("total amount " + totalAmount);
+                   collections.setAmount(totalAmount);
+                   collections.setCurrentPrice(buyingPrice);
                    //selling cost calculation
                    response.setStatusCode(HttpStatus.OK.value());
                    response.setMessage(HttpStatus.OK.getReasonPhrase());

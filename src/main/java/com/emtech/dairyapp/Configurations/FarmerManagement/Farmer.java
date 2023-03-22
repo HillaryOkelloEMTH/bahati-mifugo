@@ -34,16 +34,31 @@ public class Farmer {
     private String mobileNo;
     private String alternativeMobileNo;
     private String memberType;//individual/group
+//    private String groupName;
+
+
+    @OneToOne(cascade=CascadeType.ALL)
+    private BankDetails bankDetails;
 
     private String address;
     private String paymentFreequency;
+    private Date paymentDate;
+
 
     private Date createdAt=new Date();
     private Character deletedFlag;
     private Date deletedOn;
-    private String bankAccountNo;
+
+    private String location;
+    private String subLocatiion;
+    private String village;
+
+    private Long county_fk;
     private Long subcounty_fk;
     private Long wardFk;
     private Integer noOfCows;
+    private Long routeFk;
+    private String transportMeans;
+    private String gender;
 
 }
