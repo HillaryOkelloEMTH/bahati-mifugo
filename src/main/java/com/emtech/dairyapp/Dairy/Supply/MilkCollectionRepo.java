@@ -64,6 +64,9 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections,Long> 
     @Query(value = "SELECT c.id, c.collection_number as collectionCode,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer,c.amount,c.quantity,c.collection_date,w.name as ward,p.name as pickUpLocation  from collections c join users u on c.collector_id =u.id join farmer f on f.id=c.member join pick_up_locations p on p.id=c.pick_up_location join ward w on w.id=c.ward_fk where c.collection_number =:collectionCode",nativeQuery = true)
     Optional<CollectionsData> getCollectionsbyCollectionCode(String collectionCode);
 
+    @Query(value = "SELECT sum(c.quantity) as quantity,p.name as location  from collections c join pick_up_locations p on p.id =c.pick_up_location GROUP BY p.name",nativeQuery = true)
+    List<AnalyticsData> getQuantityPerLocation();
+
 
 
 

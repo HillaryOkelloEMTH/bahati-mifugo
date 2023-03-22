@@ -50,9 +50,7 @@ public class MilkCollectionService {
             String code = codenerator.codeGenerator(collections.getCollectorId());
             collections.setCollectionNumber(code);
             collections.setProductType("Milk");
-            collections.setEvent("Buying");
             String event= collections.getEvent();
-
            Optional<ProductConfig> productConfig =productConfigRepo.findByProductName(collections.getProductType().trim());
            if(productConfig.isPresent()) {
                if (event.equalsIgnoreCase("Buying")) {
@@ -81,12 +79,10 @@ public class MilkCollectionService {
 
                    }
 
-               } else {
-                   log.info("selling event");
+               } else if (event.equalsIgnoreCase("Collection")){
+                   log.info("----Collection event----");
 
                    //selling cost calculation
-
-
                    response.setStatusCode(HttpStatus.OK.value());
                    response.setMessage(HttpStatus.OK.getReasonPhrase());
 
