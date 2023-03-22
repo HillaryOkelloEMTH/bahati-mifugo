@@ -108,10 +108,11 @@ public class AuthController {
     )
 
     public Mono<ResponseEntity<RecordCreateResponse>> resetPassword(@RequestBody ResetPasswordRequest body){
-        if(this.userService.resetPassword(body.getResetPasswordToken(), body.getPassword())){
-            return Mono.just(ResponseEntity.ok().body(RecordCreateResponse.builder().message("Password has been changed successfully !").build()));
+        RecordCreateResponse response = this.userService.resetPassword(body.getResetPasswordToken(), body.getPassword());
+        if(!Objects.equals(response.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase()) && !response.getMessage().isEmpty()){
+            return Mono.just(ResponseEntity.ok().body(response));
         }else {
-            return Mono.just(ResponseEntity.internalServerError().body(RecordCreateResponse.builder().message("Sorry, an error occurred").build()));
+            return Mono.just(ResponseEntity.internalServerError().body(response));
         }
     }
 }
