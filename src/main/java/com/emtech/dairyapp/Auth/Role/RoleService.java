@@ -157,7 +157,7 @@ public class RoleService {
         List<Role> roles = roleRepository.findAll();
 
         List<RoleData> rolesData = new ArrayList<>();
-        if(roles != null && !roles.isEmpty()){
+        if(!roles.isEmpty()){
             roles.forEach(role -> {
                 RoleData roleData = RoleData.builder()
                         .id(role.getId())
