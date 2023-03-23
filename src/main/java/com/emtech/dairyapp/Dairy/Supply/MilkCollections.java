@@ -45,8 +45,6 @@ public class MilkCollections {
     @Column(nullable = false)
     private Long pickUpLocation;
 
-    @Column(nullable = false)
-    private Long wardFk;
 
     private  Character status= CONSTANTS.NO;
     private Character paymentStatus=CONSTANTS.NO;

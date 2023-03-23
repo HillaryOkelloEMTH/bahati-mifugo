@@ -27,11 +27,11 @@ public class LocationServices {
         Request request = new Request.Builder()
                 .url(baseurl+"/json?latlng="+latitude+","+longitude+"&key="+apiKey)
                 .get()
-                .addHeader("Content-Type",mediaType.charset().toString())
+                .addHeader("content-type", "application/json")
                 .build();
         Response response = client.newCall(request).execute();
 
-        System.out.println(response.body().string());
+//        System.out.println(response.body().string());
         return ResponseEntity.ok().body(response.body().string());
     }
 

@@ -5,6 +5,7 @@ import com.emtech.dairyapp.Configurations.FarmerManagement.Farmer;
 public interface FarmerInfo {
 
     String getNo_of_cows();
+    Long getId();
     String getMember_code();
     String getSubcounty();
     String getCounty();
@@ -19,7 +20,6 @@ public interface FarmerInfo {
 
     String getLast_name();
     String getPayment_freequency();
-    String getBank_account_no();
     String getAlternative_mobile_no();
     String getAddress();
     String getFirst_name();

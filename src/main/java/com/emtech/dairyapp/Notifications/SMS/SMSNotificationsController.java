@@ -1,4 +1,4 @@
-package com.emtech.dairyapp.Notifcations.SMS;
+package com.emtech.dairyapp.Notifications.SMS;
 
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
 import java.util.Optional;
 
 @CrossOrigin
@@ -17,14 +16,11 @@ public class SMSNotificationsController {
 
     @Autowired
     private SMSNOtificaionRepo smsnOtificaionRepo;
+    @Autowired
+    private SMSService service;
 
 
-//    @GetMapping("smsCallbacks")
-//    public ResponseEntity<?> getSMSCallback(@RequestBody Object object){
-//        log.info("Receiving sms callback  at "+ LocalDate.now() + " ....");
-//        System.out.println(object.toString());
-//        return ResponseEntity.ok().body(object);
-//    }
+
 
     @RequestMapping("/smsCallbacks")
     public void receiveSMSCallbacks(@RequestBody SMSCallback details) {
@@ -38,6 +34,8 @@ public class SMSNotificationsController {
         //Update and status description in SMS Notifications Table
         Optional<SMSNotifications> sms = smsnOtificaionRepo.findByMessageId(messageId);
         if (sms.isPresent()) {
+            log.info("SMS found");
+            log.info("Updating SMS...");
             SMSNotifications sn = sms.get();
             sn.setStatus(status);
             sn.setStatusReason(statusreason);
@@ -46,8 +44,13 @@ public class SMSNotificationsController {
             sn.setDeliveryTime(details.getCreated_at());
             smsnOtificaionRepo.save(sn);
         }
+        log.info("Done");
     }
-
+    @RequestMapping("/sendSMS")
+    public ResponseEntity<?> sendSSMS(@RequestParam String message,@RequestParam String phone) {
+        service.SMSNOtification(message,phone);
+      return ResponseEntity.ok().body("Done");
+    }
 
 
 

@@ -1,4 +1,4 @@
-package com.emtech.dairyapp.Notifcations.SMS;
+package com.emtech.dairyapp.Notifications.SMS;
 
 
 import com.fasterxml.jackson.annotation.JsonProperty;

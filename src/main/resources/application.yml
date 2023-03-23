@@ -41,14 +41,14 @@ google:
     API-KEY: AIzaSyCtDO1QdXGeEnX5LA1qOQlpuChPkZJJb1I
 
 
-#ebs:
-#  url: https://sms.crossgatesolutions.com:18095/v1/bulksms/messages
-#  callbackurl:
-#    one: http://52.15.152.26:9600/api/v1/sms/smsCallbacks
-#  messagetype: promotional
-#  apiKey : ZmU5ZDMzMmQ0NWJjODI5MUlELWUwMmZmMzQ4Y2Q0YjQzMzhiOTQ0M2E2ZTQ4ZjVjNTM0
-#  #ebs.apiKey = ZmMyYWRkYjEyMTkxY2Y4ZklELWZkODFhMGM3YjA1NjQwNGFhMDc1OGNiZmQ1MTA1MTVi
-#  profileCode: 2208021
+ebs:
+  url: https://sms.crossgatesolutions.com:18095/v1/bulksms/messages
+  callbackurl:
+    one: http://52.15.152.26:9600/api/v1/sms/smsCallbacks
+  messagetype: promotional
+  apiKey : NDU4MThmODAxMzM2ODk3MUlELTQ2MmU4Y2QwZDA4YjQxOGU5ZjZjMTQ0ZGM0MmE4NDY5
+  #ebs.apiKey = ZmMyYWRkYjEyMTkxY2Y4ZklELWZkODFhMGM3YjA1NjQwNGFhMDc1OGNiZmQ1MTA1MTVi
+  profileCode: 2208021
 ##ebs.profileCode = 2211301
 
 

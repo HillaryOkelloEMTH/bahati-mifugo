@@ -1,6 +1,7 @@
 package com.emtech.dairyapp.Configurations.FarmerManagement;
 
 import com.emtech.dairyapp.Analytics.LinkedStringInteger;
+import com.emtech.dairyapp.Configurations.Interfaces.FarmerAccruedAmount;
 import com.emtech.dairyapp.Configurations.Interfaces.FarmerInfo;
 import com.emtech.dairyapp.Configurations.Interfaces.FarmersPerWard;
 import com.emtech.dairyapp.Configurations.Utils.CONSTANTS;
@@ -224,7 +225,7 @@ public class FarmerService {
 
                 response.setEntity(farmer);
                 response.setStatusCode(HttpStatus.OK.value());
-                response.setMessage(HttpStatus.NO_CONTENT.getReasonPhrase());
+                response.setMessage(HttpStatus.OK.getReasonPhrase());
             }
             return response;
         } catch (Exception e) {
@@ -266,6 +267,25 @@ public class FarmerService {
             return data;
         }
     }
+    public EntityResponse fetchFarmerAccrualAmount(Long farmerId) {
+        log.info("Fetching Accrued information ...");
+        EntityResponse response = new EntityResponse();
+        try {
+             FarmerAccruedAmount data= farmerRepo.getFarmerAccruedAmount(farmerId,CONSTANTS.NO);
+                response.setEntity(data);
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setMessage(HttpStatus.OK.getReasonPhrase());
+
+            return response;
+        } catch (Exception e) {
+            log.error("Error: " + e.getLocalizedMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+            return response;
+        }
+    }
+
+
 
 
 }

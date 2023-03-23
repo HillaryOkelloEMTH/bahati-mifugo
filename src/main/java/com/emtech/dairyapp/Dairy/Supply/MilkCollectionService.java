@@ -1,5 +1,7 @@
 package com.emtech.dairyapp.Dairy.Supply;
 
+import com.emtech.dairyapp.Configurations.FarmerManagement.Farmer;
+import com.emtech.dairyapp.Configurations.FarmerManagement.FarmerRepo;
 import com.emtech.dairyapp.Configurations.ProductConfig.ProductConfig;
 import com.emtech.dairyapp.Configurations.ProductConfig.ProductConfigRepo;
 import com.emtech.dairyapp.Dairy.FloatTracking.FloatManager;
@@ -7,6 +9,7 @@ import com.emtech.dairyapp.Dairy.FloatTracking.FloatManagerRepo;
 import com.emtech.dairyapp.Dairy.Interface.CollectionTracker;
 import com.emtech.dairyapp.Dairy.Interface.CollectionsData;
 import com.emtech.dairyapp.Dairy.Interface.DailyRecords;
+import com.emtech.dairyapp.Notifications.SMS.SMSService;
 import com.emtech.dairyapp.Response.EntityResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -26,17 +29,22 @@ public class MilkCollectionService {
     private final ProductConfigRepo productConfigRepo;
     private final FloatManagerRepo floatManagerRepo;
     private final Codenerator codenerator;
+    private final SMSService smsservice;
+    private final FarmerRepo farmerRepo;
 
 
 
 
 
 
-    public MilkCollectionService(MilkCollectionRepo milkCollectionRepo, ProductConfigRepo productConfigRepo, FloatManagerRepo floatManagerRepo, Codenerator codenerator) {
+
+    public MilkCollectionService(MilkCollectionRepo milkCollectionRepo, ProductConfigRepo productConfigRepo, FloatManagerRepo floatManagerRepo, Codenerator codenerator, SMSService smsservice, FarmerRepo farmerRepo) {
         this.milkCollectionRepo = milkCollectionRepo;
         this.productConfigRepo = productConfigRepo;
         this.floatManagerRepo = floatManagerRepo;
         this.codenerator = codenerator;
+        this.smsservice = smsservice;
+        this.farmerRepo = farmerRepo;
     }
 
 
@@ -47,63 +55,86 @@ public class MilkCollectionService {
         EntityResponse response = new EntityResponse();
         try{
 
-            String code = codenerator.codeGenerator(collections.getCollectorId());
-            collections.setCollectionNumber(code);
-            collections.setProductType("Milk");
-            collections.setEvent("Buying");
-            String event= collections.getEvent();
-           Optional<ProductConfig> productConfig =productConfigRepo.findByProductName(collections.getProductType().trim());
-           if(productConfig.isPresent()) {
-               if (event.equalsIgnoreCase("Buying")) {
-                   log.info("buying event");
-                   Double buyingPrice = productConfig.get().getBuyingPrice();
-                   log.info("buying price ", + buyingPrice);
-                   Double totalAmount = buyingPrice * collections.getQuantity();
-                   log.info("total amount " + totalAmount);
-                   collections.setAmount(totalAmount);
-                   collections.setCurrentPrice(buyingPrice);
-                   log.info("Getting float management configurations....");
-                   Optional<FloatManager> manager = floatManagerRepo.findByCollectorId(collections.getCollectorId());
-                   if (manager.isPresent()) {
-                       log.info("Collector allocation found ..");
+            Optional<Farmer> check = farmerRepo.findById(collections.getMember());
+            log.info("Checking if farmer exist ...");
+            if(check.isPresent()) {
+                log.info("Farmer exist ...");
+                String username = check.get().getUsername();
 
-                       Double famount = manager.get().getFloatAmount();
-                       Double balance = famount - totalAmount;
-                       Double spent = famount-balance;
-                       manager.get().setFloatSpent(spent);
-                       manager.get().setBalance(balance);
+                String code = codenerator.codeGenerator(collections.getCollectorId());
+                collections.setCollectionNumber(code);
 
-                       floatManagerRepo.save(manager.get());
-                   } else {
-                       log.info("Collector allocation Not Found!! ..");
-                       response.setStatusCode(HttpStatus.NOT_ACCEPTABLE.value());
-                       response.setMessage(HttpStatus.NOT_ACCEPTABLE.getReasonPhrase());
 
-                   }
+                collections.setProductType("Milk");
+                collections.setEvent("Buying");
+                String event = collections.getEvent();
+                Optional<ProductConfig> productConfig = productConfigRepo.findByProductName(collections.getProductType().trim());
+                if (productConfig.isPresent()) {
+                    if (event.equalsIgnoreCase("Buying")) {
+                        log.info("buying event");
+                        Double buyingPrice = productConfig.get().getBuyingPrice();
+                        Double totalAmount = buyingPrice * collections.getQuantity();
+                        collections.setAmount(totalAmount);
+                        collections.setCurrentPrice(buyingPrice);
+                        Optional<FloatManager> manager = floatManagerRepo.findByCollectorId(collections.getCollectorId());
+                        if (manager.isPresent()) {
+                            log.info("Collector allocation found ..");
 
-               } else if (event.equalsIgnoreCase("Collection")){
-                   log.info("----Collection event----");
-                   Double buyingPrice = productConfig.get().getBuyingPrice();
-                   log.info("buying price ", +buyingPrice);
-                   Double totalAmount = buyingPrice * collections.getQuantity();
-                   log.info("total amount " + totalAmount);
-                   collections.setAmount(totalAmount);
-                   collections.setCurrentPrice(buyingPrice);
-                   //selling cost calculation
-                   response.setStatusCode(HttpStatus.OK.value());
-                   response.setMessage(HttpStatus.OK.getReasonPhrase());
+                            Double famount = manager.get().getFloatAmount();
+                            Double balance = famount - totalAmount;
+                            Double spent = famount - balance;
+                            manager.get().setFloatSpent(spent);
+                            manager.get().setBalance(balance);
 
-               }
+                            floatManagerRepo.save(manager.get());
+                        } else {
+                            log.info("Collector allocation Not Found!! ..");
+                            response.setStatusCode(HttpStatus.NOT_ACCEPTABLE.value());
+                            response.setMessage(HttpStatus.NOT_ACCEPTABLE.getReasonPhrase());
 
-               MilkCollections c = milkCollectionRepo.save(collections);
-               response.setStatusCode(HttpStatus.CREATED.value());
-               response.setEntity(c);
-               response.setMessage(HttpStatus.CREATED.getReasonPhrase());
-           }else {
-               log.info("Product Configuration Not Found!");
-               response.setStatusCode(HttpStatus.BAD_REQUEST.value());
-               response.setMessage("Product Configuration Not Found!");
-           }
+                        }
+
+                    } else if (event.equalsIgnoreCase("Collection")) {
+                        log.info("----Collection event----");
+                        Double buyingPrice = productConfig.get().getBuyingPrice();
+                        log.info("buying price ", +buyingPrice);
+                        Double totalAmount = buyingPrice * collections.getQuantity();
+                        log.info("total amount " + totalAmount);
+                        collections.setAmount(totalAmount);
+                        collections.setCurrentPrice(buyingPrice);
+                        //selling cost calculation
+                        response.setStatusCode(HttpStatus.OK.value());
+                        response.setMessage(HttpStatus.OK.getReasonPhrase());
+
+                    }
+
+                    MilkCollections c = milkCollectionRepo.save(collections);
+
+                    response.setStatusCode(HttpStatus.CREATED.value());
+                    response.setEntity(c);
+                    response.setMessage(HttpStatus.CREATED.getReasonPhrase());
+                    //send sms
+
+                    String message = "Dear "+username +", we have received your "+collections.getQuantity()+ " of milk" +
+                            " collections for "+collections.getSession() + " at "+collections.getCollectionDate()+".";
+                    String phoneno = check.get().getMobileNo().trim();
+                    if(phoneno.startsWith("0")){
+                        log.info("Starting with 0");
+                        phoneno= phoneno.replaceFirst("0","254");
+                    }else if (phoneno.startsWith("+")){
+                        log.info("Starting with +");
+                        phoneno= phoneno.substring(1,phoneno.length());
+                    }else if (phoneno.startsWith("7")|| phoneno.startsWith("1")){
+                        phoneno="254"+phoneno;
+                    }
+                    smsservice.SMSNOtification(message, phoneno);
+
+                } else {
+                    log.info("Product Configuration Not Found!");
+                    response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+                    response.setMessage("Product Configuration Not Found!");
+                }
+            }
         }catch (Exception e){
             log.error(e.getLocalizedMessage());
             response.setStatusCode(HttpStatus.BAD_REQUEST.value());
