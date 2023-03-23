@@ -1,11 +1,15 @@
 package com.emtech.dairyapp.Notifications.SMS;
 
+import com.emtech.dairyapp.Dairy.FloatTracking.FloatManager;
+import com.emtech.dairyapp.Response.EntityResponse;
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @CrossOrigin
@@ -52,6 +56,36 @@ public class SMSNotificationsController {
       return ResponseEntity.ok().body("Done");
     }
 
+    @GetMapping("notifications")
+    public ResponseEntity<?> getNotifications() {
+        EntityResponse response = new EntityResponse();
+        List<SMSNotifications> not = smsnOtificaionRepo.findAll();
+        if (not.size()>0) {
+            response.setEntity(not);
+            response.setMessage(HttpStatus.OK.getReasonPhrase());
+            response.setStatusCode(HttpStatus.OK.value());
+        } else {
+            response.setEntity(not);
+            response.setMessage(HttpStatus.NOT_FOUND.getReasonPhrase());
+            response.setStatusCode(HttpStatus.NOT_FOUND.value());
+        }
+        return ResponseEntity.ok().body(response);
+    }
+    @GetMapping("notifications/messageId")
+    public ResponseEntity<?> getNotificationsBYMSID(@RequestParam String messageId) {
+        EntityResponse response = new EntityResponse();
+        Optional<SMSNotifications> not = smsnOtificaionRepo.findByMessageId(messageId);
+        if (not.isPresent()) {
+            response.setEntity(not);
+            response.setMessage(HttpStatus.OK.getReasonPhrase());
+            response.setStatusCode(HttpStatus.OK.value());
+        } else {
+
+            response.setMessage(HttpStatus.NOT_FOUND.getReasonPhrase());
+            response.setStatusCode(HttpStatus.NOT_FOUND.value());
+        }
+        return ResponseEntity.ok().body(response);
+    }
 
 
 

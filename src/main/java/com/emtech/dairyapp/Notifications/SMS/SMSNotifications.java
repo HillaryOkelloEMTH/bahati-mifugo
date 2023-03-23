@@ -21,6 +21,7 @@ public class SMSNotifications {
 
     private String messageId;
     private String phoneNumber;
+    private String farmerName;
     private String senderId;
     private String message;
     private Date sentDate;
