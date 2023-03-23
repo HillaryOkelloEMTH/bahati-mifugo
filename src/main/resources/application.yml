@@ -5,7 +5,7 @@ server:
 
 spring:
   datasource:
-    url: jdbc:mariadb://52.15.152.26:3306/dairy
+    url: jdbc:mariadb://52.15.152.26:3306/bahati
     username: emtech
     password: emtech@2022
     driver-class-name: org.mariadb.jdbc.Driver

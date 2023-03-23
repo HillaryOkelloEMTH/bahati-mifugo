@@ -23,17 +23,19 @@ public class CanController {
     public ResponseEntity<EntityResponse> addNewCan(@RequestBody Can can) {
         StringBuilder sb = new StringBuilder();
         Integer count = canRepo.getAllCans();
-
+        String canno="";
         if (count > 0) {
             Integer max = canRepo.getMaxValue();
-            sb.append("CAN-").append(max + 1).toString();
+            canno=sb.append("CAN-").append(max + 1).toString();
 
         } else {
-            sb.append("CAN-").append(0 + 1).toString();
+            canno=sb.append("CAN-").append(0 + 1).toString();
 
         }
+        can.setCanNo(canno);
 
         Can c = canRepo.save(can);
+
         EntityResponse response = new EntityResponse<>();
         response.setMessage(HttpStatus.CREATED.getReasonPhrase());
         response.setStatusCode(HttpStatus.CREATED.value());
