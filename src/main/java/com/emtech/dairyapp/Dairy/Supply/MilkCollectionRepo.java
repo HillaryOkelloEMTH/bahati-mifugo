@@ -51,8 +51,8 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections,Long> 
     List<CollectionsData> getCollectionByDateRange(String fromDate,String toDate);
 
 
-    @Query(value = "select  max(id) from collections",nativeQuery = true)
-    Long getMaxVaue();
+//    @Query(value = "select  max(id) from collections",nativeQuery = true)
+//    Long getMaxVaue();
 
 
     @Query(value = "SELECT sum(c.amount) as amount,SUM(c.quantity) as quantity ,u.user_name as collector  from collections c join users u on u.id=c.collector_id  WHERE DATE(c.collection_date)=:date  GROUP BY c.collector_id",nativeQuery = true)
