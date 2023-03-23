@@ -1,8 +1,11 @@
 package com.emtech.dairyapp.Stock.Category;
 
+import com.emtech.dairyapp.Stock.CategoryProduct.CategoryProduct;
+import com.emtech.dairyapp.Stock.CategoryProduct.CategoryProductRepository;
 import com.emtech.dairyapp.Stock.Data.Http.Response.Category.CategoryData;
 import com.emtech.dairyapp.Stock.Data.Http.Response.Category.CategoriesResponse;
 import com.emtech.dairyapp.Stock.Data.Http.Response.Category.CategoryResponse;
+import com.emtech.dairyapp.Stock.Data.Http.Response.Product.ProductData;
 import com.emtech.dairyapp.Stock.Data.Http.Response.StockEntitiesResponse;
 import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +24,11 @@ public class CategoryService {
 
     @Autowired
     private CategoryRepo categoryRepo;
+
+    @Autowired
+    private CategoryProductRepository categoryProductRepository;
+
+
     public StockEntitiesResponse createCategory(@NonNull String name, @NonNull String description){
         AtomicReference<StockEntitiesResponse> response = new AtomicReference<>();
 
@@ -94,6 +102,32 @@ public class CategoryService {
                     .updateDate(category.getUpdateDate())
                     .build();
 
+            List<ProductData> products = new ArrayList<>();
+
+            List<CategoryProduct> categoryProducts = this.categoryProductRepository.findAllByCategory(category);
+
+            if(categoryProducts != null && !categoryProducts.isEmpty()){
+                categoryProducts.forEach(categoryProduct -> {
+                    ProductData product = ProductData.builder()
+                            .id(categoryProduct.getProduct().getId())
+                            .name(categoryProduct.getProduct().getName())
+                            .description(categoryProduct.getProduct().getDescription())
+                            .price(categoryProduct.getProduct().getPrice())
+                            .salePrice(categoryProduct.getProduct().getSalePrice())
+                            .profit(categoryProduct.getProduct().getProfit())
+                            .discount(categoryProduct.getProduct().getDiscount())
+                            .discounted(categoryProduct.getProduct().getDiscounted())
+                            .deleted(categoryProduct.getProduct().getDeleted())
+                            .updateDate(categoryProduct.getProduct().getUpdateDate())
+                            .creationDate(categoryProduct.getProduct().getCreationDate())
+                            .build();
+
+                    products.add(product);
+                });
+
+                categoryData.setProducts(products);
+            }
+
             response.set(CategoryResponse.builder().categoryData(categoryData).statusCode(HttpStatus.OK.value()).build());
         }, () -> {
             log.log(Level.WARNING, String.format("Category with the id %s not found ", id));
@@ -115,6 +149,32 @@ public class CategoryService {
                     .creationDate(category.getCreationDate())
                     .updateDate(category.getUpdateDate())
                     .build();
+
+            List<ProductData> products = new ArrayList<>();
+
+            List<CategoryProduct> categoryProducts = this.categoryProductRepository.findAllByCategory(category);
+
+            if(categoryProducts != null && !categoryProducts.isEmpty()){
+                categoryProducts.forEach(categoryProduct -> {
+                    ProductData product = ProductData.builder()
+                            .id(categoryProduct.getProduct().getId())
+                            .name(categoryProduct.getProduct().getName())
+                            .description(categoryProduct.getProduct().getDescription())
+                            .price(categoryProduct.getProduct().getPrice())
+                            .salePrice(categoryProduct.getProduct().getSalePrice())
+                            .profit(categoryProduct.getProduct().getProfit())
+                            .discount(categoryProduct.getProduct().getDiscount())
+                            .discounted(categoryProduct.getProduct().getDiscounted())
+                            .deleted(categoryProduct.getProduct().getDeleted())
+                            .updateDate(categoryProduct.getProduct().getUpdateDate())
+                            .creationDate(categoryProduct.getProduct().getCreationDate())
+                            .build();
+
+                    products.add(product);
+                });
+
+                categoryData.setProducts(products);
+            }
 
             response.set(CategoryResponse.builder().categoryData(categoryData).statusCode(HttpStatus.OK.value()).build());
         }, () -> {
@@ -141,6 +201,34 @@ public class CategoryService {
                         .updateDate(category.getUpdateDate())
                         .creationDate(category.getCreationDate())
                         .build();
+
+                List<ProductData> products = new ArrayList<>();
+
+                List<CategoryProduct> categoryProducts = this.categoryProductRepository.findAllByCategory(category);
+
+                if(categoryProducts != null && !categoryProducts.isEmpty()){
+                    categoryProducts.forEach(categoryProduct -> {
+                        ProductData product = ProductData.builder()
+                                .id(categoryProduct.getProduct().getId())
+                                .name(categoryProduct.getProduct().getName())
+                                .description(categoryProduct.getProduct().getDescription())
+                                .price(categoryProduct.getProduct().getPrice())
+                                .salePrice(categoryProduct.getProduct().getSalePrice())
+                                .profit(categoryProduct.getProduct().getProfit())
+                                .discount(categoryProduct.getProduct().getDiscount())
+                                .discounted(categoryProduct.getProduct().getDiscounted())
+                                .deleted(categoryProduct.getProduct().getDeleted())
+                                .updateDate(categoryProduct.getProduct().getUpdateDate())
+                                .creationDate(categoryProduct.getProduct().getCreationDate())
+                                .build();
+
+                        products.add(product);
+                    });
+
+                    categoryData.setProducts(products);
+                }
+
+
                 categoriesResponse.add(categoryData);
             });
 
@@ -167,6 +255,34 @@ public class CategoryService {
                         .updateDate(category.getUpdateDate())
                         .creationDate(category.getCreationDate())
                         .build();
+
+                List<ProductData> products = new ArrayList<>();
+
+                List<CategoryProduct> categoryProducts = this.categoryProductRepository.findAllByCategory(category);
+
+                if(categoryProducts != null && !categoryProducts.isEmpty()){
+                    categoryProducts.forEach(categoryProduct -> {
+                        ProductData product = ProductData.builder()
+                                .id(categoryProduct.getProduct().getId())
+                                .name(categoryProduct.getProduct().getName())
+                                .description(categoryProduct.getProduct().getDescription())
+                                .price(categoryProduct.getProduct().getPrice())
+                                .salePrice(categoryProduct.getProduct().getSalePrice())
+                                .profit(categoryProduct.getProduct().getProfit())
+                                .discount(categoryProduct.getProduct().getDiscount())
+                                .discounted(categoryProduct.getProduct().getDiscounted())
+                                .deleted(categoryProduct.getProduct().getDeleted())
+                                .updateDate(categoryProduct.getProduct().getUpdateDate())
+                                .creationDate(categoryProduct.getProduct().getCreationDate())
+                                .build();
+
+                        products.add(product);
+                    });
+
+                    categoryData.setProducts(products);
+                }
+
+
                 categoriesResponse.add(categoryData);
             });
 

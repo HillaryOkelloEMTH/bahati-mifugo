@@ -1,6 +1,11 @@
-package com.emtech.dairyapp.Stock.Data.Product;
+package com.emtech.dairyapp.Stock.Product;
 
 
+import com.emtech.dairyapp.Auth.UserRole.UserRole;
+import com.emtech.dairyapp.Stock.Category.Category;
+import com.emtech.dairyapp.Stock.Category.CategoryRepo;
+import com.emtech.dairyapp.Stock.CategoryProduct.CategoryProduct;
+import com.emtech.dairyapp.Stock.CategoryProduct.CategoryProductRepository;
 import com.emtech.dairyapp.Stock.Data.Http.Response.Product.ProductData;
 import com.emtech.dairyapp.Stock.Data.Http.Response.Product.ProductResponse;
 import com.emtech.dairyapp.Stock.Data.Http.Response.Product.ProductsResponse;
@@ -13,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
@@ -22,39 +28,95 @@ public class ProductService {
     @Autowired
     private ProductRepository productRepository;
 
-    public StockEntitiesResponse createProduct(@NonNull String name, @NonNull String description, @NonNull Double price, @NonNull Double salePrice){
+    @Autowired
+    private CategoryProductRepository categoryProductRepository;
+
+    @Autowired
+    private CategoryRepo categoryRepo;
+
+    public StockEntitiesResponse createProduct(@NonNull String name, @NonNull String description, @NonNull Double price, @NonNull Double salePrice, @NonNull Integer stock, @NonNull Long categoryId){
         AtomicReference<StockEntitiesResponse> response = new AtomicReference<>();
 
-        AtomicReference<Product> product = new AtomicReference<>(new Product());
-        product.get().setName(name);
-        product.get().setDescription(description);
-        product.get().setPrice(price);
-        product.get().setDeleted(0);
-        product.get().setSalePrice(salePrice);
+        this.categoryRepo.findById(categoryId).ifPresentOrElse(category -> {
+            AtomicReference<Product> product = new AtomicReference<>(new Product());
+            product.get().setName(name);
+            product.get().setDescription(description);
+            product.get().setPrice(price);
+            product.get().setStock(stock);
+            product.get().setDeleted(0);
+            product.get().setSalePrice(salePrice);
 
-        if (salePrice > price){
-            product.get().setDiscounted(0);
+            if (salePrice > price){
+                product.get().setDiscounted(0);
 
-            double profit = salePrice - price;
+                double profit = salePrice - price;
 
-            product.get().setProfit(profit);
-            product.get().setDiscount(0.0);
-        }
+                product.get().setProfit(profit);
+                product.get().setDiscount(0.0);
+            }
 
-        if(price > salePrice){
-            product.get().setDiscounted(1);
+            if(price > salePrice){
+                product.get().setDiscounted(1);
 
-            double discount = price - salePrice;
+                double discount = price - salePrice;
 
-            product.get().setDiscount(discount);
-            product.get().setProfit(0.0);
-        }
+                product.get().setDiscount(discount);
+                product.get().setProfit(0.0);
+            }
 
-        product.set(this.productRepository.save(product.get()));
+            product.set(this.productRepository.save(product.get()));
 
-        response.set(StockEntitiesResponse.builder().message("Product added successfully ").statusCode(HttpStatus.OK.value()).build());
+            if(this.assignCategory(category, product.get())){
+                response.set(StockEntitiesResponse.builder().message("Product added successfully ").statusCode(HttpStatus.OK.value()).build());
+            }else {
+                response.set(StockEntitiesResponse.builder().message("Sorry an error occurred, please try again later ").statusCode(HttpStatus.INTERNAL_SERVER_ERROR.value()).build());
+            }
+        }, () -> {
+            response.set(StockEntitiesResponse.builder().message(String.format("Category with id %s not found  ", categoryId)).statusCode(HttpStatus.INTERNAL_SERVER_ERROR.value()).build());
+        });
+
+
 
         return response.get();
+    }
+
+    public boolean assignCategory(@NonNull Category category, @NonNull Product product ){
+        AtomicBoolean res = new AtomicBoolean();
+
+        this.productRepository.findById(product.getId()).ifPresentOrElse(productData -> {
+            if (productData.getDeleted().compareTo(1) < 1){
+                this.categoryRepo.findById(category.getId()).ifPresentOrElse(myCategory -> {
+                    if (myCategory.getStatus().compareTo(1) == 0){
+                        this.categoryProductRepository.findByCategoryAndProduct(myCategory, productData).ifPresentOrElse(cp -> {
+                            log.log(Level.INFO, "Product is already assigned to this category");
+
+                            res.set(true);
+                        }, () -> {
+                            AtomicReference<CategoryProduct> categoryProduct = new AtomicReference<>(new CategoryProduct());
+                            categoryProduct.get().setProduct(productData);
+                            categoryProduct.get().setCategory(category);
+
+                            categoryProduct.set(this.categoryProductRepository.save(categoryProduct.get()));
+
+                            log.log(Level.INFO, String.format("Category Product created [ %s ]", categoryProduct.get()));
+
+                            res.set(true);
+
+                        });
+                    }
+                }, () -> {
+                    log.log(Level.INFO, "Category not found");
+
+                    res.set(false);
+                });
+            }
+        }, () -> {
+            log.log(Level.INFO, "Product not found");
+
+            res.set(false);
+        });
+
+        return res.get();
     }
 
     public StockEntitiesResponse updateProduct(@NonNull Long productId, @NonNull String name, @NonNull String description, @NonNull Double price, @NonNull Double salePrice){

@@ -1,4 +1,4 @@
-package com.emtech.dairyapp.Stock.Data.Product;
+package com.emtech.dairyapp.Stock.Product;
 
 
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -35,6 +35,9 @@ public class Product implements Serializable {
 
     @Column(name = "price")
     private Double price;
+
+    @Column(name = "stock")
+    private Integer stock;
 
     @Column(name = "sale_price")
     private Double salePrice;

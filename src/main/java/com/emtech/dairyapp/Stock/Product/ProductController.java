@@ -1,4 +1,4 @@
-package com.emtech.dairyapp.Stock.Data.Product;
+package com.emtech.dairyapp.Stock.Product;
 
 import com.emtech.dairyapp.Stock.Data.Http.Request.Product.ProductCreateRequest;
 import com.emtech.dairyapp.Stock.Data.Http.Response.Product.ProductResponse;
@@ -28,7 +28,7 @@ public class ProductController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     public Mono<ResponseEntity<StockEntitiesResponse>> createProduct(@RequestBody ProductCreateRequest body){
-        StockEntitiesResponse response = this.productService.createProduct(body.getName(), body.getDescription(), body.getPrice(), body.getSalePrice());
+        StockEntitiesResponse response = this.productService.createProduct(body.getName(), body.getDescription(), body.getPrice(), body.getSalePrice(), body.getStock(), body.getCategory());
 
         if(!Objects.equals(response.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase()) && response.getStatusCode() != HttpStatus.INTERNAL_SERVER_ERROR.value()){
             return Mono.just(ResponseEntity.ok().body(response));

@@ -1,4 +1,4 @@
-package com.emtech.dairyapp.Stock.Data.Product;
+package com.emtech.dairyapp.Stock.Product;
 
 import lombok.NonNull;
 import org.springframework.data.jpa.repository.JpaRepository;

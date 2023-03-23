@@ -25,4 +25,10 @@ public class ProductCreateRequest implements Serializable {
 
     @JsonProperty(value = "salePrice")
     private Double salePrice;
+
+    @JsonProperty(value = "stock")
+    private Integer stock;
+
+    @JsonProperty(value = "category")
+    private Long category;
 }

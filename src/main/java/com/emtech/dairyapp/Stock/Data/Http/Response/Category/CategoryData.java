@@ -1,8 +1,10 @@
 package com.emtech.dairyapp.Stock.Data.Http.Response.Category;
 
+import com.emtech.dairyapp.Stock.Data.Http.Response.Product.ProductData;
 import lombok.*;
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.util.List;
 
 @ToString
 @Data
@@ -27,4 +29,7 @@ public class CategoryData implements Serializable {
 
     @Builder.Default
     private Timestamp updateDate = null;
+
+    @Builder.Default
+    private List<ProductData> products = null;
 }
