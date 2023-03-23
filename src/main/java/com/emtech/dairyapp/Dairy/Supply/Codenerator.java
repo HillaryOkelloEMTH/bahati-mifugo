@@ -3,6 +3,7 @@ package com.emtech.dairyapp.Dairy.Supply;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.Random;
 
 @Service
 public class Codenerator {
@@ -17,7 +18,9 @@ public class Codenerator {
 
         StringBuilder sb = new StringBuilder();
         LocalDate date = LocalDate.now();
-        Long max = repo.getMaxVaue();
+//        Long max = repo.getMaxVaue();
+        Random random = new Random();
+        Integer val= random.nextInt(100);
 
         System.out.println(date);
         System.out.println(date.getYear());
@@ -27,7 +30,7 @@ public class Codenerator {
         String year = String.valueOf(date.getYear());
         String month = String.valueOf(date.getMonthValue());
         String day = String.valueOf(date.getDayOfMonth());
-      String code=  sb.append(month).append(day).append("-"+id).append(max+1).toString();
+      String code=  sb.append(month).append(day).append("-"+id).append(val).toString();
 //        sb.append(year.trim()).append("-"+max).toString();
         System.out.println(sb);
 //        Calendar calendar = Calendar.getInstance();

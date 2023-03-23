@@ -46,10 +46,12 @@ public class FarmerService {
             LocalDate date = LocalDate.now();
             String year = String.valueOf(date.getYear()).substring(2,4);
             Random random = new Random();
-           Integer val= random.nextInt(100);
+           Integer val= random.nextInt(1000);
            log.info(val.toString());
-            Long maxValue = farmerRepo.getMaxVaue()+1;
-            String code=  sb.append(year).append(val).append(maxValue).toString();
+//            Long maxValue = farmerRepo.getMaxVaue()+1;
+//            if
+
+            String code=  sb.append(year).append(val).toString();
             farmer.setMemberCode(code);
             farmer.setCreatedAt(new Date());
             farmer.setDeletedFlag(CONSTANTS.NO);

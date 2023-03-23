@@ -42,7 +42,6 @@ public class CollectionsAnalytics {
                 amount.add(c.getAmount());
                 quantity.add(c.getAmount());
 
-
             }
             data.setQuantiy(quantity);
             data.setNames(names);
