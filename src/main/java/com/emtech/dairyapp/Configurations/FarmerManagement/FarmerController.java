@@ -2,6 +2,7 @@ package com.emtech.dairyapp.Configurations.FarmerManagement;
 
 
 import com.emtech.dairyapp.Analytics.LinkedStringInteger;
+import com.emtech.dairyapp.Configurations.Utils.CONSTANTS;
 import com.emtech.dairyapp.Response.EntityResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -69,6 +70,10 @@ public class FarmerController {
         EntityResponse response = farmerService.fetchFarmerByMemberNO(farmer_number);
         return ResponseEntity.ok().body(response);
     }
-
+    @GetMapping("accruals")
+    public ResponseEntity<?> getfarmerAccruedAmount(@RequestParam Long farmerId){
+        EntityResponse response = farmerService.fetchFarmerAccrualAmount(farmerId);
+        return ResponseEntity.ok().body(response);
+    }
 
 }

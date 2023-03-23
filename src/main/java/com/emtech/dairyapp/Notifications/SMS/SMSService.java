@@ -1,4 +1,4 @@
-package com.emtech.dairyapp.Notifcations.SMS;
+package com.emtech.dairyapp.Notifications.SMS;
 
 import com.squareup.okhttp.*;
 import lombok.extern.slf4j.Slf4j;
@@ -11,36 +11,41 @@ import org.springframework.stereotype.Service;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Random;
-import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
 public class SMSService {
 
     //Call Back URL
-//    @Value("${ebs.callbackurl.one}")
+    @Value("${ebs.callbackurl.one}")
+//    private String callbackurl;
     private String callbackurl="http://52.15.152.26:9600/api/v1/sms/smsCallbacks";
 
     //URL
-//    @Value("${ebs.url}")
+    @Value("${ebs.url}")
+//    private String url;
     private String url="https://sms.crossgatesolutions.com:18095/v1/bulksms/messages";
 
     //Message Type
-//    @Value("${ebs.messagetype}")
+    @Value("${ebs.messagetype}")
+//    private String msgtype;
     private String msgtype="promotional";
 
     //Profile Code
-//    @Value("${ebs.profileCode}")
+    @Value("${ebs.profileCode}")
+//    private String profileCode;
     private String profileCode="2208021";
 
     //API Key
-//    @Value("${ebs.apiKey}")
-    private String apiKey="ZmU5ZDMzMmQ0NWJjODI5MUlELWUwMmZmMzQ4Y2Q0YjQzMzhiOTQ0M2E2ZTQ4ZjVjNTM0";
+    @Value("${ebs.apiKey}")
+//    private String apiKey;
+    private String apiKey="NDU4MThmODAxMzM2ODk3MUlELTQ2MmU4Y2QwZDA4YjQxOGU5ZjZjMTQ0ZGM0MmE4NDY5";
 
     @Autowired
     private SMSNOtificaionRepo smsNotificationsRepository;
+
     public static String generatecSystemCode(int len) {
-        String chars = "BAHATIDAIRYFARM";
+        String chars = "BAHATIDAIRYFARM1234567890";
         Random rnd = new Random();
         StringBuilder sb = new StringBuilder(len);
         for (int i = 0; i < 12; i++)
@@ -48,8 +53,21 @@ public class SMSService {
         log.info("RANDOM STRING :: "+sb);
         return sb.toString();
     }
-    public SMSResponse sendSMS(String message, String phoneno)
+    public SMSResponse sendSMS(String message, String phone)
     {
+       String phoneno = phone.trim();
+        log.info("Phone number == "+ phoneno);
+        if(phoneno.startsWith("0")){
+//            phoneno.substring(0);
+            phoneno.replaceFirst("0","254");
+        }else if (phoneno.startsWith("+")){
+            phoneno.substring(0);
+        }else if (phoneno.startsWith("7")|| phoneno.startsWith("1")){
+            phoneno="254"+phoneno;
+        }else {
+            log.info("Invalid phone number");
+        }
+        log.info(phoneno);
         //Time Stamp
         String timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
         String messageref= generatecSystemCode(6);
@@ -140,19 +158,20 @@ public class SMSService {
     }
 
 
-    public void saveToSMSTable(String messageref,String message,String phoneNumber)
+    public void SMSNOtification(String message,String phoneNumber)
     {
         //Create Message and Save In DB
-        SMSResponse sr = sendSMS( message, phoneNumber);
+        SMSResponse sr = sendSMS(message, phoneNumber);
         SMSNotifications sms = new SMSNotifications();
         sms.setResponseCode(sr.getResponseCode());
         sms.setEventType("-");
         sms.setDeliveryTime("-");
-        sms.setMessageRef(messageref);
+        sms.setMessageRef(generatecSystemCode(10));
         sms.setMessageId(sr.getMessageId());
         sms.setMessage(message);
         sms.setSentDate(new Date());
         sms.setPhoneNumber(phoneNumber);
+//        System.out.println(sms);
         smsNotificationsRepository.save(sms);
     }
 
