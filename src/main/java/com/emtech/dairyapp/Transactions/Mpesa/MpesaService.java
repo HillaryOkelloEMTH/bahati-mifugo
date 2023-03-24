@@ -1,0 +1,202 @@
+package com.emtech.dairyapp.Transactions.Mpesa;
+
+import com.emtech.dairyapp.Transactions.Data.Http.Response.B2CResponse;
+import com.emtech.dairyapp.Transactions.Data.Http.Response.STKPushResponse;
+import com.google.gson.Gson;
+import lombok.NonNull;
+import lombok.extern.java.Log;
+import okhttp3.*;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.util.Base64;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+
+@Service
+@Log
+public class MpesaService {
+    @Value("${mpesa.app.key}")
+    private String appKeY;
+
+    @Value("${mpesa.app.secret}")
+    private String appSecret;
+
+    @Value("${mpesa.token.url}")
+    private String stkAuthUrl;
+
+    @Value("${mpesa.stk.url}")
+    private String stkUrl;
+
+    @Value("${mpesa.stk.transactionType}")
+    private String transactionType;
+
+    @Value("${mpesa.stk.password}")
+    private String password;
+
+    @Value("${mpesa.stk.shortCode}")
+    private String shortCode;
+
+    @Value("${mpesa.stk.callbackURL}")
+    private String callBackUrl;
+
+    @Value("${mpesa.b2c.url}")
+    private  String b2cUrl;
+
+    @Value("${mpesa.b2c.securityCredential}")
+    private String securityCredential;
+    @Value("${mpesa.b2c.initiatorPassword}")
+    private String initiatorPassword;
+
+    @Value("${mpesa.b2c.commandId}")
+    private String b2cCommandId;
+
+    @Value("${mpesa.b2c.queTimeOutURL}")
+    private String queTimeOutURL;
+
+    @Value("${mpesa.b2c.callBackURL}")
+    private String b2cResultUrl;
+
+    @Value("${mpesa.b2c.shortCode}")
+    private  String b2cShortCode;
+
+    @Value("${mpesa.b2c.initiatorName}")
+    private String initiatorName;
+
+    Gson gson = new Gson();
+
+    public String generateToken() throws IOException {
+        String appKeySecret = appKeY + ":" + appSecret;
+        byte[] bytes = appKeySecret.getBytes(StandardCharsets.ISO_8859_1);
+        String encoded = Base64.getEncoder().encodeToString(bytes);
+        OkHttpClient client = new OkHttpClient();
+        Request request = new Request.Builder()
+                .url(stkAuthUrl)
+                .get()
+                .addHeader("authorization", "Basic "+encoded)
+                .addHeader("cache-control", "no-cache")
+                .build();
+        Response response = client.newCall(request).execute();
+        JSONObject jsonObject=new JSONObject(response.body().string());
+        log.info("Mpesa Service Generate Token { "+jsonObject.getString("access_token")+" }");
+        return jsonObject.getString("access_token");
+    }
+
+    public STKPushResponse initiateSTKPush(@NonNull Double amount, @NonNull String phoneNumber){
+        STKPushResponse stk  = new STKPushResponse();
+        try {
+            OkHttpClient client = new OkHttpClient().newBuilder().connectTimeout(1000, TimeUnit.SECONDS).readTimeout(300, TimeUnit.SECONDS).build();
+            MediaType mediaType = MediaType.parse("application/json");
+
+            log.log(Level.INFO, String.format("Short code: %s", shortCode));
+
+            JSONObject jo = new JSONObject();
+            JSONArray ja = new JSONArray();
+            String timestamp = new SimpleDateFormat("yyyyMMddHHmmss").format(new java.util.Date());
+            jo.put("BusinessShortCode", shortCode);
+            jo.put("Password", generatePassword(shortCode, password, timestamp));
+            jo.put("Timestamp", timestamp);
+            jo.put("Amount", amount);
+            jo.put("TransactionType", transactionType);
+            jo.put("PartyA", phoneNumber);
+            jo.put("PartyB", shortCode);
+            jo.put("PhoneNumber", phoneNumber);
+            jo.put("CallBackURL", callBackUrl);
+            jo.put("AccountReference", "BahatiDiaries");
+            jo.put("TransactionDesc", "DEPOSIT TO ");
+
+            log.log(Level.INFO, String.format("Initiate STK Push Request Body : %s ", jo));
+
+            String requestJson = ja.put(jo).toString().replaceAll("[\\[\\]]", "");
+            RequestBody body = RequestBody.create(mediaType, requestJson);
+            String token = generateToken();
+            System.out.println("Token - " + String.format("Bearer" + " " + "%s", token));
+
+            Request request = new Request.Builder()
+                    .url(stkUrl)
+                    .method("POST", body)
+                    .addHeader("Content-Type", "application/json")
+                    .addHeader("Authorization", String.format("Bearer" + " " + "%s", token))
+                    .build();
+
+            Response response = client.newCall(request).execute();
+            log.info("{ Mpesa Service } {Initiate STK Push } { Successful }");
+            stk = gson.fromJson(response.body().string(), STKPushResponse.class);
+        }
+        catch (Exception e)
+        {
+            log.info("{ Mpesa Service } {Initiate STK Push } { ERROR } - "+e.getMessage());
+            stk.setCheckoutRequestID(null);
+            stk.setCustomerMessage("ERROR");
+            stk.setCheckoutRequestID(null);
+            stk.setMerchantRequestID(null);
+            stk.setResponseDescription(e.getLocalizedMessage());
+        }
+
+        return stk;
+    }
+
+    public String generatePassword(String shortCode,String passkey,String timeStamp)
+    {
+        String credentials = shortCode+passkey+timeStamp;
+        return Base64.getEncoder().encodeToString(credentials.getBytes());
+    }
+
+    public B2CResponse initiateB2CRequest(@NonNull Double amount, @NonNull String phoneNumber){
+        OkHttpClient client = new OkHttpClient().newBuilder().connectTimeout(1000, TimeUnit.SECONDS).readTimeout(3000, TimeUnit.SECONDS).build();
+        MediaType mediaType = MediaType.parse("application/json");
+        JSONObject oj = new JSONObject();
+        JSONArray aj = new JSONArray();
+        B2CResponse b2c = new B2CResponse();
+
+        //String securityCredential = getSecurityCredentials(initiatorPassword);
+        oj.put("InitiatorName", initiatorName);
+        oj.put("SecurityCredential", securityCredential);
+        oj.put("CommandID", b2cCommandId);
+        oj.put("Amount", amount);
+        oj.put("PartyA", b2cShortCode);
+        oj.put("PartyB", phoneNumber);
+        oj.put("Remarks", "BAHATI DIARIES TO M-PESA NO. "+phoneNumber);
+        oj.put("QueueTimeOutURL", queTimeOutURL);
+        oj.put("ResultURL", b2cResultUrl);
+        oj.put("Occassion", "Bahati Diaries");
+
+        log.log(Level.INFO, String.format("B2C Request %s ", oj));
+
+        try {
+            String requestJson = aj.put(oj).toString().replaceAll("[\\[\\]]", "");
+            RequestBody body = RequestBody.create(mediaType, requestJson);
+
+            String token = generateToken();
+
+            Request request = new Request.Builder()
+                    .url(b2cUrl)
+                    .method("POST", body)
+                    .addHeader("Content-Type", "application/json")
+                    .addHeader("Authorization", String.format("Bearer" + " " + "%s", token))
+                    .build();
+
+            Response response = client.newCall(request).execute();
+            assert response.body() != null;
+            String res = response.body().string();
+            log.info("{ Mpesa Service } { Initiate B2C }");
+            b2c = gson.fromJson(res, B2CResponse.class);
+        }
+        catch (Exception e)
+        {
+            log.info("{ Mpesa Service } {Initiate B2C } { ERROR } - "+e.getMessage());
+            b2c.setConversationID("ERROR");
+            b2c.setResponseDescription(e.getLocalizedMessage());
+            b2c.setOriginatorConversationID("-");
+            b2c.setResponseCode("-");
+        }
+        return b2c;
+    }
+
+
+}
