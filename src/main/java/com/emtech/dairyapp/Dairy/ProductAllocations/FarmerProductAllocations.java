@@ -1,6 +1,7 @@
 package com.emtech.dairyapp.Dairy.ProductAllocations;
 
 
+import com.emtech.dairyapp.Configurations.Utils.CONSTANTS;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -27,7 +28,10 @@ public class FarmerProductAllocations {
     private String allocatedBY;
     private Double quantity;
     private Double amount;
-    private String status;
+    private Double productPrice;
+    private Character revokeStatus=CONSTANTS.NO;
+    private Character paymentStatus= CONSTANTS.NO;
+
 
 
 

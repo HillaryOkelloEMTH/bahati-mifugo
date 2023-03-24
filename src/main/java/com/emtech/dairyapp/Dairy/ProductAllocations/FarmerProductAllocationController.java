@@ -24,6 +24,27 @@ public class FarmerProductAllocationController {
         EntityResponse response = service.fetchFarmerProductAllocations();
         return ResponseEntity.ok().body(response);
     }
+    @GetMapping("farmer")
+    public ResponseEntity<EntityResponse> getFarmerAllocations(@RequestParam Long farmerId){
+        EntityResponse response = service.fetchFarmerAllocations(farmerId);
+        return ResponseEntity.ok().body(response);
+    }
+    @GetMapping("date")
+    public ResponseEntity<EntityResponse> getAllocationsByDate(@RequestParam String date){
+        EntityResponse response = service.fetchAllocationsByDate(date);
+        return ResponseEntity.ok().body(response);
+    }
+    @GetMapping("farmer/date")
+    public ResponseEntity<EntityResponse> getFarmerAllocationsyDate(@RequestParam Long farmerId,@RequestParam String date){
+        EntityResponse response = service.fetchFarmerAllocationsBYDate(farmerId,date);
+        return ResponseEntity.ok().body(response);
+    }
+
+    @GetMapping("farmer/paymentstatus")
+    public ResponseEntity<EntityResponse> getFarmerAllocationsPerPaymentStatus(@RequestParam Long farmerId,@RequestParam Character paymentStatus){
+        EntityResponse response = service.fetchFarmerAllocationsByPaymentStatus(farmerId,paymentStatus);
+        return ResponseEntity.ok().body(response);
+    }
     @PutMapping("update")
     public ResponseEntity<EntityResponse> updateFarmerProductAllocations(@RequestBody FarmerProductAllocations allocations){
         EntityResponse response = service.updateFarmerProductAllocations(allocations);

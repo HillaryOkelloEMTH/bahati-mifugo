@@ -35,8 +35,8 @@ public class MilkCollections {
 
     private Double proteinContent=0.0;
     private Double fatContent=0.0;
-    private Double longitude;
-    private Double latitude;
+    private String longitude;
+    private String latitude;
     private String session;
 
 

@@ -34,7 +34,6 @@ public class Farmer {
     private String mobileNo;
     private String alternativeMobileNo;
     private String memberType;//individual/group
-//    private String groupName;
 
 
     @OneToOne(cascade=CascadeType.ALL)
