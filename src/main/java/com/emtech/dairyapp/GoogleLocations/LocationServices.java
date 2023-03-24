@@ -1,6 +1,9 @@
 package com.emtech.dairyapp.GoogleLocations;
 
-import com.squareup.okhttp.*;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;

@@ -1,7 +1,7 @@
 package com.emtech.dairyapp.Notifications.SMS;
 
-import com.squareup.okhttp.*;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.*;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
