@@ -5,6 +5,7 @@ import com.emtech.dairyapp.Configurations.Interfaces.FarmerAccruedAmount;
 import com.emtech.dairyapp.Configurations.Interfaces.FarmerInfo;
 import com.emtech.dairyapp.Configurations.Interfaces.FarmersPerWard;
 import com.emtech.dairyapp.Configurations.Utils.CONSTANTS;
+import com.emtech.dairyapp.Notifications.SMS.SMSService;
 import com.emtech.dairyapp.Response.EntityResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -21,6 +22,7 @@ public class FarmerService {
 
 
     private final FarmerRepo farmerRepo;
+    private final SMSService smsService;
 
 
     public static String generatecSystemCode(int len) {
@@ -33,8 +35,9 @@ public class FarmerService {
         return S + sb;
     }
 
-    public FarmerService(FarmerRepo farmerRepo) {
+    public FarmerService(FarmerRepo farmerRepo, SMSService smsService) {
         this.farmerRepo = farmerRepo;
+        this.smsService = smsService;
     }
 
     public EntityResponse addFarmer(Farmer farmer){
@@ -61,6 +64,22 @@ public class FarmerService {
             response.setEntity(farmer);
             response.setStatusCode(HttpStatus.CREATED.value());
             response.setMessage(HttpStatus.CREATED.getReasonPhrase());
+
+
+            String message = "Dear " + username + ", your registration was successful. Your member number is "+farmer.getMemberCode()+ ". Welcome to Bahati Dairies";
+            String phoneno = farmer.getMobileNo().trim();
+            if (phoneno.startsWith("0")) {
+                log.info("Starting with 0");
+                phoneno = phoneno.replaceFirst("0", "254");
+            } else if (phoneno.startsWith("+")) {
+                log.info("Starting with +");
+                phoneno = phoneno.substring(1, phoneno.length());
+            } else if (phoneno.startsWith("7") || phoneno.startsWith("1")) {
+                phoneno = "254" + phoneno;
+            }
+            smsService.SMSNOtification(message, phoneno);
+
+
             return response;
 
 
