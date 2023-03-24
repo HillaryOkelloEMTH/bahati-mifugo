@@ -11,6 +11,7 @@ import com.emtech.dairyapp.Dairy.FloatTracking.FloatManagerRepo;
 import com.emtech.dairyapp.Dairy.Interface.CollectionTracker;
 import com.emtech.dairyapp.Dairy.Interface.CollectionsData;
 import com.emtech.dairyapp.Dairy.Interface.DailyRecords;
+import com.emtech.dairyapp.Dairy.Interface.RouteData;
 import com.emtech.dairyapp.Notifications.SMS.SMSService;
 import com.emtech.dairyapp.Response.EntityResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -55,19 +56,23 @@ public class MilkCollectionService {
             if (check.isPresent()) {
                 log.info("Farmer exist ...");
                 String username = check.get().getUsername();
+                String collectionNumber= codenerator.codeGenerator();
+                collections.setCollectionNumber(collectionNumber);
+
                 Optional<Can> cancheck = canRepo.findByCanNo(collections.getCanNo());
                 if (cancheck.isPresent()) {
-
+//                    Can can=cancheck.get();
+//                    Double lessWeight= Double.valueOf(can.getDeductionWeight());
 
 
                     collections.setProductType("Milk");
-                    collections.setEvent("Buying");
+                    collections.setEvent("Collection");
                     String event = collections.getEvent();
                     Optional<ProductConfig> productConfig = productConfigRepo.findByProductName(collections.getProductType().trim());
                     if (productConfig.isPresent()) {
                         if (event.equalsIgnoreCase("Buying")) {
                             log.info("buying event");
-                            Double buyingPrice = productConfig.get().getBuyingPrice();
+                            Double buyingPrice = collections.getCurrentPrice();
                             Double totalAmount = buyingPrice * collections.getQuantity();
                             collections.setAmount(totalAmount);
                             collections.setCurrentPrice(buyingPrice);
@@ -374,6 +379,30 @@ public class MilkCollectionService {
         }
         return response;
     }
+    public EntityResponse getRoleusers(Long roleId) {
+
+        EntityResponse response = new EntityResponse();
+        try {
+
+            List<MilkCollectionRepo.Roleusers> users = milkCollectionRepo.getRoleUsers(roleId);
+            if(users.size()>0){
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setEntity(users);
+                response.setMessage(HttpStatus.OK.getReasonPhrase());
+            }else {
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setEntity(users);
+                response.setMessage(HttpStatus.OK.getReasonPhrase());
+            }
+
+
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+        }
+        return response;
+    }
 
     public EntityResponse getCollectionsBySpecificDate(String date) {
 
@@ -420,6 +449,31 @@ public class MilkCollectionService {
             response.setStatusCode(HttpStatus.OK.value());
             response.setEntity(todaysCollections);
             response.setMessage(HttpStatus.OK.getReasonPhrase());
+
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+        }
+        return response;
+    }
+    public EntityResponse getCollectionsRoutes(Long collectorId, String date) {
+
+        EntityResponse response = new EntityResponse();
+        try {
+
+            List<RouteData> routes = milkCollectionRepo.getCollectorRoutes(collectorId,date);
+            if(routes.size()>0){
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setEntity(routes);
+                response.setMessage(HttpStatus.OK.getReasonPhrase());
+
+            }else {
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                response.setEntity(routes);
+                response.setMessage(HttpStatus.NOT_FOUND.getReasonPhrase());
+
+            }
 
         } catch (Exception e) {
             log.error(e.getMessage());

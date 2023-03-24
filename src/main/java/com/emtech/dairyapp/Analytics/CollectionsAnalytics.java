@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -134,4 +135,80 @@ public class CollectionsAnalytics {
     }
 
 
+
+
+    public EntityResponse getCollectionByMontheAndYear(Integer year,Integer month,Long collectorId) {
+
+        EntityResponse response = new EntityResponse();
+        try {
+            Optional<AnalyticsData> collections = collectionRepo.getCollectorRecord(year,month,collectorId);
+            if (collections.isPresent()){
+                AnalyticsData a = collections.get();
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setEntity(a);
+                response.setMessage(HttpStatus.OK.getReasonPhrase());
+            }else {
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                response.setEntity(collections.get());
+                response.setMessage(HttpStatus.NOT_FOUND.getReasonPhrase());
+
+            }
+
+
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+        }
+        return response;
     }
+    public EntityResponse getCollectionByMonthAndYearandSesson(Integer year,Integer month,Long collectorId) {
+
+        EntityResponse response = new EntityResponse();
+        try {
+            List<AnalyticsData> collections = collectionRepo.getCollectorDataPerSerssion(year,month,collectorId);
+            if (collections.size()>0){
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setEntity(collections);
+                response.setMessage(HttpStatus.OK.getReasonPhrase());
+            }else {
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                response.setEntity(collections);
+                response.setMessage(HttpStatus.NOT_FOUND.getReasonPhrase());
+
+            }
+
+
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+        }
+        return response;
+    }
+    public EntityResponse getCollectionByMonth(Integer year,Integer month,Long collectorId) {
+
+        EntityResponse response = new EntityResponse();
+        try {
+            List<AnalyticsData> collections = collectionRepo.getQuantityPerMonth(year,month,collectorId);
+            if (collections.size()>0){
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setEntity(collections);
+                response.setMessage(HttpStatus.OK.getReasonPhrase());
+            }else {
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                response.setEntity(collections);
+                response.setMessage(HttpStatus.NOT_FOUND.getReasonPhrase());
+
+            }
+
+
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+        }
+        return response;
+    }
+
+}

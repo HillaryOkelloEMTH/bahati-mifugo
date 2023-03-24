@@ -1,5 +1,7 @@
 package com.emtech.dairyapp.Dairy.ProductAllocations;
 
+import com.emtech.dairyapp.Configurations.Utils.CONSTANTS;
+import com.emtech.dairyapp.Dairy.Interface.Allocations;
 import com.emtech.dairyapp.Response.EntityResponse;
 import com.emtech.dairyapp.Stock.Product.Product;
 import com.emtech.dairyapp.Stock.Product.ProductRepository;
@@ -15,55 +17,154 @@ import java.util.Optional;
 @Service
 @Slf4j
 public class FarmerProductAllocationService {
-    
-    
+
+
     @Autowired
     private FarmerProdAllocattionsRepo farmerProdAllocattionsRepo;
     @Autowired
     private ProductRepository productRepository;
 
 
-
-    public EntityResponse addFarmerProductAllocations(FarmerProductAllocations allocation){
+    public EntityResponse addFarmerProductAllocations(FarmerProductAllocations allocation) {
         log.info("Adding new FarmerProductAllocations ...");
         EntityResponse response = new EntityResponse();
         Double amount = 0.0;
-        try{
+        Double salesPrice = 0.0;
+        try {
 
-           Optional<Product> p = productRepository.findById(allocation.getProductId());
-           if(p.isPresent()){
-               Product product= p.get();
-               amount=  product.getPrice()* allocation.getQuantity();
-           }
-           allocation.setAmount(amount);
-            allocation.setAllocatioDate(new Date());
-            farmerProdAllocattionsRepo.save(allocation);
-            log.info("Saving FarmerProductAllocations ...");
+            Optional<Product> p = productRepository.findById(allocation.getProductId());
+            if (p.isPresent()) {
+                Product product = p.get();
+                salesPrice = product.getSalePrice();
+                amount = product.getSalePrice() * allocation.getQuantity();
+                allocation.setProductPrice(salesPrice);
+                allocation.setAmount(amount);
+                allocation.setAllocatioDate(new Date());
+                farmerProdAllocattionsRepo.save(allocation);
+                log.info("Saving Farmer Product Allocations ...");
+            }
             response.setEntity(allocation);
             response.setStatusCode(HttpStatus.CREATED.value());
             response.setMessage(HttpStatus.CREATED.getReasonPhrase());
             return response;
 
 
-        }catch (Exception e){
+        } catch (Exception e) {
             log.error("Error: " + e.getLocalizedMessage());
             response.setStatusCode(HttpStatus.BAD_REQUEST.value());
             response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
             return response;
         }
     }
+
     public EntityResponse fetchFarmerProductAllocations() {
         log.info("Fetching FarmerProductAllocationss ...");
         EntityResponse response = new EntityResponse();
         try {
-            List<FarmerProductAllocations> FarmerProductAllocationss = farmerProdAllocattionsRepo.findAll();
-            if(FarmerProductAllocationss.size()>0) {
-                log.info("FarmerProductAllocationss Found "+ "("+FarmerProductAllocationss.size()+")");
+            List<Allocations> FarmerProductAllocationss = farmerProdAllocattionsRepo.getAllocations(CONSTANTS.NO);
+            if (FarmerProductAllocationss.size() > 0) {
+                log.info("FarmerProductAllocationss Found " + "(" + FarmerProductAllocationss.size() + ")");
                 response.setEntity(FarmerProductAllocationss);
                 response.setStatusCode(HttpStatus.OK.value());
                 response.setMessage(HttpStatus.FOUND.getReasonPhrase());
-            }else {
-                log.info("FarmerProductAllocationss Not Found "+ "("+FarmerProductAllocationss.size()+")");
+            } else {
+                log.info("FarmerProductAllocationss Not Found " + "(" + FarmerProductAllocationss.size() + ")");
+                response.setEntity(FarmerProductAllocationss);
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setMessage(HttpStatus.NO_CONTENT.getReasonPhrase());
+            }
+            return response;
+        } catch (Exception e) {
+            log.error("Error: " + e.getLocalizedMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+            return response;
+        }
+    }
+    public EntityResponse fetchFarmerAllocations(Long farmerId) {
+        log.info("Fetching FarmerProductAllocationss ...");
+        EntityResponse response = new EntityResponse();
+        try {
+            List<Allocations> FarmerProductAllocationss = farmerProdAllocattionsRepo.getAllocationsByFarmer(farmerId,CONSTANTS.NO);
+            if (FarmerProductAllocationss.size() > 0) {
+                log.info("FarmerProductAllocationss Found " + "(" + FarmerProductAllocationss.size() + ")");
+                response.setEntity(FarmerProductAllocationss);
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setMessage(HttpStatus.FOUND.getReasonPhrase());
+            } else {
+                log.info("FarmerProductAllocationss Not Found " + "(" + FarmerProductAllocationss.size() + ")");
+                response.setEntity(FarmerProductAllocationss);
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setMessage(HttpStatus.NO_CONTENT.getReasonPhrase());
+            }
+            return response;
+        } catch (Exception e) {
+            log.error("Error: " + e.getLocalizedMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+            return response;
+        }
+    }
+    public EntityResponse fetchAllocationsByDate(String date) {
+        log.info("Fetching FarmerProductAllocationss ...");
+        EntityResponse response = new EntityResponse();
+        try {
+            List<Allocations> FarmerProductAllocationss = farmerProdAllocattionsRepo.getAllocationsByDate(date);
+            if (FarmerProductAllocationss.size() > 0) {
+                log.info("FarmerProductAllocationss Found " + "(" + FarmerProductAllocationss.size() + ")");
+                response.setEntity(FarmerProductAllocationss);
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setMessage(HttpStatus.FOUND.getReasonPhrase());
+            } else {
+                log.info("FarmerProductAllocationss Not Found " + "(" + FarmerProductAllocationss.size() + ")");
+                response.setEntity(FarmerProductAllocationss);
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setMessage(HttpStatus.NO_CONTENT.getReasonPhrase());
+            }
+            return response;
+        } catch (Exception e) {
+            log.error("Error: " + e.getLocalizedMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+            return response;
+        }
+    }
+    public EntityResponse fetchFarmerAllocationsBYDate(Long farmerId,String date) {
+        log.info("Fetching FarmerProductAllocationss ...");
+        EntityResponse response = new EntityResponse();
+        try {
+            List<Allocations> FarmerProductAllocationss = farmerProdAllocattionsRepo.getFAllocationsPerDate(farmerId,date);
+            if (FarmerProductAllocationss.size() > 0) {
+                log.info("FarmerProductAllocationss Found " + "(" + FarmerProductAllocationss.size() + ")");
+                response.setEntity(FarmerProductAllocationss);
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setMessage(HttpStatus.FOUND.getReasonPhrase());
+            } else {
+                log.info("FarmerProductAllocationss Not Found " + "(" + FarmerProductAllocationss.size() + ")");
+                response.setEntity(FarmerProductAllocationss);
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setMessage(HttpStatus.NO_CONTENT.getReasonPhrase());
+            }
+            return response;
+        } catch (Exception e) {
+            log.error("Error: " + e.getLocalizedMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+            return response;
+        }
+    }
+    public EntityResponse fetchFarmerAllocationsByPaymentStatus(Long farmerId,Character paymentStatus) {
+        log.info("Fetching FarmerProductAllocationss ...");
+        EntityResponse response = new EntityResponse();
+        try {
+            List<Allocations> FarmerProductAllocationss = farmerProdAllocattionsRepo.getAllocationsByFarmerByPaymentStatus(farmerId,paymentStatus,CONSTANTS.NO);
+            if (FarmerProductAllocationss.size() > 0) {
+                log.info("FarmerProductAllocationss Found " + "(" + FarmerProductAllocationss.size() + ")");
+                response.setEntity(FarmerProductAllocationss);
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setMessage(HttpStatus.FOUND.getReasonPhrase());
+            } else {
+                log.info("FarmerProductAllocationss Not Found " + "(" + FarmerProductAllocationss.size() + ")");
                 response.setEntity(FarmerProductAllocationss);
                 response.setStatusCode(HttpStatus.OK.value());
                 response.setMessage(HttpStatus.NO_CONTENT.getReasonPhrase());
@@ -80,7 +181,7 @@ public class FarmerProductAllocationService {
         EntityResponse response = new EntityResponse();
         try {
             allocations.setAllocatioDate(new Date());
-            FarmerProductAllocations al= farmerProdAllocattionsRepo.save(allocations);
+            FarmerProductAllocations al = farmerProdAllocattionsRepo.save(allocations);
             response.setEntity(al);
             response.setStatusCode(HttpStatus.OK.value());
             response.setMessage(HttpStatus.OK.getReasonPhrase());
@@ -94,20 +195,21 @@ public class FarmerProductAllocationService {
             return response;
         }
     }
+
     public EntityResponse revoke(Long id) {
         EntityResponse response = new EntityResponse();
         try {
             Optional<FarmerProductAllocations> allocations = farmerProdAllocattionsRepo.findById(id);
-            if(allocations.isPresent()){
-                allocations.get().setStatus("Revoked");;
+            if (allocations.isPresent()) {
+                allocations.get().setRevokeStatus(CONSTANTS.YES);
                 farmerProdAllocattionsRepo.save(allocations.get());
                 response.setStatusCode(HttpStatus.OK.value());
                 response.setMessage("FarmerProductAllocations deleted Successfully");
                 return response;
 
-            }else {
+            } else {
                 response.setStatusCode(HttpStatus.NOT_FOUND.value());
-                response.setMessage("FarmerProductAllocations with id "+id+"Not Found");
+                response.setMessage("FarmerProductAllocations with id " + id + "Not Found");
                 return response;
 
             }

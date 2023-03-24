@@ -7,5 +7,7 @@ public interface AnalyticsData {
     String getCollector();
     String getMonth();
     String getLocation();
+    String getSession();
+    Integer getDayOfMonth();
 
 }

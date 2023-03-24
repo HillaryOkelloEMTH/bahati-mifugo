@@ -106,5 +106,10 @@ public class MilkCollectionController {
         EntityResponse response = collectionService.getAllCollections();
         return ResponseEntity.ok().body(response);
     }
+    @GetMapping("collector/routes")
+    public ResponseEntity<?> getCollectorRoutes(@RequestParam Long collectorId,@RequestParam String date){
+        EntityResponse response = collectionService.getCollectionsRoutes(collectorId,date);
+        return ResponseEntity.ok().body(response);
+    }
 
 }

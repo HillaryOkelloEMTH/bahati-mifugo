@@ -4,6 +4,7 @@ import com.emtech.dairyapp.Analytics.AnalyticsData;
 import com.emtech.dairyapp.Dairy.Interface.CollectionTracker;
 import com.emtech.dairyapp.Dairy.Interface.CollectionsData;
 import com.emtech.dairyapp.Dairy.Interface.DailyRecords;
+import com.emtech.dairyapp.Dairy.Interface.RouteData;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -54,6 +55,11 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections,Long> 
 //    @Query(value = "select  max(id) from collections",nativeQuery = true)
 //    Long getMaxVaue();
 
+    @Query(value = "SELECT sum(c.amount)  as amount,SUM(c.quantity) as quantity from collections c where MONTH(c.collection_date)=:month and YEAR(c.collection_date)=:year  and c.collector_id=:collectorId",nativeQuery = true)
+    Optional<AnalyticsData> getCollectorRecord(Integer year,Integer month,Long collectorId);
+    @Query(value = "SELECT DISTINCT  sum(c.amount) as amount,SUM(c.quantity) as quantity,c.session  from collections c where MONTH(c.collection_date)=:month and YEAR(c.collection_date)=:year  and c.collector_id=:collectorId GROUP  by c.session ",nativeQuery = true)
+    List<AnalyticsData> getCollectorDataPerSerssion(Integer year,Integer month,Long collectorId);
+
 
     @Query(value = "SELECT sum(c.amount) as amount,SUM(c.quantity) as quantity ,u.user_name as collector  from collections c join users u on u.id=c.collector_id  WHERE DATE(c.collection_date)=:date  GROUP BY c.collector_id",nativeQuery = true)
     List<AnalyticsData> getCollectorDataPerDate(String date);
@@ -67,12 +73,20 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections,Long> 
     @Query(value = "SELECT sum(c.quantity) as quantity,p.name as location  from collections c join pick_up_locations p on p.id =c.pick_up_location GROUP BY p.name",nativeQuery = true)
     List<AnalyticsData> getQuantityPerLocation();
 
+    @Query(value = "SELECT c.latitude  ,c.longitude,p.name as location,CAST(c.collection_date as time) as time from collections c JOIN pick_up_locations p on p.id=c.pick_up_location WHERE c.collector_id =:collectorId   and  DATE(c.collection_date)=:date",nativeQuery = true)
+    List<RouteData> getCollectorRoutes(Long collectorId, String date);
+
+    @Query(value = "SELECT u.id,u.user_name as username,r.name as role  from users u join user_role ur on u.id=ur.user join roles r on r.id=ur.role where r.id=:roleId",nativeQuery = true)
+    List<Roleusers> getRoleUsers(Long roleId);
+
+    @Query(value = "SELECT sum(c.amount) as amount ,SUM(c.quantity) as quantity  ,DAY(c.collection_date) as dayOfMonth from collections c where MONTH(c.collection_date)=:month and YEAR(c.collection_date)=:year  and c.collector_id=:collectorId GROUP BY DAY(c.collection_date)",nativeQuery = true)
+    List<AnalyticsData> getQuantityPerMonth(Integer year,Integer month,Long collectorId);
 
 
-
-
-
-
-
+    interface Roleusers{
+        Long getId();
+        String getUsername();
+        String getRole();
+    }
 
 }

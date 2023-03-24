@@ -1,6 +1,8 @@
 package com.emtech.dairyapp.Analytics;
 
+import com.emtech.dairyapp.Dairy.Supply.MilkCollectionService;
 import com.emtech.dairyapp.Response.EntityResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,6 +12,8 @@ import org.springframework.web.bind.annotation.*;
 public class AnalyticsController {
 
     private final  CollectionsAnalytics analyticsService;
+    @Autowired
+    private MilkCollectionService collectionService;
 
 
     public AnalyticsController(CollectionsAnalytics analyticsService) {
@@ -32,5 +36,25 @@ public class AnalyticsController {
         EntityResponse response = analyticsService.getCollectionPerLocation();
         return ResponseEntity.ok().body(response);
     }
+    @GetMapping("collector/collections")
+    public ResponseEntity<?> getCollectorData(@RequestParam Integer year,@RequestParam Integer month,@RequestParam Long collectorId){
+        EntityResponse response = analyticsService.getCollectionByMontheAndYear(year,month,collectorId);
+        return ResponseEntity.ok().body(response);
+    }
+    @GetMapping("collector/sessions")
+    public ResponseEntity<?> getCollectorSessionsData(@RequestParam Integer year,@RequestParam Integer month,@RequestParam Long collectorId){
+        EntityResponse response = analyticsService.getCollectionByMonthAndYearandSesson(year,month,collectorId);
+        return ResponseEntity.ok().body(response);
+    }
 
+    @GetMapping("roleUsers")
+    public ResponseEntity<?> roleUsers(@RequestParam Long roleId){
+        EntityResponse response = collectionService.getRoleusers(roleId);
+        return ResponseEntity.ok().body(response);
+    }
+    @GetMapping("collection/day")
+    public ResponseEntity<?> getCollectionsPerMonth(@RequestParam Integer year,@RequestParam Integer month,@RequestParam Long collectorId){
+        EntityResponse response = analyticsService.getCollectionByMonth(year, month, collectorId);
+        return ResponseEntity.ok().body(response);
+    }
 }
