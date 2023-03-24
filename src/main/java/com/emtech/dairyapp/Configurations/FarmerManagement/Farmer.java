@@ -57,7 +57,7 @@ public class Farmer {
     private Long subcounty_fk;
     private Long wardFk;
     private Integer noOfCows;
-    private Long routeFk;
+    private Long pickupLocation;
     private String transportMeans;
     private String gender;
 

@@ -25,12 +25,14 @@ public class MilkCollections {
     private Long member;//farmer id
     @Column(unique = true)
     private String collectionNumber;
+
     private String canNo;
     private String productType;
     private String event;//buying or selling
     private Double currentPrice;
     private Date collectionDate=new Date();
     private Double quantity=0.0;//litres
+
     private Double proteinContent=0.0;
     private Double fatContent=0.0;
     private Double longitude;
@@ -45,12 +47,8 @@ public class MilkCollections {
     @Column(nullable = false)
     private Long pickUpLocation;
 
-    @Column(nullable = false)
-    private Long wardFk;
-
     private  Character status= CONSTANTS.NO;
     private Character paymentStatus=CONSTANTS.NO;
-
 
 
 }
