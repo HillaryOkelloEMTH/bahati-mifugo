@@ -186,14 +186,31 @@ public class CollectionsAnalytics {
         }
         return response;
     }
-    public EntityResponse getCollectionByMonth(Integer year,Integer month,Long collectorId) {
+    public EntityResponse getCollectionByMonth(Integer year,Long collectorId) {
 
         EntityResponse response = new EntityResponse();
         try {
-            List<AnalyticsData> collections = collectionRepo.getQuantityPerMonth(year,month,collectorId);
+            List<AnalyticsData> collections = collectionRepo.getQuantityPerMonth(year,collectorId);
             if (collections.size()>0){
+
+                LinkedStringInteger data = new LinkedStringInteger();
+                LinkedList<String> months= new LinkedList<>();
+                LinkedList<Double> quantity= new LinkedList<>();
+                LinkedList<Double> amount= new LinkedList<>();
+
+                for (AnalyticsData d:collections) {
+                    months.add(d.getMonth());
+                    quantity.add(d.getQuantity());
+                    amount.add(d.getAmount());
+                }
+                data.setNames(months);
+                data.setAmount(amount);
+                data.setQuantiy(quantity);
+
+
+
                 response.setStatusCode(HttpStatus.OK.value());
-                response.setEntity(collections);
+                response.setEntity(data);
                 response.setMessage(HttpStatus.OK.getReasonPhrase());
             }else {
                 response.setStatusCode(HttpStatus.NOT_FOUND.value());
