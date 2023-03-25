@@ -53,8 +53,8 @@ public class AnalyticsController {
         return ResponseEntity.ok().body(response);
     }
     @GetMapping("collection/day")
-    public ResponseEntity<?> getCollectionsPerMonth(@RequestParam Integer year,@RequestParam Integer month,@RequestParam Long collectorId){
-        EntityResponse response = analyticsService.getCollectionByMonth(year, month, collectorId);
+    public ResponseEntity<?> getCollectionsPerMonth(@RequestParam Integer year,@RequestParam Long collectorId){
+        EntityResponse response = analyticsService.getCollectionByMonth(year, collectorId);
         return ResponseEntity.ok().body(response);
     }
 }

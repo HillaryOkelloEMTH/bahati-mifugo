@@ -36,9 +36,8 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections,Long> 
     @Query(value = "SELECT sum(c.quantity) as quantity,u.user_name as username,sum(c.amount) as amount FROM collections c join users u on u.id=c.collector_id WHERE DATE(c.collection_date) = CURDATE() group by c.collector_id order by c.collection_date ",nativeQuery = true)
     List<DailyRecords> getTodaysCollectionsPerCollector();
 
-    @Query(value = "SELECT count(*) as count, sum(c.quantity) as quantity,sum(c.amount) as amount FROM collections c WHERE DATE(c.collection_date) = CURDATE()",nativeQuery = true)
+    @Query(value = "SELECT sum(c.quantity) as count,CAST(sum(c.quantity) as DECIMAL(5, 2)) as quantity,sum(c.amount) as amount FROM collections c WHERE DATE(c.collection_date) = CURDATE()",nativeQuery = true)
     List<DailyRecords> getTodaysCollections();
-
 
     @Query(value = "SELECT f.first_name ,f.last_name ,f.member_code, c.id, c.collection_number as collectionCode ,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer,c.amount,c.quantity,c.collection_date,w.name as ward,p.name as pickUpLocation from collections c join users u on c.collector_id =u.id join farmer f on f.id=c.member join pick_up_locations p on p.id=c.pick_up_location join ward w on w.id=p.ward_fk where DATE(c.collection_date)= :date order by c.collection_date",nativeQuery = true)
     List<CollectionsData> getCollectionsbyDate(String date);
@@ -55,13 +54,13 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections,Long> 
 //    @Query(value = "select  max(id) from collections",nativeQuery = true)
 //    Long getMaxVaue();
 
-    @Query(value = "SELECT sum(c.amount)  as amount,SUM(c.quantity) as quantity from collections c where MONTH(c.collection_date)=:month and YEAR(c.collection_date)=:year  and c.collector_id=:collectorId",nativeQuery = true)
+    @Query(value = "SELECT sum(c.amount)  as amount,CAST(SUM(c.quantity) as DECIMAL(5,2)) as quantity from collections c where MONTH(c.collection_date)=:month and YEAR(c.collection_date)=:year  and c.collector_id=:collectorId group by c.session",nativeQuery = true)
     Optional<AnalyticsData> getCollectorRecord(Integer year,Integer month,Long collectorId);
     @Query(value = "SELECT DISTINCT  sum(c.amount) as amount,SUM(c.quantity) as quantity,c.session  from collections c where MONTH(c.collection_date)=:month and YEAR(c.collection_date)=:year  and c.collector_id=:collectorId GROUP  by c.session ",nativeQuery = true)
     List<AnalyticsData> getCollectorDataPerSerssion(Integer year,Integer month,Long collectorId);
 
 
-    @Query(value = "SELECT sum(c.amount) as amount,SUM(c.quantity) as quantity ,u.user_name as collector  from collections c join users u on u.id=c.collector_id  WHERE DATE(c.collection_date)=:date  GROUP BY c.collector_id",nativeQuery = true)
+    @Query(value = "SELECT sum(c.amount) as amount,CAST(SUM(c.quantity)as DECIMAL(5,2)) as quantity ,u.user_name as collector  from collections c join users u on u.id=c.collector_id  WHERE DATE(c.collection_date)=:date  GROUP BY c.collector_id",nativeQuery = true)
     List<AnalyticsData> getCollectorDataPerDate(String date);
 
     @Query(value = "SELECT sum(c.amount) as amount,SUM(c.quantity) as quantity,MONTHNAME(c.collection_date) as month from collections c where YEAR (c.collection_date)=:year GROUP BY MONTH(c.collection_date)",nativeQuery = true)
@@ -70,7 +69,7 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections,Long> 
     @Query(value = "SELECT c.id, c.collection_number as collectionCode ,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer,c.amount,c.quantity,c.collection_date,w.name as ward,p.name as pickUpLocation  from collections c join users u on c.collector_id =u.id join farmer f on f.id=c.member join pick_up_locations p on p.id=c.pick_up_location join pick_up_locations p on p.id =c.pick_up_location join ward w on w.id=p.ward_fk where c.collection_number =:collectionCode",nativeQuery = true)
     Optional<CollectionsData> getCollectionsbyCollectionCode(String collectionCode);
 
-    @Query(value = "SELECT sum(c.quantity) as quantity,p.name as location  from collections c join pick_up_locations p on p.id =c.pick_up_location GROUP BY p.name",nativeQuery = true)
+    @Query(value = "SELECT CAST(SUM(c.quantity)as DECIMAL(5,2)) as quantity,p.name as location  from collections c join pick_up_locations p on p.id =c.pick_up_location GROUP BY p.name",nativeQuery = true)
     List<AnalyticsData> getQuantityPerLocation();
 
     @Query(value = "SELECT c.latitude  ,c.longitude,p.name as location,CAST(c.collection_date as time) as time from collections c JOIN pick_up_locations p on p.id=c.pick_up_location WHERE c.collector_id =:collectorId   and  DATE(c.collection_date)=:date",nativeQuery = true)
@@ -79,8 +78,8 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections,Long> 
     @Query(value = "SELECT u.id,u.user_name as username,r.name as role  from users u join user_role ur on u.id=ur.user join roles r on r.id=ur.role where r.id=:roleId",nativeQuery = true)
     List<Roleusers> getRoleUsers(Long roleId);
 
-    @Query(value = "SELECT sum(c.amount) as amount ,SUM(c.quantity) as quantity  ,DAY(c.collection_date) as dayOfMonth from collections c where MONTH(c.collection_date)=:month and YEAR(c.collection_date)=:year  and c.collector_id=:collectorId GROUP BY DAY(c.collection_date)",nativeQuery = true)
-    List<AnalyticsData> getQuantityPerMonth(Integer year,Integer month,Long collectorId);
+    @Query(value = "SELECT sum(c.amount) as amount ,CAST(SUM(c.quantity) as DECIMAL(5,2)) as quantity ,MONTHNAME(c.collection_date) as month  from collections c where YEAR(c.collection_date)=:year  and c.collector_id=:collectorId GROUP BY MONTH(c.collection_date)",nativeQuery = true)
+    List<AnalyticsData> getQuantityPerMonth(Integer year,Long collectorId);
 
 
     interface Roleusers{

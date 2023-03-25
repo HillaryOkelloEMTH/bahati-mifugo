@@ -53,7 +53,6 @@ public class FarmerService {
            Integer val= random.nextInt(1000);
            log.info(val.toString());
 //            Long maxValue = farmerRepo.getMaxVaue()+1;
-//            if
 
             String code=  sb.append(year).append(val).toString();
             farmer.setMemberCode(code);
@@ -66,18 +65,18 @@ public class FarmerService {
             response.setMessage(HttpStatus.CREATED.getReasonPhrase());
 
 
-            String message = "Dear " + username + ", your registration was successful. Your member number is "+farmer.getMemberCode()+ ". Welcome to Bahati Dairies";
-            String phoneno = farmer.getMobileNo().trim();
-            if (phoneno.startsWith("0")) {
-                log.info("Starting with 0");
-                phoneno = phoneno.replaceFirst("0", "254");
-            } else if (phoneno.startsWith("+")) {
-                log.info("Starting with +");
-                phoneno = phoneno.substring(1, phoneno.length());
-            } else if (phoneno.startsWith("7") || phoneno.startsWith("1")) {
-                phoneno = "254" + phoneno;
-            }
-            smsService.SMSNOtification(message, phoneno);
+//            String message = "Dear " + username + ", your registration was successful. Your member number is "+farmer.getMemberCode()+ ". Welcome to Bahati Dairies";
+//            String phoneno = farmer.getMobileNo().trim();
+//            if (phoneno.startsWith("0")) {
+//                log.info("Starting with 0");
+//                phoneno = phoneno.replaceFirst("0", "254");
+//            } else if (phoneno.startsWith("+")) {
+//                log.info("Starting with +");
+//                phoneno = phoneno.substring(1, phoneno.length());
+//            } else if (phoneno.startsWith("7") || phoneno.startsWith("1")) {
+//                phoneno = "254" + phoneno;
+//            }
+//            smsService.SMSNOtification(message, phoneno);
 
 
             return response;
