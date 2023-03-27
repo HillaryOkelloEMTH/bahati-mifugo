@@ -53,7 +53,7 @@ public class MpesaController {
     }
 
     @RequestMapping(
-            path = "/callback",
+            path = "/stk-callback",
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
@@ -61,5 +61,18 @@ public class MpesaController {
         this.mpesaService.processSTKPushCallBack(object);
     }
 
+    @RequestMapping(
+            path = "/b2c-callback",
+            method = RequestMethod.POST,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public void b2cCallback(@RequestBody Object object){
+        this.mpesaService.processSTKPushCallBack(object);
 
+        Gson gson = new Gson();
+        log.log(Level.INFO, "B2C Callback received at " + new Date());
+        JSONObject j1 = new JSONObject(gson.toJson(object));
+
+        log.log(Level.INFO, String.format("B2C Init Callback Response %s", j1));
+    }
 }
