@@ -2,25 +2,39 @@ package com.emtech.dairyapp.Transactions.Mpesa;
 
 import com.emtech.dairyapp.Transactions.Data.Http.Response.B2CResponse;
 import com.emtech.dairyapp.Transactions.Data.Http.Response.STKPushResponse;
+import com.emtech.dairyapp.Transactions.Payment.Payment;
+import com.emtech.dairyapp.Transactions.Payment.PaymentRepository;
 import com.google.gson.Gson;
 import lombok.NonNull;
 import lombok.extern.java.Log;
 import okhttp3.*;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.swing.text.html.Option;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Base64;
+import java.util.Date;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
 @Service
 @Log
 public class MpesaService {
+    @Autowired
+    private MpesaTransactionRepository mpesaTransactionRepository;
+
+    @Autowired
+    private PaymentRepository paymentRepository;
+
     @Value("${mpesa.app.key}")
     private String appKeY;
 
@@ -107,8 +121,8 @@ public class MpesaService {
             jo.put("PartyB", shortCode);
             jo.put("PhoneNumber", phoneNumber);
             jo.put("CallBackURL", callBackUrl);
-            jo.put("AccountReference", "BahatiDiaries");
-            jo.put("TransactionDesc", "DEPOSIT TO ");
+            jo.put("AccountReference", "Bahati");
+            jo.put("TransactionDesc", "DEPOSIT TO BAHATI");
 
             log.log(Level.INFO, String.format("Initiate STK Push Request Body : %s ", jo));
 
@@ -127,6 +141,23 @@ public class MpesaService {
             Response response = client.newCall(request).execute();
             log.info("{ Mpesa Service } {Initiate STK Push } { Successful }");
             stk = gson.fromJson(response.body().string(), STKPushResponse.class);
+
+            AtomicReference<MpesaSTKTransaction> transaction = new AtomicReference<>(new MpesaSTKTransaction());
+            transaction.get().setResponseCode(stk.getResponseCode());
+            transaction.get().setMerchantRequestID(stk.getMerchantRequestID());
+            transaction.get().setCheckoutRequestID(stk.getCheckoutRequestID());
+            transaction.get().setCustomerMessage(stk.getCustomerMessage());
+            transaction.get().setResponseDescription(stk.getResponseDescription());
+            transaction.get().setPhoneNumber(phoneNumber);
+            transaction.get().setAmount(amount);
+
+            transaction.set(this.mpesaTransactionRepository.save(transaction.get()));
+
+            AtomicReference<Payment> payment = new AtomicReference<>(new Payment());
+            payment.get().setMerchantRequestID(stk.getMerchantRequestID());
+            payment.get().setTransactionType("STK PUSH");
+
+            payment.set(this.paymentRepository.save(payment.get()));
         }
         catch (Exception e)
         {
@@ -196,6 +227,113 @@ public class MpesaService {
             b2c.setResponseCode("-");
         }
         return b2c;
+    }
+
+    public void processSTKPushCallBack(@NonNull Object object){
+        Gson gson = new Gson();
+        log.log(Level.INFO, "B2C Callback received at " + new Date());
+        JSONObject j1 = new JSONObject(gson.toJson(object));
+
+        log.log(Level.INFO, String.format("STK Init Callback Response %s", j1));
+
+        String resultCode;
+        String resultDesc;
+        String mpesaCode = "";
+        String merchantReuestId;
+        Timestamp transactionDate = null;
+        String phoneNumber = "";
+        Double amount = null;
+
+        if (j1.has("Body")) {
+            JSONObject j2 = j1.getJSONObject("Body");
+            if (j2.has("stkCallback")) {
+                JSONObject j3 = j2.getJSONObject("stkCallback");
+                if(j3.has("ResultCode"))
+                {
+                    resultCode = String.valueOf(j3.getInt("ResultCode"));
+                } else {
+                    resultCode = "";
+                }
+                if(j3.has("ResultDesc"))
+                {
+                    resultDesc = j3.getString("ResultDesc");
+                } else {
+                    resultDesc = "";
+                }
+                if(j3.has("MerchantRequestID"))
+                {
+                    merchantReuestId = j3.getString("MerchantRequestID");
+                } else {
+                    merchantReuestId = "";
+                }
+
+                if (j3.has("CallbackMetadata")) {
+                    JSONObject j4 = j3.getJSONObject("CallbackMetadata");
+                    if (j4.has("Item")) {
+                        JSONArray ja = j4.getJSONArray("Item");
+                        for (Object ob : ja) {
+                            JSONObject j5 = new JSONObject(ob.toString());
+                            if (j5.getString("Name").equalsIgnoreCase("MpesaReceiptNumber")) {
+                                mpesaCode = j5.getString("Value");
+                            }
+
+                            if (j5.getString("Name").equalsIgnoreCase("Amount")) {
+                                amount = Double.valueOf(j5.getString("Value"));
+                            }
+
+                            if (j5.getString("Name").equalsIgnoreCase("TransactionDate")) {
+                                transactionDate = Timestamp.valueOf(j5.getString("Value"));
+                            }
+
+                            if (j5.getString("Name").equalsIgnoreCase("PhoneNumber")) {
+                                phoneNumber = j5.getString("Value");
+                            }
+                        }
+
+                    }
+                }
+            } else {
+                merchantReuestId = "";
+                resultDesc = "";
+                resultCode = "";
+            }
+        } else {
+            merchantReuestId = "";
+            resultDesc = "";
+            resultCode = "";
+        }
+
+        Double finalAmount = amount;
+        String finalMpesaCode = mpesaCode;
+        Timestamp finalTransactionDate = transactionDate;
+        String finalPhoneNumber = phoneNumber;
+        this.paymentRepository.findByMerchantRequestID(merchantReuestId).ifPresentOrElse(payment -> {
+
+            AtomicReference<Payment> myPayment = new AtomicReference<>(payment);
+
+            if(Integer.parseInt(resultCode) == 0){
+
+                myPayment.get().setAmount(finalAmount);
+                myPayment.get().setResultCode(resultCode);
+                myPayment.get().setMpesaReceiptNumber(finalMpesaCode);
+                myPayment.get().setResultDescription(resultDesc);
+                myPayment.get().setTransactionDate(finalTransactionDate);
+                myPayment.get().setPhoneNumber(finalPhoneNumber);
+
+                myPayment.set(this.paymentRepository.save(myPayment.get()));
+            }else {
+                myPayment.get().setResultCode(resultCode);
+                myPayment.get().setMpesaReceiptNumber(finalMpesaCode);
+                myPayment.get().setResultDescription(resultDesc);
+
+                myPayment.set(this.paymentRepository.save(myPayment.get()));
+            }
+
+
+        },() -> {
+            log.log(Level.INFO, String.format("transaction with the request merchant id %s not found ", merchantReuestId));
+        });
+
     }
 
 

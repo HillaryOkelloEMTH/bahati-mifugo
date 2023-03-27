@@ -58,11 +58,7 @@ public class MpesaController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     public void stkPushCallback(@RequestBody Object object){
-        Gson gson = new Gson();
-        log.log(Level.INFO, "B2C Callback received at " + new Date());
-        JSONObject j1 = new JSONObject(gson.toJson(object));
-
-        log.log(Level.INFO, String.format("STK Init Callback Response %s", j1));
+        this.mpesaService.processSTKPushCallBack(object);
     }
 
 
