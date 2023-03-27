@@ -27,10 +27,10 @@ spring:
     location: classpath:static/banner.txt
 
 dairy:
-  company_logo_path: /home/ubuntu/prod/EMT_012_DairyApp/resources/dairy_logo.jpg
-  report-path: /home/ubuntu/prod/EMT_012_DairyApp/resources/reports
-#  company_logo_path: /home/ibrahim/Downloads/dairy_logo.jpg
-#  report-path: /home/ibrahim/JaspersoftWorkspace/MyReports
+#  company_logo_path: /home/ubuntu/prod/EMT_012_DairyApp/resources/dairy_logo.jpg
+#  report-path: /home/ubuntu/prod/EMT_012_DairyApp/resources/reports
+  company_logo_path: /home/ibrahim/Downloads/dairy_logo.jpg
+  report-path: /home/ibrahim/JaspersoftWorkspace/MyReports
 
 
 pagination:
