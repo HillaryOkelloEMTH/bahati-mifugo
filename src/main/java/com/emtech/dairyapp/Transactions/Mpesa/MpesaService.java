@@ -239,7 +239,7 @@ public class MpesaService {
         String resultCode;
         String resultDesc;
         String mpesaCode = "";
-        String merchantReuestId;
+        String merchantRequestId;
         Timestamp transactionDate = null;
         String phoneNumber = "";
         Double amount = null;
@@ -262,43 +262,53 @@ public class MpesaService {
                 }
                 if(j3.has("MerchantRequestID"))
                 {
-                    merchantReuestId = j3.getString("MerchantRequestID");
+                    merchantRequestId = j3.getString("MerchantRequestID");
                 } else {
-                    merchantReuestId = "";
+                    merchantRequestId = "";
                 }
 
                 if (j3.has("CallbackMetadata")) {
+
                     JSONObject j4 = j3.getJSONObject("CallbackMetadata");
+                    log.log(Level.INFO, String.format("Callback Metadata: %s ", j4));
                     if (j4.has("Item")) {
                         JSONArray ja = j4.getJSONArray("Item");
                         for (Object ob : ja) {
                             JSONObject j5 = new JSONObject(ob.toString());
                             if (j5.getString("Name").equalsIgnoreCase("MpesaReceiptNumber")) {
                                 mpesaCode = j5.getString("Value");
+
+                                log.log(Level.INFO, String.format("Mpesa Reference Number: %s ", mpesaCode));
                             }
 
                             if (j5.getString("Name").equalsIgnoreCase("Amount")) {
                                 amount = Double.valueOf(j5.getString("Value"));
+
+                                log.log(Level.INFO, String.format("Amount: %s", amount));
                             }
 
                             if (j5.getString("Name").equalsIgnoreCase("TransactionDate")) {
                                 transactionDate = Timestamp.valueOf(j5.getString("Value"));
+
+                                log.log(Level.INFO, String.format("Transaction Date: %s ", transactionDate));
                             }
 
                             if (j5.getString("Name").equalsIgnoreCase("PhoneNumber")) {
                                 phoneNumber = j5.getString("Value");
+
+                                log.log(Level.INFO, String.format("Phone Number : %s ", phoneNumber));
                             }
                         }
 
                     }
                 }
             } else {
-                merchantReuestId = "";
+                merchantRequestId = "";
                 resultDesc = "";
                 resultCode = "";
             }
         } else {
-            merchantReuestId = "";
+            merchantRequestId = "";
             resultDesc = "";
             resultCode = "";
         }
@@ -307,7 +317,7 @@ public class MpesaService {
         String finalMpesaCode = mpesaCode;
         Timestamp finalTransactionDate = transactionDate;
         String finalPhoneNumber = phoneNumber;
-        this.paymentRepository.findByMerchantRequestID(merchantReuestId).ifPresentOrElse(payment -> {
+        this.paymentRepository.findByMerchantRequestID(merchantRequestId).ifPresentOrElse(payment -> {
 
             AtomicReference<Payment> myPayment = new AtomicReference<>(payment);
 
@@ -331,7 +341,7 @@ public class MpesaService {
 
 
         },() -> {
-            log.log(Level.INFO, String.format("transaction with the request merchant id %s not found ", merchantReuestId));
+            log.log(Level.INFO, String.format("transaction with the request merchant id %s not found ", merchantRequestId));
         });
 
     }
