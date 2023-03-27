@@ -57,4 +57,9 @@ public class AnalyticsController {
         EntityResponse response = analyticsService.getCollectionByMonth(year, collectorId);
         return ResponseEntity.ok().body(response);
     }
+    @GetMapping("collection/collector/month")
+    public ResponseEntity<?> getCollectorCollectionsPerMonth(@RequestParam Integer year,@RequestParam Integer month){
+        EntityResponse response = analyticsService.getCollectorCollectionsPerMonth(year, month);
+        return ResponseEntity.ok().body(response);
+    }
 }
