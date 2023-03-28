@@ -240,9 +240,9 @@ public class MpesaService {
         String resultDesc;
         String mpesaCode = "";
         String merchantRequestId;
-        Timestamp transactionDate = null;
+        Date transactionDate = null;
         String phoneNumber = "";
-        Double amount = null;
+        double amount = Double.parseDouble(null);
 
         if (j1.has("Body")) {
             JSONObject j2 = j1.getJSONObject("Body");
@@ -288,7 +288,9 @@ public class MpesaService {
                             }
 
                             if (j5.getString("Name").equalsIgnoreCase("TransactionDate")) {
-                                transactionDate = Timestamp.valueOf(j5.getString("Value"));
+                                long myTransactionDate = j5.getLong("Value");
+
+                                transactionDate = new Date(myTransactionDate);
 
                                 log.log(Level.INFO, String.format("Transaction Date: %s ", transactionDate));
                             }
@@ -313,9 +315,9 @@ public class MpesaService {
             resultCode = "";
         }
 
-        Double finalAmount = amount;
+        double finalAmount = amount;
         String finalMpesaCode = mpesaCode;
-        Timestamp finalTransactionDate = transactionDate;
+        Date finalTransactionDate = transactionDate;
         String finalPhoneNumber = phoneNumber;
         this.paymentRepository.findByMerchantRequestID(merchantRequestId).ifPresentOrElse(payment -> {
 
@@ -327,7 +329,8 @@ public class MpesaService {
                 myPayment.get().setResultCode(resultCode);
                 myPayment.get().setMpesaReceiptNumber(finalMpesaCode);
                 myPayment.get().setResultDescription(resultDesc);
-                myPayment.get().setTransactionDate(finalTransactionDate);
+                assert finalTransactionDate != null;
+                myPayment.get().setTransactionDate(new Timestamp(finalTransactionDate.getTime()));
                 myPayment.get().setPhoneNumber(finalPhoneNumber);
 
                 myPayment.set(this.paymentRepository.save(myPayment.get()));
