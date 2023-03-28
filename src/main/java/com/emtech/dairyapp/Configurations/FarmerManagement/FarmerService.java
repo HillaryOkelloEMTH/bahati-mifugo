@@ -7,6 +7,7 @@ import com.emtech.dairyapp.Configurations.Interfaces.FarmersPerWard;
 import com.emtech.dairyapp.Configurations.Utils.CONSTANTS;
 import com.emtech.dairyapp.Notifications.SMS.SMSService;
 import com.emtech.dairyapp.Response.EntityResponse;
+import io.swagger.models.auth.In;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -46,16 +47,35 @@ public class FarmerService {
         try{
             String username = farmer.getFirstName()+ " " +farmer.getLastName();
             farmer.setUsername(username);
-            StringBuilder sb=new StringBuilder();
-            LocalDate date = LocalDate.now();
-            String year = String.valueOf(date.getYear()).substring(2,4);
-            Random random = new Random();
-           Integer val= random.nextInt(1000);
-           log.info(val.toString());
-//            Long maxValue = farmerRepo.getMaxVaue()+1;
+            Integer count = farmerRepo.getCount();
 
-            String code=  sb.append(year).append(val).toString();
-            farmer.setMemberCode(code);
+            Integer memberNO=null;
+            if (count > 0) {
+                Integer max = farmerRepo.getMaxVaue()+1;;
+                memberNO= max + 1;
+
+
+            } else {
+                memberNO=0+1;
+                for (int i = 0; i < 10; i++) { // loop 10 times
+                    log.info("Initial member No "+ memberNO);
+                    if (farmerRepo.existsByMemberCode(String.valueOf(memberNO))) {
+                        log.info("Member No "+ memberNO+ " already exist");
+                        memberNO = memberNO + 1;
+                        log.info("New member No "+ memberNO);
+
+                    }else {
+                        log.info("Member No "+ memberNO+ " does not exist");
+                        log.info("Setting Member No "+ memberNO+ " ...");
+                        farmer.setMemberCode(String.valueOf(memberNO));
+                        break;
+                    }
+
+
+                }
+
+            }
+
             farmer.setCreatedAt(new Date());
             farmer.setDeletedFlag(CONSTANTS.NO);
             farmerRepo.save(farmer);
@@ -89,6 +109,26 @@ public class FarmerService {
             return response;
         }
     }
+
+    public boolean isValuePlusOneExistInDatabase(Integer value) {
+
+        for (int i = 0; i < 10; i++) { // loop 10 times
+            if (farmerRepo.existsByMemberCode(String.valueOf(value))) {
+//                repsonse.setStatus(true);
+//                repsonse.setValue(value++);
+                return true;
+            }
+           value++; // increment value for the next loop iteration
+
+        }
+//        repsonse.setValue(value); // increment value for the next loop iteration
+//        repsonse.setStatus(false);
+
+        return false;
+    }
+
+
+
     public EntityResponse fetchFarmer() {
         log.info("Fetching Farmers ...");
         EntityResponse response = new EntityResponse();

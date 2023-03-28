@@ -1,5 +1,6 @@
 package com.emtech.dairyapp.Dairy.Supply;
 
+import com.emtech.dairyapp.Analytics.AnalyticsData;
 import com.emtech.dairyapp.Configurations.CanManagement.Can;
 import com.emtech.dairyapp.Configurations.CanManagement.CanRepo;
 import com.emtech.dairyapp.Configurations.FarmerManagement.Farmer;
@@ -58,7 +59,16 @@ public class MilkCollectionService {
                 String username = check.get().getUsername();
                 String collectionNumber= codenerator.codeGenerator();
                 collections.setCollectionNumber(collectionNumber);
+                boolean checkDuplicate=milkCollectionRepo.existsByMemberAndQuantityAndSessionAndCollectorId(collections.getMember(),
+                        collections.getQuantity(), collections.getSession(),collections.getCollectorId());
+                log.info("Checking duplicate record...");
 
+                if(checkDuplicate){
+                    log.info("..Duplicate entry detected ... ");
+                    response.setStatusCode(HttpStatus.NOT_ACCEPTABLE.value());
+                    response.setMessage("Duplicate entry detected");
+                    return  response;
+                }
                 Optional<Can> cancheck = canRepo.findByCanNo(collections.getCanNo());
                 if (cancheck.isPresent()) {
 //                    Can can=cancheck.get();
@@ -113,6 +123,9 @@ public class MilkCollectionService {
                         response.setStatusCode(HttpStatus.CREATED.value());
                         response.setEntity(c);
                         response.setMessage(HttpStatus.CREATED.getReasonPhrase());
+
+
+                        log.info("Sending sms ...");
                         //send sms
 
 //                        String message = "Dear " + username + ", we have received your " + collections.getQuantity() + " of milk" +
@@ -431,6 +444,31 @@ public class MilkCollectionService {
             response.setStatusCode(HttpStatus.OK.value());
             response.setEntity(todaysCollections);
             response.setMessage(HttpStatus.OK.getReasonPhrase());
+
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+        }
+        return response;
+    }
+    public EntityResponse getDayCollectionsPerColector(String date) {
+
+        EntityResponse response = new EntityResponse();
+        try {
+
+            List<AnalyticsData> todaysCollections = milkCollectionRepo.getCOllectionsPerCollectors(date);
+            if(todaysCollections.size()>0){
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setEntity(todaysCollections);
+                response.setMessage(HttpStatus.OK.getReasonPhrase());
+            }else {
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                response.setEntity(todaysCollections);
+                response.setMessage(HttpStatus.NOT_FOUND.getReasonPhrase());
+
+            }
+
 
         } catch (Exception e) {
             log.error(e.getMessage());

@@ -111,5 +111,12 @@ public class MilkCollectionController {
         EntityResponse response = collectionService.getCollectionsRoutes(collectorId,date);
         return ResponseEntity.ok().body(response);
     }
+    @GetMapping("collector/today")
+    public ResponseEntity<?> getCollectorColnsPerDay(@RequestParam String date){
+        EntityResponse response = collectionService.getDayCollectionsPerColector(date);
+        return ResponseEntity.ok().body(response);
+    }
+
+
 
 }

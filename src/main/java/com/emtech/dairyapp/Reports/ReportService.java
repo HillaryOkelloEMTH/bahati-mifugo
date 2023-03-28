@@ -61,4 +61,13 @@ public class ReportService {
             return null;
         }
     }
+    public List<ReportData> getDayCollections(String date) {
+        try {
+
+            return collectionRepo.getCollectorsPerDate(date);
+        }catch (Exception exc){
+            log.info(exc.getLocalizedMessage());
+            return null;
+        }
+    }
 }
