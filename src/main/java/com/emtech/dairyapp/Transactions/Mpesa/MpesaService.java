@@ -156,6 +156,7 @@ public class MpesaService {
             AtomicReference<Payment> payment = new AtomicReference<>(new Payment());
             payment.get().setMerchantRequestID(stk.getMerchantRequestID());
             payment.get().setTransactionType("STK PUSH");
+            payment.get().setStatus("Pending");
 
             payment.set(this.paymentRepository.save(payment.get()));
         }
@@ -240,8 +241,8 @@ public class MpesaService {
         String resultDesc;
         String mpesaCode = "";
         String merchantRequestId;
-        Timestamp transactionDate = null;
-        String phoneNumber = "";
+        Date transactionDate = null;
+        long phoneNumber = 0;
         Double amount = null;
 
         if (j1.has("Body")) {
@@ -288,13 +289,15 @@ public class MpesaService {
                             }
 
                             if (j5.getString("Name").equalsIgnoreCase("TransactionDate")) {
-                                transactionDate = Timestamp.valueOf(j5.getString("Value"));
+                                long myTransactionDate = j5.getLong("Value");
+
+                                transactionDate = new Date(myTransactionDate);
 
                                 log.log(Level.INFO, String.format("Transaction Date: %s ", transactionDate));
                             }
 
                             if (j5.getString("Name").equalsIgnoreCase("PhoneNumber")) {
-                                phoneNumber = j5.getString("Value");
+                                phoneNumber = j5.getLong("Value");
 
                                 log.log(Level.INFO, String.format("Phone Number : %s ", phoneNumber));
                             }
@@ -315,8 +318,8 @@ public class MpesaService {
 
         Double finalAmount = amount;
         String finalMpesaCode = mpesaCode;
-        Timestamp finalTransactionDate = transactionDate;
-        String finalPhoneNumber = phoneNumber;
+        Date finalTransactionDate = transactionDate;
+        long finalPhoneNumber = phoneNumber;
         this.paymentRepository.findByMerchantRequestID(merchantRequestId).ifPresentOrElse(payment -> {
 
             AtomicReference<Payment> myPayment = new AtomicReference<>(payment);
@@ -327,14 +330,17 @@ public class MpesaService {
                 myPayment.get().setResultCode(resultCode);
                 myPayment.get().setMpesaReceiptNumber(finalMpesaCode);
                 myPayment.get().setResultDescription(resultDesc);
-                myPayment.get().setTransactionDate(finalTransactionDate);
+                assert finalTransactionDate != null;
+                myPayment.get().setTransactionDate(new Timestamp(finalTransactionDate.getTime()));
                 myPayment.get().setPhoneNumber(finalPhoneNumber);
+                myPayment.get().setStatus("Success");
 
                 myPayment.set(this.paymentRepository.save(myPayment.get()));
             }else {
                 myPayment.get().setResultCode(resultCode);
                 myPayment.get().setMpesaReceiptNumber(finalMpesaCode);
                 myPayment.get().setResultDescription(resultDesc);
+                myPayment.get().setStatus("Failed");
 
                 myPayment.set(this.paymentRepository.save(myPayment.get()));
             }
