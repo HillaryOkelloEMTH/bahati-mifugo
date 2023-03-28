@@ -282,7 +282,7 @@ public class MpesaService {
                             }
 
                             if (j5.getString("Name").equalsIgnoreCase("Amount")) {
-                                amount = Double.valueOf(j5.getString("Value"));
+                                amount = j5.getDouble("Value");
 
                                 log.log(Level.INFO, String.format("Amount: %s", amount));
                             }

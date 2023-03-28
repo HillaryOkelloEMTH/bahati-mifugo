@@ -1,11 +1,11 @@
 server:
   error:
     include-message: always
-  port: 9600
+  port: 9900
 
 spring:
   datasource:
-    url: jdbc:mariadb://52.15.152.26:3306/bahatiTest
+    url: jdbc:mariadb://52.15.152.26:3306/dairy
     username: emtech
     password: emtech@2022
     driver-class-name: org.mariadb.jdbc.Driver
