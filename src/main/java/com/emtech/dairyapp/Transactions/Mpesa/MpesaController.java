@@ -58,6 +58,8 @@ public class MpesaController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     public void stkPushCallback(@RequestBody Object object){
+        log.log(Level.INFO, String.format("STK PUSH Callback Response: %s ", object.toString()));
+
         this.mpesaService.processSTKPushCallBack(object);
     }
 
