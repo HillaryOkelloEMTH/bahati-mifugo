@@ -48,7 +48,10 @@ public class Payment {
     private Timestamp transactionDate;
 
     @Column(name = "phone_number")
-    private String phoneNumber;
+    private Long phoneNumber;
+
+    @Column(name = "status")
+    private String status;
 
     @CreationTimestamp
     @JsonFormat(pattern = "dd-MMM-yyyy HH:mm:ss")
