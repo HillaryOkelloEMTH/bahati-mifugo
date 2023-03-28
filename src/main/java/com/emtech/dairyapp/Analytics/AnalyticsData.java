@@ -15,4 +15,5 @@ public interface AnalyticsData {
     Integer getDayOfMonth();
 
 
+
 }

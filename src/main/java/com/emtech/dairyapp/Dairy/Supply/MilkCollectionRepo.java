@@ -2,6 +2,7 @@ package com.emtech.dairyapp.Dairy.Supply;
 
 import com.emtech.dairyapp.Analytics.AnalyticsData;
 import com.emtech.dairyapp.Dairy.Interface.*;
+import com.emtech.dairyapp.Reports.ReportData;
 import io.swagger.models.auth.In;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -48,6 +49,9 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections,Long> 
     @Query(value = "SELECT f.first_name ,f.last_name ,f.member_code,c.id , c.collection_number as collectionCode,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer ,c.amount,c.quantity,c.collection_date,w.name as ward,p.name as pickUpLocation from collections c join users u on c.collector_id =u.id join farmer f on f.id=c.member join pick_up_locations p on p.id=c.pick_up_location  join ward w on w.id=p.ward_fk where DATE(c.collection_date) BETWEEN :fromDate and :toDate order by c.collection_date",nativeQuery = true)
     List<CollectionsData> getCollectionByDateRange(String fromDate,String toDate);
 
+    @Query(value = "SELECT SUM(c.amount) as amount,CAST(SUM(c.quantity)as DECIMAL(5,2)) as quantity,u.user_name as collector from collections c join users u on u.id =c.collector_id WHERE DATE(c.collection_date) =:date GROUP BY c.collector_id desc",nativeQuery = true )
+    List<AnalyticsData> getCOllectionsPerCollectors(String date);
+
 
 //    @Query(value = "select  max(id) from collections",nativeQuery = true)
 //    Long getMaxVaue();
@@ -88,6 +92,10 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections,Long> 
 List<AnalyticsData> getCollectorsPerCollector(String date);
     @Query(value = "SELECT sum(c.amount) as amount ,CAST(SUM(c.quantity)as DECIMAL(5,2)) as quantity,p.name,count(*) as ColectionsCount from collections c join pick_up_locations p on p.id=c.pick_up_location where DATE(c.collection_date)=:date GROUP BY c.pick_up_location",nativeQuery = true)
     List<AnalyticsData> getCollectorsPerLocation(String date);
+    @Query(value = "SELECT c.amount ,c.quantity ,c.current_price ,DATE(c.collection_date) as date,c.session,c.collection_number ,u.user_name as collector,p.name as pick_up_location from collections c join users u on u.id=c.collector_id join pick_up_locations p on p.id=c.pick_up_location where DATE(c.collection_date) =:date",nativeQuery = true)
+    List<ReportData> getCollectorsPerDate(String date);
+@Query(value = "SELECT COUNT(*) as colectionsCount,MONTHNAME(c.collection_date) as month  from collections c WHERE YEAR(c.collection_date)=:year and c.collector_id=:collectorId group by MONTH(c.collection_date)",nativeQuery = true)
+List<AnalyticsData> getCollectionCountPerMonth(Integer year,Long collectorId);
 
 
     interface Roleusers{
@@ -95,5 +103,7 @@ List<AnalyticsData> getCollectorsPerCollector(String date);
         String getUsername();
         String getRole();
     }
+
+    boolean existsByMemberAndQuantityAndSessionAndCollectorId(Long farmerdId,Double quantity,String session,Long collectorId);
 
 }
