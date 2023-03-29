@@ -95,6 +95,11 @@ public class MilkCollectionController {
         EntityResponse response = collectionService.getCollectionsBySpecificDate(date);
         return ResponseEntity.ok().body(response);
     }
+    @GetMapping("day/records")
+    public ResponseEntity<EntityResponse> getDateRecords(@RequestParam String date){
+        EntityResponse response = collectionService.getDayRecords(date);
+        return ResponseEntity.ok().body(response);
+    }
     @GetMapping("date/range")
     public ResponseEntity<EntityResponse> getDateRangeCollections(@RequestParam String fromdate,@RequestParam String toDate){
         EntityResponse response = collectionService.getCollectionsByDateRange(fromdate, toDate);
@@ -111,5 +116,12 @@ public class MilkCollectionController {
         EntityResponse response = collectionService.getCollectionsRoutes(collectorId,date);
         return ResponseEntity.ok().body(response);
     }
+    @GetMapping("collector/today")
+    public ResponseEntity<?> getCollectorColnsPerDay(@RequestParam String date){
+        EntityResponse response = collectionService.getDayCollectionsPerColector(date);
+        return ResponseEntity.ok().body(response);
+    }
+
+
 
 }

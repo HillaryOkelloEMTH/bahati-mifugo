@@ -1,5 +1,6 @@
 package com.emtech.dairyapp.Dairy.Supply;
 
+import com.emtech.dairyapp.Analytics.AnalyticsData;
 import com.emtech.dairyapp.Configurations.CanManagement.Can;
 import com.emtech.dairyapp.Configurations.CanManagement.CanRepo;
 import com.emtech.dairyapp.Configurations.FarmerManagement.Farmer;
@@ -58,15 +59,23 @@ public class MilkCollectionService {
                 String username = check.get().getUsername();
                 String collectionNumber= codenerator.codeGenerator();
                 collections.setCollectionNumber(collectionNumber);
+                boolean checkDuplicate=milkCollectionRepo.existsByMemberAndQuantityAndSessionAndCollectorId(collections.getMember(),
+                        collections.getQuantity(), collections.getSession(),collections.getCollectorId());
+                log.info("Checking duplicate record...");
 
-                Optional<Can> cancheck = canRepo.findByCanNo(collections.getCanNo());
-                if (cancheck.isPresent()) {
+                if(checkDuplicate){
+                    log.info("..Duplicate entry detected ... ");
+                    response.setStatusCode(HttpStatus.NOT_ACCEPTABLE.value());
+                    response.setMessage("Duplicate entry detected");
+                    return  response;
+                }
+
 //                    Can can=cancheck.get();
 //                    Double lessWeight= Double.valueOf(can.getDeductionWeight());
 
 
                     collections.setProductType("Milk");
-                    collections.setEvent("Collection");
+//                    collections.setEvent("Collection");
                     String event = collections.getEvent();
                     Optional<ProductConfig> productConfig = productConfigRepo.findByProductName(collections.getProductType().trim());
                     if (productConfig.isPresent()) {
@@ -95,17 +104,22 @@ public class MilkCollectionService {
                             }
 
                         } else if (event.equalsIgnoreCase("Collection")) {
-                            log.info("----Collection event----");
-                            Double buyingPrice = productConfig.get().getBuyingPrice();
-                            log.info("buying price ", +buyingPrice);
-                            Double totalAmount = buyingPrice * collections.getQuantity();
-                            log.info("total amount " + totalAmount);
-                            collections.setAmount(totalAmount);
-                            collections.setCurrentPrice(buyingPrice);
-                            //selling cost calculation
-                            response.setStatusCode(HttpStatus.OK.value());
-                            response.setMessage(HttpStatus.OK.getReasonPhrase());
-
+                            Optional<Can> cancheck = canRepo.findByCanNo(collections.getCanNo());
+                            if (cancheck.isPresent()) {
+                                log.info("----Collection event----");
+                                Double buyingPrice = productConfig.get().getBuyingPrice();
+                                log.info("buying price ", +buyingPrice);
+                                Double totalAmount = buyingPrice * collections.getQuantity();
+                                log.info("total amount " + totalAmount);
+                                collections.setAmount(totalAmount);
+                                collections.setCurrentPrice(buyingPrice);
+                                //selling cost calculation
+                                response.setStatusCode(HttpStatus.OK.value());
+                                response.setMessage(HttpStatus.OK.getReasonPhrase());
+                            }else {
+                                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                                response.setMessage("Can Not Found");
+                            }
                         }
 
                         MilkCollections c = milkCollectionRepo.save(collections);
@@ -113,6 +127,9 @@ public class MilkCollectionService {
                         response.setStatusCode(HttpStatus.CREATED.value());
                         response.setEntity(c);
                         response.setMessage(HttpStatus.CREATED.getReasonPhrase());
+
+
+                        log.info("Sending sms ...");
                         //send sms
 
 //                        String message = "Dear " + username + ", we have received your " + collections.getQuantity() + " of milk" +
@@ -136,7 +153,7 @@ public class MilkCollectionService {
                     response.setStatusCode(HttpStatus.BAD_REQUEST.value());
                     response.setMessage("Product Configuration Not Found!");
                 }
-            }
+
         } catch (Exception e) {
             log.error(e.getLocalizedMessage());
             response.setStatusCode(HttpStatus.BAD_REQUEST.value());
@@ -343,7 +360,30 @@ public class MilkCollectionService {
         }
         return response;
     }
+    public EntityResponse getDayRecords(String date) {
 
+        EntityResponse response = new EntityResponse();
+        try {
+
+            List<DailyRecords> todaysCollections = milkCollectionRepo.getSpecificDateRecord(date);
+            if(todaysCollections.size()>0){
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setEntity(todaysCollections);
+                response.setMessage(HttpStatus.OK.getReasonPhrase());
+            }else {
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                response.setEntity(todaysCollections);
+                response.setMessage(HttpStatus.NOT_FOUND.getReasonPhrase());
+            }
+
+
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+        }
+        return response;
+    }
     public EntityResponse getCollectionByFarmer(Long farmerId) {
 
         EntityResponse response = new EntityResponse();
@@ -431,6 +471,31 @@ public class MilkCollectionService {
             response.setStatusCode(HttpStatus.OK.value());
             response.setEntity(todaysCollections);
             response.setMessage(HttpStatus.OK.getReasonPhrase());
+
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+        }
+        return response;
+    }
+    public EntityResponse getDayCollectionsPerColector(String date) {
+
+        EntityResponse response = new EntityResponse();
+        try {
+
+            List<AnalyticsData> todaysCollections = milkCollectionRepo.getCOllectionsPerCollectors(date);
+            if(todaysCollections.size()>0){
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setEntity(todaysCollections);
+                response.setMessage(HttpStatus.OK.getReasonPhrase());
+            }else {
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                response.setEntity(todaysCollections);
+                response.setMessage(HttpStatus.NOT_FOUND.getReasonPhrase());
+
+            }
+
 
         } catch (Exception e) {
             log.error(e.getMessage());
