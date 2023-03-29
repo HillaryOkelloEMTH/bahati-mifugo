@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.swing.text.html.Option;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
@@ -339,7 +340,7 @@ public class MpesaService {
                 myPayment.get().setResultCode(resultCode);
                 myPayment.get().setMpesaReceiptNumber(finalMpesaCode);
                 myPayment.get().setResultDescription(resultDesc);
-                myPayment.get().setStatus("Failed");
+                myPayment.get().se
 
                 myPayment.set(this.paymentRepository.save(myPayment.get()));
             }
