@@ -35,9 +35,10 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections,Long> 
     @Query(value = "SELECT sum(c.quantity) as quantity,u.user_name as username,sum(c.amount) as amount FROM collections c join users u on u.id=c.collector_id WHERE DATE(c.collection_date) = CURDATE() group by c.collector_id order by c.collection_date ",nativeQuery = true)
     List<DailyRecords> getTodaysCollectionsPerCollector();
 
-    @Query(value = "SELECT sum(c.quantity) as count,CAST(sum(c.quantity) as DECIMAL(5, 2)) as quantity,sum(c.amount) as amount FROM collections c WHERE DATE(c.collection_date) = CURDATE()",nativeQuery = true)
+    @Query(value = "SELECT count(*) as count,sum(c.quantity) as quantity,sum(c.amount) as amount FROM collections c WHERE DATE(c.collection_date) = CURDATE()",nativeQuery = true)
     List<DailyRecords> getTodaysCollections();
-
+    @Query(value = "SELECT count(*) as count,sum(c.quantity)  as quantity,sum(c.amount) as amount FROM collections c WHERE DATE(c.collection_date) = :date",nativeQuery = true)
+    List<DailyRecords> getSpecificDateRecord(String date);
     @Query(value = "SELECT f.first_name ,f.last_name ,f.member_code, c.id, c.collection_number as collectionCode ,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer,c.amount,c.quantity,c.collection_date,w.name as ward,p.name as pickUpLocation from collections c join users u on c.collector_id =u.id join farmer f on f.id=c.member join pick_up_locations p on p.id=c.pick_up_location join ward w on w.id=p.ward_fk where DATE(c.collection_date)= :date order by c.collection_date",nativeQuery = true)
     List<CollectionsData> getCollectionsbyDate(String date);
     @Query(value = "SELECT f.first_name ,f.last_name ,f.member_code, c.id, c.collection_number as collectionCode ,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer,c.amount,c.quantity,c.collection_date,w.name as ward,p.name as pickUpLocation from collections c join users u on c.collector_id =u.id join farmer f on f.id=c.member join pick_up_locations p on p.id=c.pick_up_location join ward w on w.id=p.ward_fk",nativeQuery = true)

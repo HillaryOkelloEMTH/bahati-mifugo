@@ -69,14 +69,13 @@ public class MilkCollectionService {
                     response.setMessage("Duplicate entry detected");
                     return  response;
                 }
-                Optional<Can> cancheck = canRepo.findByCanNo(collections.getCanNo());
-                if (cancheck.isPresent()) {
+
 //                    Can can=cancheck.get();
 //                    Double lessWeight= Double.valueOf(can.getDeductionWeight());
 
 
                     collections.setProductType("Milk");
-                    collections.setEvent("Collection");
+//                    collections.setEvent("Collection");
                     String event = collections.getEvent();
                     Optional<ProductConfig> productConfig = productConfigRepo.findByProductName(collections.getProductType().trim());
                     if (productConfig.isPresent()) {
@@ -105,17 +104,22 @@ public class MilkCollectionService {
                             }
 
                         } else if (event.equalsIgnoreCase("Collection")) {
-                            log.info("----Collection event----");
-                            Double buyingPrice = productConfig.get().getBuyingPrice();
-                            log.info("buying price ", +buyingPrice);
-                            Double totalAmount = buyingPrice * collections.getQuantity();
-                            log.info("total amount " + totalAmount);
-                            collections.setAmount(totalAmount);
-                            collections.setCurrentPrice(buyingPrice);
-                            //selling cost calculation
-                            response.setStatusCode(HttpStatus.OK.value());
-                            response.setMessage(HttpStatus.OK.getReasonPhrase());
-
+                            Optional<Can> cancheck = canRepo.findByCanNo(collections.getCanNo());
+                            if (cancheck.isPresent()) {
+                                log.info("----Collection event----");
+                                Double buyingPrice = productConfig.get().getBuyingPrice();
+                                log.info("buying price ", +buyingPrice);
+                                Double totalAmount = buyingPrice * collections.getQuantity();
+                                log.info("total amount " + totalAmount);
+                                collections.setAmount(totalAmount);
+                                collections.setCurrentPrice(buyingPrice);
+                                //selling cost calculation
+                                response.setStatusCode(HttpStatus.OK.value());
+                                response.setMessage(HttpStatus.OK.getReasonPhrase());
+                            }else {
+                                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                                response.setMessage("Can Not Found");
+                            }
                         }
 
                         MilkCollections c = milkCollectionRepo.save(collections);
@@ -149,7 +153,7 @@ public class MilkCollectionService {
                     response.setStatusCode(HttpStatus.BAD_REQUEST.value());
                     response.setMessage("Product Configuration Not Found!");
                 }
-            }
+
         } catch (Exception e) {
             log.error(e.getLocalizedMessage());
             response.setStatusCode(HttpStatus.BAD_REQUEST.value());
@@ -356,7 +360,30 @@ public class MilkCollectionService {
         }
         return response;
     }
+    public EntityResponse getDayRecords(String date) {
 
+        EntityResponse response = new EntityResponse();
+        try {
+
+            List<DailyRecords> todaysCollections = milkCollectionRepo.getSpecificDateRecord(date);
+            if(todaysCollections.size()>0){
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setEntity(todaysCollections);
+                response.setMessage(HttpStatus.OK.getReasonPhrase());
+            }else {
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                response.setEntity(todaysCollections);
+                response.setMessage(HttpStatus.NOT_FOUND.getReasonPhrase());
+            }
+
+
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+        }
+        return response;
+    }
     public EntityResponse getCollectionByFarmer(Long farmerId) {
 
         EntityResponse response = new EntityResponse();
