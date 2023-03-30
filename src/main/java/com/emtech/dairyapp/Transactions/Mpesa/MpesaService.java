@@ -340,7 +340,7 @@ public class MpesaService {
                 myPayment.get().setResultCode(resultCode);
                 myPayment.get().setMpesaReceiptNumber(finalMpesaCode);
                 myPayment.get().setResultDescription(resultDesc);
-                myPayment.get().se
+                myPayment.get().setStatus("Failed");
 
                 myPayment.set(this.paymentRepository.save(myPayment.get()));
             }

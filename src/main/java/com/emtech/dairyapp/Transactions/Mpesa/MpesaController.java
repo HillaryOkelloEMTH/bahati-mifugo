@@ -69,6 +69,7 @@ public class MpesaController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     public void b2cCallback(@RequestBody Object object){
+        log.log(Level.INFO, "CALLBACK RECEIVED");
         log.log(Level.INFO, String.format("B2C Callback Response: %s ", object.toString()));
     }
 
