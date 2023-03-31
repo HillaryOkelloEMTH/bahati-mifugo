@@ -54,11 +54,6 @@ public class MilkCollectionController {
         EntityResponse response = collectionService.getCollectionsByDate(collectorId,date);
         return ResponseEntity.ok().body(response);
     }
-    @GetMapping("collector/date/event")
-    public ResponseEntity<EntityResponse> getBuyingBUying(@RequestParam Long collectorId, @RequestParam String date ){
-        EntityResponse response = collectionService.getCollectionsByDateandEvent(collectorId,date);
-        return ResponseEntity.ok().body(response);
-    }
 
 
     @GetMapping("collector-purchases/date/")
