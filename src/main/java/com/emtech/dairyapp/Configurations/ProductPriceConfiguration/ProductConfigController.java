@@ -1,9 +1,9 @@
-package com.emtech.dairyapp.Configurations.ProductConfig;
+package com.emtech.dairyapp.Configurations.ProductPriceConfiguration;
 
-import com.emtech.dairyapp.Configurations.DepartmentManegement.Department;
 import com.emtech.dairyapp.Response.EntityResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @CrossOrigin
@@ -32,13 +32,18 @@ public class ProductConfigController {
         return ResponseEntity.ok().body(response);
     }
     @PutMapping("update")
-    public ResponseEntity<EntityResponse> updateproductConfig(@RequestBody ProductConfig productConfig){
-        EntityResponse response = service.updateProductConfig(productConfig);
+    public ResponseEntity<EntityResponse> updateproductConfig(@RequestBody ProductConfig productConfig, Authentication auth){
+        EntityResponse response = service.updateProductConfig(productConfig,auth);
         return ResponseEntity.ok().body(response);
     }
     @DeleteMapping("delete/{id}")
     public ResponseEntity<EntityResponse> deleteproductConfig(@PathVariable Long id){
         EntityResponse response = service.deleteProductConfig(id);
+        return ResponseEntity.ok().body(response);
+    }
+    @GetMapping("price/change/history")
+    public ResponseEntity<EntityResponse> getproductPriceChangeHistory(@RequestParam Long productConfigId){
+        EntityResponse response = service.fetchProductChangeHistory(productConfigId);
         return ResponseEntity.ok().body(response);
     }
 }

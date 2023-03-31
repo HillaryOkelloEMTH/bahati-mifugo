@@ -1,10 +1,11 @@
-package com.emtech.dairyapp.Configurations.ProductConfig;
+package com.emtech.dairyapp.Configurations.ProductPriceConfiguration;
 
 
 import com.emtech.dairyapp.Response.EntityResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -17,7 +18,8 @@ public class ProductConfigService {
 
     @Autowired
     private ProductConfigRepo productConfigRepo;
-
+    @Autowired
+    private PriceChangeHistoryRepo priceChangeHistoryRepo;
 
 
     public EntityResponse addProductConfig(ProductConfig productConfig){
@@ -64,17 +66,59 @@ public class ProductConfigService {
             return response;
         }
     }
-    public EntityResponse updateProductConfig(ProductConfig productConfig) {
+    public EntityResponse fetchProductChangeHistory(Long productId) {
+        log.info("Fetching Product Price change history ...");
         EntityResponse response = new EntityResponse();
         try {
-            productConfig.setModifiedDate(new Date());
-            ProductConfig p= productConfigRepo.save(productConfig);
-            response.setEntity(p);
-            response.setStatusCode(HttpStatus.OK.value());
-            response.setMessage(HttpStatus.OK.getReasonPhrase());
+            List<PriceChangeHistory> priceChanges = priceChangeHistoryRepo.findByProductConfigId(productId);
+            if(priceChanges.size()>0) {
+                log.info("Product price changes Found "+ "("+priceChanges.size()+")");
+                response.setEntity(priceChanges);
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setMessage(HttpStatus.FOUND.getReasonPhrase());
+            }else {
+                log.info("Product Price changes Not Found ");
+                response.setEntity(priceChanges);
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setMessage(HttpStatus.NO_CONTENT.getReasonPhrase());
+            }
             return response;
+        } catch (Exception e) {
+            log.error("Error: " + e.getLocalizedMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+            return response;
+        }
+    }
+    public EntityResponse updateProductConfig(ProductConfig productConfig, Authentication auth) {
+        EntityResponse response = new EntityResponse();
+        try {
+            Optional<ProductConfig> pc= productConfigRepo.findById(productConfig.getId());
+            if(pc.isPresent()) {
+                ProductConfig p= pc.get();
+                PriceChangeHistory ch = new PriceChangeHistory();
 
+                Long productId = productConfig.getId();
+                ch.setOldPrice(p.getBuyingPrice());
+                ch.setProductConfigId(productId);
+                ch.setNewPrice(productConfig.getBuyingPrice());
+                ch.setModifiedBy(auth.getName());
+                ch.setModifiedDate(new Date());
+                ch.setProductName(p.getProductName());
+                ch.setRouteFk(productConfig.getRouteFk());
+                priceChangeHistoryRepo.save(ch);
 
+                productConfig.setModifiedDate(new Date());
+                ProductConfig newp = productConfigRepo.save(productConfig);
+                response.setEntity(newp);
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setMessage(HttpStatus.OK.getReasonPhrase());
+
+            }else {
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                response.setMessage(HttpStatus.NOT_FOUND.getReasonPhrase());
+            }
+            return response;
         } catch (Exception e) {
             log.error("Error: " + e.getLocalizedMessage());
             response.setStatusCode(HttpStatus.BAD_REQUEST.value());

@@ -29,7 +29,7 @@ public class Farmer {
     @Column(unique = true)
     private String idNumber;
     @NotBlank @Column(unique = true)
-    private String memberCode;
+    private Integer farmerNo;
     @NotBlank @Column(precision = 0)
     private String mobileNo;
     private String alternativeMobileNo;
@@ -42,6 +42,7 @@ public class Farmer {
     private String address;
     private String paymentFreequency;
     private Date paymentDate;
+    private String  paymentMode; //mpesa/cash/bank
 
 
     private Date createdAt=new Date();
@@ -51,12 +52,11 @@ public class Farmer {
     private String location;
     private String subLocatiion;
     private String village;
-
     private Long county_fk;
     private Long subcounty_fk;
     private Long wardFk;
     private Integer noOfCows;
-    private Long pickupLocation;
+    private Long routeFk;
     private String transportMeans;
     private String gender;
 
