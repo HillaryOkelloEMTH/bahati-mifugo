@@ -12,7 +12,7 @@ public interface FarmerInfo {
     String getMember_type();
     String getMobile_no();
     Long getPickupLocationId();
-
+    Integer getFarmeNo();
     String getDeleted_flag();
     String getCreated_at();
     String getId_number();

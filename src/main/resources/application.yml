@@ -16,7 +16,7 @@ spring:
         format_sql: true
     hibernate:
 
-      ddl-auto: update
+      ddl-auto: create
     show-sql: false
 
 
@@ -29,7 +29,7 @@ spring:
 dairy:
 #  company_logo_path: /home/ubuntu/prod/EMT_012_DairyApp/resources/dairy_logo.jpg
 #  report-path: /home/ubuntu/prod/EMT_012_DairyApp/resources/reports
-  company_logo_path: /home/ibrahim/Downloads/dairy_logo.jpg
+  company_logo_path: /home/ibrahim/Downloads/dairy_logo.png
   report-path: /home/ibrahim/JaspersoftWorkspace/MyReports
 
 
@@ -40,7 +40,6 @@ google:
   location:
     API-KEY: AIzaSyCtDO1QdXGeEnX5LA1qOQlpuChPkZJJb1I
 
-
 ebs:
   url: https://sms.crossgatesolutions.com:18095/v1/bulksms/messages
   callbackurl:
@@ -50,6 +49,11 @@ ebs:
   #ebs.apiKey = ZmMyYWRkYjEyMTkxY2Y4ZklELWZkODFhMGM3YjA1NjQwNGFhMDc1OGNiZmQ1MTA1MTVi
   profileCode: 2208021
 ##ebs.profileCode = 2211301
+
+
+sms:
+  enable: false
+
 
 
 

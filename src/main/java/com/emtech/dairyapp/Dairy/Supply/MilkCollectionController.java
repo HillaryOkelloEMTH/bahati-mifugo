@@ -45,13 +45,18 @@ public class MilkCollectionController {
         return ResponseEntity.ok().body(response);
     }
     @GetMapping("farmer")
-    public ResponseEntity<EntityResponse> getMemberCollections(@RequestParam Long id){
-        EntityResponse response = collectionService.getCollectionsByMember(id);
+    public ResponseEntity<EntityResponse> getMemberCollections(@RequestParam Integer farmerNo){
+        EntityResponse response = collectionService.getCollectionsByMember(farmerNo);
         return ResponseEntity.ok().body(response);
     }
     @GetMapping("collector/date")
     public ResponseEntity<EntityResponse> getCollections(@RequestParam Long collectorId, @RequestParam String date){
         EntityResponse response = collectionService.getCollectionsByDate(collectorId,date);
+        return ResponseEntity.ok().body(response);
+    }
+    @GetMapping("collector/date/event")
+    public ResponseEntity<EntityResponse> getBuyingBUying(@RequestParam Long collectorId, @RequestParam String date ){
+        EntityResponse response = collectionService.getCollectionsByDateandEvent(collectorId,date);
         return ResponseEntity.ok().body(response);
     }
 
@@ -111,6 +116,11 @@ public class MilkCollectionController {
         EntityResponse response = collectionService.getCollectionByColector(collectorId);
         return ResponseEntity.ok().body(response);
     }
+    @GetMapping("per/collector/buying")
+    public ResponseEntity<EntityResponse> getBuyingCollectorCollections(@RequestParam Long collectorId){
+        EntityResponse response = collectionService.getBuyingCollectionByColector(collectorId);
+        return ResponseEntity.ok().body(response);
+    }
     @GetMapping("specific/date")
     public ResponseEntity<EntityResponse> getDateCollections(@RequestParam String date){
         EntityResponse response = collectionService.getCollectionsBySpecificDate(date);
@@ -140,6 +150,17 @@ public class MilkCollectionController {
     @GetMapping("collector/today")
     public ResponseEntity<?> getCollectorColnsPerDay(@RequestParam String date){
         EntityResponse response = collectionService.getDayCollectionsPerColector(date);
+        return ResponseEntity.ok().body(response);
+    }
+
+    @GetMapping("amount")
+    public ResponseEntity<?> getCollectionAmount(@RequestParam Long farmerId,@RequestParam Character paymentFlag){
+        EntityResponse response = collectionService.getAmountPerPaymentStatus(paymentFlag,farmerId);
+        return ResponseEntity.ok().body(response);
+    }
+    @GetMapping("farmer/collections/price")
+    public ResponseEntity<?> getCollectorColnsPerDay(@RequestParam Long farmerId,@RequestParam Character paymentFlag){
+        EntityResponse response = collectionService.getCollectionRecordsByPrice(paymentFlag,farmerId);
         return ResponseEntity.ok().body(response);
     }
 
