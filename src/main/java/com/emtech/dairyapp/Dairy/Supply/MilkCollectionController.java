@@ -50,13 +50,20 @@ public class MilkCollectionController {
         return ResponseEntity.ok().body(response);
     }
     @GetMapping("collector/date")
-    public ResponseEntity<EntityResponse> getCollections(@RequestParam Long collectorId, @RequestParam String date ){
+    public ResponseEntity<EntityResponse> getCollections(@RequestParam Long collectorId, @RequestParam String date){
         EntityResponse response = collectionService.getCollectionsByDate(collectorId,date);
         return ResponseEntity.ok().body(response);
     }
     @GetMapping("collector/date/event")
     public ResponseEntity<EntityResponse> getBuyingBUying(@RequestParam Long collectorId, @RequestParam String date ){
         EntityResponse response = collectionService.getCollectionsByDateandEvent(collectorId,date);
+        return ResponseEntity.ok().body(response);
+    }
+
+
+    @GetMapping("collector-purchases/date/")
+    public ResponseEntity<EntityResponse> getCollectorsPurchases(@RequestParam Long collectorId, @RequestParam String date, @RequestParam String event ){
+        EntityResponse response = collectionService.getCollectorsPurchases(collectorId,date,event);
         return ResponseEntity.ok().body(response);
     }
 

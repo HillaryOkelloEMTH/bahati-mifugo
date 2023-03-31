@@ -9,10 +9,7 @@ import com.emtech.dairyapp.Configurations.ProductPriceConfiguration.ProductConfi
 import com.emtech.dairyapp.Configurations.ProductPriceConfiguration.ProductConfigRepo;
 import com.emtech.dairyapp.Dairy.FloatTracking.FloatManager;
 import com.emtech.dairyapp.Dairy.FloatTracking.FloatManagerRepo;
-import com.emtech.dairyapp.Dairy.Interface.CollectionTracker;
-import com.emtech.dairyapp.Dairy.Interface.CollectionsData;
-import com.emtech.dairyapp.Dairy.Interface.DailyRecords;
-import com.emtech.dairyapp.Dairy.Interface.RouteData;
+import com.emtech.dairyapp.Dairy.Interface.*;
 import com.emtech.dairyapp.Notifications.SMS.SMSService;
 import com.emtech.dairyapp.Response.EntityResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -340,6 +337,25 @@ public class MilkCollectionService {
         return response;
     }
 
+
+
+    public EntityResponse getCollectorsPurchases(Long collectorId, String date, String event) {
+
+        EntityResponse response = new EntityResponse();
+        try {
+
+            List<PurchaseData> farmerrecord = milkCollectionRepo.getCollectorsPurchases(collectorId, date, event);
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(farmerrecord);
+            response.setMessage(HttpStatus.OK.getReasonPhrase());
+
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+        }
+        return response;
+    }
 
     public EntityResponse getCollectionsByCollectorAndDate(Long collector, String from, String to) {
 
