@@ -1,12 +1,15 @@
 package com.emtech.dairyapp.Dairy.Supply;
 
 
+import com.emtech.dairyapp.Dairy.Interface.CollectionsData;
 import com.emtech.dairyapp.Response.EntityResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
+import java.util.List;
 
 @CrossOrigin
 @RestController
@@ -61,6 +64,17 @@ public class MilkCollectionController {
     public ResponseEntity<EntityResponse> getCollections(@RequestParam Long collectorId, @RequestParam String from , @RequestParam String to ){
         EntityResponse response = collectionService.getCollectionsByCollectorAndDate(collectorId,from,to);
         return ResponseEntity.ok().body(response);
+    }
+
+    @GetMapping("fetch-by/collectorId/date-range/payment-status")
+    public ResponseEntity<?> fetchCollectorsCollectionsHistoryByDateRangeAndPaymentStatus(@RequestParam Long collectorId, @RequestParam String from , @RequestParam String to, @RequestParam Character paymentStatus ){
+        List<CollectionsData> collectionsData = collectionService.fetchCollectorsCollectionsHistoryByDateRangeAndPaymentStatus(collectorId, from, to, paymentStatus);
+        EntityResponse response = new EntityResponse();
+        response.setMessage(HttpStatus.OK.getReasonPhrase());
+        response.setStatusCode(HttpStatus.OK.value());
+        response.setEntity(collectionsData);
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @GetMapping("collector")

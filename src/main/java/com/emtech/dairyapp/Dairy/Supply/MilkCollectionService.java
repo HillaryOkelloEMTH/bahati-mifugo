@@ -358,6 +358,17 @@ public class MilkCollectionService {
         return response;
     }
 
+    public List<CollectionsData> fetchCollectorsCollectionsHistoryByDateRangeAndPaymentStatus(Long collectorId, String from, String to, Character paymentStatus) {
+        try {
+
+            return milkCollectionRepo.fetchCollectorsCollectionsHistoryByDateRangeAndPaymentStatus(collectorId, from, to, paymentStatus);
+
+        }catch (Exception exception){
+            log.info("Fetching Collectors Collection Response " + exception.getLocalizedMessage());
+            return null;
+        }
+    }
+
     public EntityResponse getCollectionsByColelctor(Long collectorId) {
 
         EntityResponse response = new EntityResponse();
@@ -634,8 +645,6 @@ public class MilkCollectionService {
         }
         return response;
     }
-
-
 }
 
 
