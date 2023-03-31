@@ -319,23 +319,6 @@ public class MilkCollectionService {
         }
         return response;
     }
-    public EntityResponse getCollectionsByDateandEvent(Long collectorId, String date) {
-
-        EntityResponse response = new EntityResponse();
-        try {
-
-            List<CollectionsData> farmerrecord = milkCollectionRepo.fetchByCollectorandDateByEvent(collectorId,date);
-            response.setStatusCode(HttpStatus.OK.value());
-            response.setEntity(farmerrecord);
-            response.setMessage(HttpStatus.OK.getReasonPhrase());
-
-        } catch (Exception e) {
-            log.error(e.getMessage());
-            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
-            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
-        }
-        return response;
-    }
 
 
 
