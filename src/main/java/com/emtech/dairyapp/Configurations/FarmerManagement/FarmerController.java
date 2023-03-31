@@ -66,7 +66,7 @@ public class FarmerController {
         return ResponseEntity.ok().body(response);
     }
     @GetMapping("membernumber")
-    public ResponseEntity<?> getfarmerBymemberNumber(@RequestParam String farmer_number){
+    public ResponseEntity<?> getfarmerBymemberNumber(@RequestParam Integer farmer_number){
         EntityResponse response = farmerService.fetchFarmerByMemberNO(farmer_number);
         return ResponseEntity.ok().body(response);
     }

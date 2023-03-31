@@ -1,4 +1,4 @@
-package com.emtech.dairyapp.Configurations.ProductConfig;
+package com.emtech.dairyapp.Configurations.ProductPriceConfiguration;
 
 
 import com.emtech.dairyapp.Configurations.Utils.CONSTANTS;
@@ -31,6 +31,7 @@ public class ProductConfig {
     private Double sellingPrice;
     private String unitMeasurement;
     private Integer quantity;
+    private Long routeFk;
     private Date createdDate=new Date();
     private Date modifiedDate=new Date();
     private Date effectiveFrom;

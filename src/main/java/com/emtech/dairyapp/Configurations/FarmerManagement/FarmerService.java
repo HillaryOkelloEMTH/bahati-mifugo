@@ -53,13 +53,9 @@ public class FarmerService {
             if (count > 0) {
                 Integer max = farmerRepo.getMaxVaue()+1;;
                 memberNO= max + 1;
-
-
-            } else {
-                memberNO=0+1;
                 for (int i = 0; i < 10; i++) { // loop 10 times
                     log.info("Initial member No "+ memberNO);
-                    if (farmerRepo.existsByMemberCode(String.valueOf(memberNO))) {
+                    if (farmerRepo.existsByFarmerNo(memberNO)) {
                         log.info("Member No "+ memberNO+ " already exist");
                         memberNO = memberNO + 1;
                         log.info("New member No "+ memberNO);
@@ -67,12 +63,16 @@ public class FarmerService {
                     }else {
                         log.info("Member No "+ memberNO+ " does not exist");
                         log.info("Setting Member No "+ memberNO+ " ...");
-                        farmer.setMemberCode(String.valueOf(memberNO));
+                        farmer.setFarmerNo(memberNO);
                         break;
                     }
 
 
                 }
+
+            } else {
+                memberNO=0+1;
+                farmer.setFarmerNo(memberNO);
 
             }
 
@@ -98,7 +98,7 @@ public class FarmerService {
 //            }
 //            smsService.SMSNOtification(message, phoneno);
 
-
+            log.info("Farmer Added");
             return response;
 
 
@@ -110,22 +110,6 @@ public class FarmerService {
         }
     }
 
-    public boolean isValuePlusOneExistInDatabase(Integer value) {
-
-        for (int i = 0; i < 10; i++) { // loop 10 times
-            if (farmerRepo.existsByMemberCode(String.valueOf(value))) {
-//                repsonse.setStatus(true);
-//                repsonse.setValue(value++);
-                return true;
-            }
-           value++; // increment value for the next loop iteration
-
-        }
-//        repsonse.setValue(value); // increment value for the next loop iteration
-//        repsonse.setStatus(false);
-
-        return false;
-    }
 
 
 
@@ -177,11 +161,11 @@ public class FarmerService {
             return response;
         }
     }
-    public EntityResponse fetchFarmerByMemberNO(String memberNO) {
+    public EntityResponse fetchFarmerByMemberNO(Integer memberNO) {
         log.info("Fetching Farmers ...");
         EntityResponse response = new EntityResponse();
         try {
-            Optional<FarmerInfo> farmer = farmerRepo.findByMemberCode(memberNO);
+            Optional<FarmerInfo> farmer = farmerRepo.findByFarmerNo(memberNO);
             if(farmer.isPresent()) {
                 log.info("Farmers Found "+ "("+farmer.get().getUsername()+")");
                 response.setEntity(farmer.get());
