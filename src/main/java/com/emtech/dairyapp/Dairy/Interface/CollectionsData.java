@@ -6,6 +6,7 @@ public interface CollectionsData {
    Long getFarmerId();
     String getCollector();
     String getFarmer();
+
     Double getAmount();
     Double getQuantity();
     Date getCollection_date();

@@ -13,6 +13,8 @@ public interface AnalyticsData {
     String getLocation();
     String getSession();
     Integer getDayOfMonth();
+    Double getPrice();
+
 
 
 
