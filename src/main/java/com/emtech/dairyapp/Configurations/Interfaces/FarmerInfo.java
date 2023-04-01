@@ -11,12 +11,12 @@ public interface FarmerInfo {
     String getCounty();
     String getMember_type();
     String getMobile_no();
-    Long getPickupLocationId();
+    Long getRouteId();
     Integer getFarmeNo();
     String getDeleted_flag();
     String getCreated_at();
     String getId_number();
-    String getPickUpLocation();
+    String getRoute();
 
     String getLast_name();
     String getPayment_freequency();

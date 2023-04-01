@@ -9,6 +9,7 @@ public interface AnalyticsData {
     String getCollector();//collector
     Integer getColectionsCount();
     String getMonth();
+    String getRoute();
     String getName();
     String getLocation();
     String getSession();

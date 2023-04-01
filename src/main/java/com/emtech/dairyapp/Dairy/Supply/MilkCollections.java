@@ -21,7 +21,7 @@ public class MilkCollections {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Integer farmerNo;//farmer id
+    private Integer farmerNo;//farmer no
     @Column(unique = true)
     private String collectionNumber;
 
@@ -30,7 +30,7 @@ public class MilkCollections {
     private String event;//buying or selling
     private Double currentPrice;
     private Date collectionDate=new Date();
-    private Double quantity=0.0;//litres
+    private Double quantity=0.0;//KG
     private Double proteinContent=0.0;
     private Double fatContent=0.0;
     private String longitude;

@@ -30,7 +30,11 @@ public class PickUpLocationController {
         EntityResponse response = service.getPickUpLocations();
         return  ResponseEntity.ok().body(response);
     }
-
+    @GetMapping("routes")
+    public ResponseEntity<?> getRoutes(@RequestParam Long pickuplocationId){
+        EntityResponse response = service.getRoutesById(pickuplocationId);
+        return  ResponseEntity.ok().body(response);
+    }
     @PutMapping("update")
     public ResponseEntity<?> updatePpickup(@RequestBody PickUpLocations locations){
         EntityResponse response = service.update(locations);
