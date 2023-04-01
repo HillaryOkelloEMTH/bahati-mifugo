@@ -1,12 +1,15 @@
 package com.emtech.dairyapp.Configurations.PickUpLocations;
 
 import com.emtech.dairyapp.Configurations.Collectors.Collector;
+import com.emtech.dairyapp.Configurations.Routes.Route;
 import com.emtech.dairyapp.Configurations.SubCounty.Ward;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -27,9 +30,14 @@ public class PickUpLocations {
     private String landMark;
     private Long ward_fk;
     private Long subcounty_fk;
-    private Long route_fk;
 
     @OneToMany(targetEntity = Collector.class,cascade = CascadeType.ALL,fetch = FetchType.EAGER)
     @JoinColumn(name = "location_id",referencedColumnName = "id")
     private List<Collector> collectors;
+
+
+    @OneToMany(targetEntity = Route.class,cascade = CascadeType.ALL)
+    @JoinColumn(name = "location_id",referencedColumnName = "id")
+    @LazyCollection(LazyCollectionOption.FALSE)
+    private List<Route> routes;
 }

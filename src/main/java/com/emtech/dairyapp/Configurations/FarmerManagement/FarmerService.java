@@ -49,6 +49,7 @@ public class FarmerService {
             farmer.setUsername(username);
             Integer count = farmerRepo.getCount();
 
+
             Integer memberNO=null;
             if (count > 0) {
                 Integer max = farmerRepo.getMaxVaue()+1;;
@@ -103,6 +104,7 @@ public class FarmerService {
 
 
         }catch (Exception e){
+            e.printStackTrace();
             log.error("Error: " + e.getLocalizedMessage());
             response.setStatusCode(HttpStatus.BAD_REQUEST.value());
             response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());

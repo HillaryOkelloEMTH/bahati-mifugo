@@ -3,6 +3,7 @@ package com.emtech.dairyapp.Configurations.PickUpLocations;
 import com.emtech.dairyapp.Configurations.Interfaces.Locations;
 import com.emtech.dairyapp.Configurations.Interfaces.PickUpLocation;
 import com.emtech.dairyapp.Configurations.Interfaces.PickUpPoints;
+import com.emtech.dairyapp.Configurations.Routes.Route;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -23,8 +24,14 @@ public interface PickUpLocationsRepo extends JpaRepository<PickUpLocations, Long
     @Query(value = "SELECT p.id,p.name ,p.land_mark as landmark,w.name as ward from pick_up_locations p join ward w on w.id =p.ward_fk  join collector c ON p.id =c.location_id join users u on c.username =u.user_name WHERE u.id = :collectorId",nativeQuery = true)
     List<Locations> getPickUpLcoationsByCollectorId(Long collectorId );
 
+    @Query(value = "SELECT r.id,r.route  from route r  WHERE r.location_id= :locationId",nativeQuery = true)
+    List<RouteInterface> getRoutesPerLocation(Long locationId );
 
 
+    interface RouteInterface{
+        Long getId();
+        String getRoute();
+    }
 
 
 

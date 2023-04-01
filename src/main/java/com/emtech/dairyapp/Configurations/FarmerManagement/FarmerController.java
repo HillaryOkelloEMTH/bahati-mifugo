@@ -4,11 +4,13 @@ package com.emtech.dairyapp.Configurations.FarmerManagement;
 import com.emtech.dairyapp.Analytics.LinkedStringInteger;
 import com.emtech.dairyapp.Configurations.Utils.CONSTANTS;
 import com.emtech.dairyapp.Response.EntityResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @CrossOrigin
+@Slf4j
 @RequestMapping("api/v1/farmer")
 public class FarmerController {
 
@@ -26,6 +28,7 @@ public class FarmerController {
 
     @PostMapping("add")
     public ResponseEntity<EntityResponse> addfarmer(@RequestBody Farmer farmer){
+        log.info("recieving request ...adding farmer...");
         EntityResponse response = farmerService.addFarmer(farmer);
         return ResponseEntity.ok().body(response);
     }

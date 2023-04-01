@@ -4,6 +4,7 @@ package com.emtech.dairyapp.Configurations.PickUpLocations;
 import com.emtech.dairyapp.Configurations.Interfaces.Locations;
 import com.emtech.dairyapp.Configurations.Interfaces.PickUpLocation;
 import com.emtech.dairyapp.Configurations.Interfaces.PickUpPoints;
+import com.emtech.dairyapp.Configurations.Routes.Route;
 import com.emtech.dairyapp.Response.EntityResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -112,6 +113,27 @@ public class PickUpLocationService {
         try {
             Optional<PickUpLocations> data = pickUpLocationsRepo.findById(id);
             if(data.isPresent()){
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setEntity(data);
+                response.setMessage(HttpStatus.OK.getReasonPhrase());
+            }else {
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                response.setMessage(HttpStatus.NOT_FOUND.getReasonPhrase());
+            }
+
+        } catch (Exception e) {
+            log.error(e.getMessage());
+
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+        }
+        return response;
+    }
+    public EntityResponse getRoutesById(Long id) {
+        EntityResponse response = new EntityResponse<>();
+        try {
+            List<PickUpLocationsRepo.RouteInterface> data = pickUpLocationsRepo.getRoutesPerLocation(id);
+            if(data.size()>0){
                 response.setStatusCode(HttpStatus.OK.value());
                 response.setEntity(data);
                 response.setMessage(HttpStatus.OK.getReasonPhrase());

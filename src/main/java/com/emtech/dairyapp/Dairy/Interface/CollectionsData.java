@@ -20,7 +20,8 @@ public interface CollectionsData {
     String getCollectionCode();
     String getFirst_name();
     String getLast_name();
-    String getMember_code();
+    Integer getFarmer_no();
+ String getRoute();
 
 
 

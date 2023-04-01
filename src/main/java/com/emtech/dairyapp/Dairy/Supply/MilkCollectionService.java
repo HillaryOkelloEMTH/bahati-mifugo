@@ -5,6 +5,7 @@ import com.emtech.dairyapp.Configurations.CanManagement.Can;
 import com.emtech.dairyapp.Configurations.CanManagement.CanRepo;
 import com.emtech.dairyapp.Configurations.FarmerManagement.Farmer;
 import com.emtech.dairyapp.Configurations.FarmerManagement.FarmerRepo;
+import com.emtech.dairyapp.Configurations.Interfaces.FarmerInfo;
 import com.emtech.dairyapp.Configurations.ProductPriceConfiguration.ProductConfig;
 import com.emtech.dairyapp.Configurations.ProductPriceConfiguration.ProductConfigRepo;
 import com.emtech.dairyapp.Dairy.FloatTracking.FloatManager;
@@ -108,7 +109,7 @@ public class MilkCollectionService {
                                 response.setMessage("Duplicate entry detected");
                                 return  response;
                             }
-                            Optional<Farmer> check = farmerRepo.findById(Long.valueOf(collections.getFarmerNo()));
+                            Optional<FarmerInfo> check = farmerRepo.findByFarmerNo(collections.getFarmerNo());
                             log.info("Checking if farmer exist ...");
                             String username="";
                             if (check.isPresent()) {
