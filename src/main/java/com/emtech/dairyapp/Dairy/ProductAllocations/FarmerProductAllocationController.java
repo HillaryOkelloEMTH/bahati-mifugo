@@ -55,4 +55,9 @@ public class FarmerProductAllocationController {
         EntityResponse response = service.revoke(id);
         return ResponseEntity.ok().body(response);
     }
+    @GetMapping("farmer/accruals")
+    public ResponseEntity<EntityResponse> getFarmerAccruals(@RequestParam Long farmerId,@RequestParam Character paymentStatus){
+        EntityResponse response = service.getFarmerAccruals(farmerId,paymentStatus);
+        return ResponseEntity.ok().body(response);
+    }
 }

@@ -149,13 +149,13 @@ public class MilkCollectionController {
     }
 
     @GetMapping("amount")
-    public ResponseEntity<?> getCollectionAmount(@RequestParam Long farmerId,@RequestParam Character paymentFlag){
-        EntityResponse response = collectionService.getAmountPerPaymentStatus(paymentFlag,farmerId);
+    public ResponseEntity<?> getCollectionAmount(@RequestParam Integer farmerNo,@RequestParam Character paymentFlag){
+        EntityResponse response = collectionService.getAmountPerPaymentStatus(paymentFlag,farmerNo);
         return ResponseEntity.ok().body(response);
     }
     @GetMapping("farmer/collections/price")
-    public ResponseEntity<?> getCollectorColnsPerDay(@RequestParam Long farmerId,@RequestParam Character paymentFlag){
-        EntityResponse response = collectionService.getCollectionRecordsByPrice(paymentFlag,farmerId);
+    public ResponseEntity<?> getCollectorColnsPerDay(@RequestParam Integer farmerNo,@RequestParam Character paymentFlag){
+        EntityResponse response = collectionService.getCollectionRecordsByPrice(paymentFlag,farmerNo);
         return ResponseEntity.ok().body(response);
     }
 

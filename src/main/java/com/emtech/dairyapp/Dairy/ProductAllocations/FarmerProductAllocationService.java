@@ -177,6 +177,24 @@ public class FarmerProductAllocationService {
             return response;
         }
     }
+    public EntityResponse getFarmerAccruals(Long farmerId,Character paymentStatus) {
+        log.info("Fetching farmer accruals ...");
+        EntityResponse response = new EntityResponse();
+        try {
+            FarmerProdAllocattionsRepo.FarmerAccruals accruals = farmerProdAllocattionsRepo.getFarmerAccruas(farmerId,paymentStatus);
+
+                response.setEntity(accruals);
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setMessage(HttpStatus.FOUND.getReasonPhrase());
+
+            return response;
+        } catch (Exception e) {
+            log.error("Error: " + e.getLocalizedMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+            return response;
+        }
+    }
     public EntityResponse updateFarmerProductAllocations(FarmerProductAllocations allocations) {
         EntityResponse response = new EntityResponse();
         try {
