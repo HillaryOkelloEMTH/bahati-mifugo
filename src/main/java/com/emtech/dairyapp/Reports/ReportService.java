@@ -2,9 +2,10 @@ package com.emtech.dairyapp.Reports;
 
 import com.emtech.dairyapp.Analytics.AnalyticsData;
 import com.emtech.dairyapp.Dairy.Interface.CollectionsData;
-import com.emtech.dairyapp.Dairy.Interface.Statement;
+import com.emtech.dairyapp.Dairy.Interface.FarmerCollections;
+
 import com.emtech.dairyapp.Dairy.Supply.MilkCollectionRepo;
-import com.emtech.dairyapp.Response.EntityResponse;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -34,10 +35,23 @@ public class ReportService {
             return null;
         }
     }
-    public List<Statement> getFarmerStatement(Long farmerId) {
+    public List<FarmerCollections> getFarmerCollections(Integer farmerNo) {
         try {
 
-            return collectionRepo.getFarmerstatement(farmerId);
+            return collectionRepo.getFarmerCollections(farmerNo);
+        }catch (Exception exc){
+            log.info(exc.getLocalizedMessage());
+            return null;
+        }
+    }
+    public FarmerDetails getFarmerStatement(Integer farmerNo) {
+        try {
+            FarmerDetails f=null;
+            Optional<FarmerDetails> farmerDetails=collectionRepo.getFarmerStatementDetails(farmerNo);
+            if(farmerDetails.isPresent()){
+                 f= farmerDetails.get();
+            }
+            return f;
         }catch (Exception exc){
             log.info(exc.getLocalizedMessage());
             return null;

@@ -2,7 +2,7 @@ package com.emtech.dairyapp.Dairy.Interface;
 
 import java.util.Date;
 
-public interface Statement {
+public interface FarmerCollections {
 
     String getUsername();
     Double getQuantity();
@@ -11,6 +11,6 @@ public interface Statement {
     Date getDate();
     String getDeliveryNumber();
     String getUser_name();
-    String getLocations();
+    String getPickUpLocation();
 
 }

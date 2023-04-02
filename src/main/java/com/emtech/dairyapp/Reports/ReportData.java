@@ -11,7 +11,7 @@ public interface ReportData {
     String getSession();
     String getCollection_number();
     String getCollector();
-    String getPick_up_location();
+    String getPickUpLocation();
 
 
 }
