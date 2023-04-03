@@ -163,6 +163,30 @@ public class FarmerService {
             return response;
         }
     }
+    public EntityResponse fetchFarmers() {
+        log.info("Fetching Farmers ...");
+        EntityResponse response = new EntityResponse();
+        try {
+            List<FarmerInfo> farmers = farmerRepo.getAllfarmers();
+            if(farmers.size()>0) {
+//                log.info("Farmers Found "+ "("+farmer.get().getUsername()+")");
+                response.setEntity(farmers);
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setMessage(HttpStatus.FOUND.getReasonPhrase());
+            }else {
+                log.info("Farmers Not Found ");
+                response.setEntity(farmers);
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setMessage(HttpStatus.NO_CONTENT.getReasonPhrase());
+            }
+            return response;
+        } catch (Exception e) {
+            log.error("Error: " + e.getLocalizedMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+            return response;
+        }
+    }
     public EntityResponse fetchFarmerByMemberNO(Integer memberNO) {
         log.info("Fetching Farmers ...");
         EntityResponse response = new EntityResponse();

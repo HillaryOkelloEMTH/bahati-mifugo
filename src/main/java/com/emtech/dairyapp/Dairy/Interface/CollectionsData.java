@@ -22,6 +22,7 @@ public interface CollectionsData {
     String getLast_name();
     Integer getFarmer_no();
  String getRoute();
+ String getDate();
 
 
 
