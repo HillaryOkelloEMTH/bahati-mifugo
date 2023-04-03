@@ -13,4 +13,6 @@ public interface PurchaseData {
     String getProductType();
     Character getpaymentStatus();
     String getCollectionCode();
+    String getPhone_no();
+
 }

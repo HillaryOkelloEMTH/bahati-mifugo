@@ -38,6 +38,7 @@ public class MilkCollections {
     private String longitude;
     private String latitude;
     private String session;
+    private String phoneNo;
     private Character returned=CONSTANTS.NO;
     private String remarks;
     private Double amount;
