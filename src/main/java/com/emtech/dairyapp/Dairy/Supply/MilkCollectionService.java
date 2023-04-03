@@ -3,11 +3,12 @@ package com.emtech.dairyapp.Dairy.Supply;
 import com.emtech.dairyapp.Analytics.AnalyticsData;
 import com.emtech.dairyapp.Configurations.CanManagement.Can;
 import com.emtech.dairyapp.Configurations.CanManagement.CanRepo;
-import com.emtech.dairyapp.Configurations.FarmerManagement.Farmer;
 import com.emtech.dairyapp.Configurations.FarmerManagement.FarmerRepo;
 import com.emtech.dairyapp.Configurations.Interfaces.FarmerInfo;
 import com.emtech.dairyapp.Configurations.ProductPriceConfiguration.ProductConfig;
 import com.emtech.dairyapp.Configurations.ProductPriceConfiguration.ProductConfigRepo;
+import com.emtech.dairyapp.Configurations.Routes.Route;
+import com.emtech.dairyapp.Configurations.Routes.RouteRepo;
 import com.emtech.dairyapp.Dairy.FloatTracking.FloatManager;
 import com.emtech.dairyapp.Dairy.FloatTracking.FloatManagerRepo;
 import com.emtech.dairyapp.Dairy.Interface.*;
@@ -34,12 +35,13 @@ public class MilkCollectionService {
     private final SMSService smsservice;
     private final FarmerRepo farmerRepo;
     private final CanRepo canRepo;
+    private final RouteRepo routeRepo;
 
     @Value("${sms.enable}")
     private boolean sms;
 
 
-    public MilkCollectionService(MilkCollectionRepo milkCollectionRepo, ProductConfigRepo productConfigRepo, FloatManagerRepo floatManagerRepo, Codenerator codenerator, SMSService smsservice, FarmerRepo farmerRepo, CanRepo canRepo) {
+    public MilkCollectionService(MilkCollectionRepo milkCollectionRepo, ProductConfigRepo productConfigRepo, FloatManagerRepo floatManagerRepo, Codenerator codenerator, SMSService smsservice, FarmerRepo farmerRepo, CanRepo canRepo, RouteRepo routeRepo) {
         this.milkCollectionRepo = milkCollectionRepo;
         this.productConfigRepo = productConfigRepo;
         this.floatManagerRepo = floatManagerRepo;
@@ -47,6 +49,7 @@ public class MilkCollectionService {
         this.smsservice = smsservice;
         this.farmerRepo = farmerRepo;
         this.canRepo = canRepo;
+        this.routeRepo = routeRepo;
     }
 
 
@@ -62,8 +65,9 @@ public class MilkCollectionService {
 
             collections.setProductType("Milk");
             String event = collections.getEvent();
-            Optional<ProductConfig> productConfig = productConfigRepo.findByProductName(collections.getProductType().trim());
+            Optional<ProductConfig> productConfig = productConfigRepo.findByRouteFk(collections.getRouteFk());
             if (productConfig.isPresent()) {
+                log.info("Price management fro route found...");
                 if (event.equalsIgnoreCase("Buying")) {
                     log.info("buying event");
                     collections.setQuantity(collections.getOriginalQuantity());
@@ -165,9 +169,11 @@ public class MilkCollectionService {
                 }
 
             } else {
-                log.info("Product Configuration Not Found!");
+                Optional<Route> r = routeRepo.findById(collections.getRouteFk());
+
+                log.info("Price Configuration for "+ r.get().getRoute() + " Not Found");
                 response.setStatusCode(HttpStatus.BAD_REQUEST.value());
-                response.setMessage("Product Configuration Not Found!");
+                response.setMessage("Price Configuration for "+ r.get().getRoute() + " Not Found");
             }
 
         } catch (Exception e) {

@@ -90,7 +90,7 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
     @Query(value = "SELECT sum(c.amount) as amount,CAST(SUM(c.quantity)as DECIMAL(5,2)) as quantity,MONTHNAME(c.collection_date) as month from collections c where YEAR (c.collection_date)=:year GROUP BY MONTH(c.collection_date)", nativeQuery = true)
     List<AnalyticsData> getCollectorDataPerYear(Integer year);
 
-    @Query(value = "SELECT  DATE_FORMAT(c.collection_date,'%Y-%m-%d %T') as collection_date,u.user_name as collector,f.username as farmer,c.amount,c.quantity,r.route as route, c.collection_number as collectionCode,c.current_price as currentPrice ,c.event from collections c join users u on c.collector_id =u.id join farmer f on f.farmer_no=c.farmer_no join route r on r.id=c.route_fk  where c.collection_number =:collection_code", nativeQuery = true)
+    @Query(value = "SELECT  DATE_FORMAT(c.collection_date,'%Y-%m-%d %T') as date,u.user_name as collector,f.username as farmer,c.amount,c.quantity,r.route as route, c.collection_number as collectionCode,c.current_price as currentPrice ,c.event from collections c join users u on c.collector_id =u.id join farmer f on f.farmer_no=c.farmer_no join route r on r.id=c.route_fk  where c.collection_number =:collection_code", nativeQuery = true)
     Optional<CollectionsData> getCollectionsbyCollectionCode(String collection_code);
 
     @Query(value = "SELECT f.id,f.username as farmerName ,f.farmer_no as farmerNo,r.route as route,p.name as pickUpLocation from farmer f  join route r  on r.id=f.route_fk join pick_up_locations p on p.id=r.location_id  where f.farmer_no = :farmerNo", nativeQuery = true)

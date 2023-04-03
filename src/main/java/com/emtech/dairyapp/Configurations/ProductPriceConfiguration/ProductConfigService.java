@@ -1,6 +1,8 @@
 package com.emtech.dairyapp.Configurations.ProductPriceConfiguration;
 
 
+import com.emtech.dairyapp.Configurations.Routes.Route;
+import com.emtech.dairyapp.Configurations.Routes.RouteRepo;
 import com.emtech.dairyapp.Response.EntityResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,12 +22,23 @@ public class ProductConfigService {
     private ProductConfigRepo productConfigRepo;
     @Autowired
     private PriceChangeHistoryRepo priceChangeHistoryRepo;
+    @Autowired
+    private RouteRepo routeRepo;
 
 
     public EntityResponse addProductConfig(ProductConfig productConfig){
         log.info("Adding new ProductConfig ...");
         EntityResponse response = new EntityResponse();
         try{
+            Optional<ProductConfig> duplicatecheck= productConfigRepo.findByRouteFk(productConfig.getRouteFk());
+            if(duplicatecheck.isPresent()){
+                Optional<Route> r = routeRepo.findById(productConfig.getRouteFk());
+                response.setEntity(duplicatecheck.get());
+                response.setStatusCode(HttpStatus.NOT_ACCEPTABLE.value());
+                response.setMessage("Price Configuration for "+ r.get().getRoute() + " already exist!");
+                log.info("Price Configuration for "+ r.get().getRoute() + " already exist!");
+                return response;
+            }
             productConfig.setCreatedDate(new Date());
             productConfigRepo.save(productConfig);
             log.info("Saving ProductConfig ...");
@@ -46,7 +59,7 @@ public class ProductConfigService {
         log.info("Fetching ProductConfigs ...");
         EntityResponse response = new EntityResponse();
         try {
-            List<ProductConfig> ProductConfigs = productConfigRepo.findAll();
+            List<ProductConfigRepo.AllProductConfig> ProductConfigs = productConfigRepo.getAllProducConfig();
             if(ProductConfigs.size()>0) {
                 log.info("ProductConfigs Found "+ "("+ProductConfigs.size()+")");
                 response.setEntity(ProductConfigs);
