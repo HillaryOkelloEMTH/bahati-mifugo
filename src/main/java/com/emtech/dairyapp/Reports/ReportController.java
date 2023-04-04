@@ -8,6 +8,7 @@ import com.emtech.dairyapp.Configurations.Utils.CONSTANTS;
 import com.emtech.dairyapp.Dairy.Interface.CollectionsData;
 import com.emtech.dairyapp.Dairy.Interface.FarmerCollections;
 
+import com.emtech.dairyapp.Dairy.PaymentComponent.PaymentFileData;
 import com.emtech.dairyapp.Dairy.ProductAllocations.FarmerProdAllocattionsRepo;
 import com.emtech.dairyapp.Dairy.Supply.MilkCollectionRepo;
 import com.emtech.dairyapp.Response.EntityResponse;
@@ -382,7 +383,7 @@ public class ReportController {
     public ResponseEntity<?> getCollectionsPerDate(@RequestParam String month,@RequestParam String paymentMode) {
         try {
 
-            List<MilkCollectionRepo.PaymentFileDate> record = collectionRepo.getPaymentFileData(month,paymentMode);
+            List<PaymentFileData> record = collectionRepo.getPaymentFileData(month,paymentMode);
             if (record.size() > 0) {
                 log.info("Data found");
 

@@ -24,8 +24,10 @@ public interface FarmerRepo extends JpaRepository<Farmer,Long> {
     Optional<FarmerInfo> getfarmerDetails(Long farmerId);
     @Query(value = "SELECT f.id,f.username,f.payment_freequency,r.route as route,r.id as routeId ,f.first_name,b.account_name ,b.account_number  ,f.alternative_mobile_no  ,f.id_number ,f.created_at ,f.payment_mode ,f.deleted_flag,f.mobile_no ,f.member_type ,f.no_of_cows ,f.farmer_no ,s.name as subcounty,c.name as county,p.name as pickUpLocation from farmer f join ward w  on f.ward_fk =w.id join subcounty s on s.id =f.subcounty_fk join county c on c.id =s.county_fk join route r on r.id=f.route_fk join pick_up_locations p on p.id =r.location_id join bank_details b on b.id =f.bank_details_id",nativeQuery = true)
     List<FarmerInfo> getAllfarmers();
-    @Query(value = "SELECT DISTINCT  f.*  from farmer f join ward w  on f.ward_fk =w.id join subcounty s on s.id =f.subcounty_fk join county c on c.id =s.county_fk\n" +
-            "join pick_up_locations p on p.ward_fk =w.id  join collector c2 on c2.location_id =p.id join users u on u.user_name =c2.username where u.id =:collectorId group by f.id",nativeQuery = true)
+    @Query(value = "\n" +
+            "SELECT DISTINCT  f.*  from farmer f join route r on r.id=f.route_fk  join subcounty s on s.id =f.subcounty_fk \n" +
+            "join county c on c.id =s.county_fk JOIN pick_up_locations p on p.id=r.location_id join collector c2 on c2.location_id =p.id \n" +
+            "join users u on u.user_name =c2.username where u.id =:collectorId group by f.id",nativeQuery = true)
     List<Farmer> getfarmersPerCollector(Long collectorId);
 
     @Query(value = "select  max(id) from farmer",nativeQuery = true)
