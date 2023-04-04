@@ -116,7 +116,7 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
     @Query(value = "SELECT CAST(SUM(c.quantity)as DECIMAL(5,2)) as quantity,p.name as location  from collections c join pick_up_locations p on p.id =c.pick_up_location GROUP BY p.name", nativeQuery = true)
     List<AnalyticsData> getQuantityPerLocation();
 
-    @Query(value = "SELECT sum(c.amount) as amount ,CAST(SUM(c.quantity)as DECIMAL(5,2)) as quantity,u.user_name as collector  from collections c join users u on u.id=c.collector_id  where MONTH(c.collection_date)=:month and YEAR(c.collection_date)=:year  GROUP BY c.collector_id ", nativeQuery = true)
+    @Query(value = "SELECT sum(c.amount) as amount , SUM(c.quantity) as quantity,u.user_name as collector  from collections c join users u on u.id=c.collector_id  where MONTH(c.collection_date)=:month and YEAR(c.collection_date)=:year  GROUP BY c.collector_id ", nativeQuery = true)
     List<AnalyticsData> getCollectorCollections(Integer year, Integer month);
 
     @Query(value = "SELECT c.latitude  ,c.longitude,c.quantity,r.route as route,CAST(c.collection_date as time) as time from collections c join route r on r.id=c.route_fk WHERE c.collector_id =:collectorId   and  DATE(c.collection_date)=:date", nativeQuery = true)
@@ -125,7 +125,7 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
     @Query(value = "SELECT u.id,u.user_name as username,r.name as role  from users u join user_role ur on u.id=ur.user join roles r on r.id=ur.role where r.id=:roleId", nativeQuery = true)
     List<Roleusers> getRoleUsers(Long roleId);
 
-    @Query(value = "SELECT sum(c.amount) as amount ,CAST(SUM(c.quantity) as DECIMAL(5,2)) as quantity ,MONTHNAME(c.collection_date) as month  from collections c where YEAR(c.collection_date)=:year  and c.collector_id=:collectorId GROUP BY MONTH(c.collection_date)", nativeQuery = true)
+    @Query(value = "SELECT sum(c.amount) as amount , SUM(c.quantity) / 1000 as quantity ,MONTHNAME(c.collection_date) as month  from collections c where YEAR(c.collection_date)=:year  and c.collector_id=:collectorId GROUP BY MONTH(c.collection_date)", nativeQuery = true)
     List<AnalyticsData> getQuantityPerMonth(Integer year, Long collectorId);
 
     @Query(value = "SELECT sum(c.amount) as amount ,CAST(SUM(c.quantity)as DECIMAL(5,2)) as quantity,u.user_name as collector,count(*) as ColectionsCount  from collections c join users u on u.id=c.collector_id where DATE(c.collection_date)=:date   GROUP BY c.collector_id", nativeQuery = true)
