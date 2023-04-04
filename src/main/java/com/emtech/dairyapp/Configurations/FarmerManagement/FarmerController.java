@@ -63,6 +63,11 @@ public class FarmerController {
         EntityResponse response = farmerService.fetchFarmerById(farmerId);
         return ResponseEntity.ok().body(response);
     }
+    @GetMapping("farmer/id")
+    public ResponseEntity<EntityResponse> findById(@RequestParam Long farmerId){
+        EntityResponse response = farmerService.findById(farmerId);
+        return ResponseEntity.ok().body(response);
+    }
     @GetMapping("farmers/collector")
     public ResponseEntity<EntityResponse> getfarmerByCollector(@RequestParam Long collectorId){
         EntityResponse response = farmerService.fetchFarmerByCollector(collectorId);

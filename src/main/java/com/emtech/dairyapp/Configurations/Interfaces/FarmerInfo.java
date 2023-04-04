@@ -21,8 +21,6 @@ public interface FarmerInfo {
     String getLast_name();
     String getPayment_freequency();
     String getAlternative_mobile_no();
-
-
     String getPickUpLocation();
     String getAccount_name();
     String getAccount_number();
