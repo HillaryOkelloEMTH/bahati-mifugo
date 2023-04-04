@@ -159,4 +159,27 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
     List<AnalyticsData> getCollectionsRecordsPrice(Character payment_status, Integer farmerNo);
 
 
+
+    @Query(value = "SELECT f.farmer_no,f.payment_mode, f.username, \n" +
+            "\tCOALESCE(SUM(c.amount), 0.0) AS collectionAmount, \n" +
+            "    COALESCE((SELECT SUM(fa.amount) FROM farmer_product_allocations fa WHERE fa.farmer_id = f.farmer_no AND fa.payment_status ='N' and MONTHNAME(fa.allocatio_date)=:month  ), 0.0) AS allocationAmount,\n" +
+            "   ((COALESCE(SUM(c.amount), 0.0))-(COALESCE((SELECT SUM(fa.amount) FROM farmer_product_allocations fa WHERE fa.farmer_id = f.farmer_no AND fa.payment_status ='N' and MONTHNAME(fa.allocatio_date)=:month ), 0.0))) AS NetPay\n" +
+            "    FROM farmer f \n" +
+            "\tLEFT JOIN collections c ON f.farmer_no = c.farmer_no AND c.payment_status ='N' AND MONTHNAME(c.collection_date)  = :month  \n" +
+            "\tWHERE f.farmer_no IS NOT NULL AND f.payment_mode=:mode\n" +
+            "\tGROUP BY f.farmer_no, f.username",nativeQuery = true)
+    List<PaymentFileDate> getPaymentFileData(String month,String mode);
+
+    interface  PaymentFileDate{
+        String getFarmer_no();
+        String getPayment_mode();
+        String getUsername();
+        Double getCollectionAmount();
+        Double getAllocationAmount();
+        Double getNetPay();
+
+    }
+
+
+
 }

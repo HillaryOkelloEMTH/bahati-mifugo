@@ -35,8 +35,8 @@ public interface FarmerRepo extends JpaRepository<Farmer,Long> {
     List<FarmersPerWard> getFarmersPerWard();
 
 
-    @Query(value = "SELECT f.id,f.username,f.payment_freequency,r.id as routeId,r.route as route ,f.address  ,f.id_number ,f.mobile_no ,f.member_type ,f.no_of_cows ,f.farmer_no as farmeNo,s.name as subcounty,c.name as county from farmer f join ward w  on f.ward_fk =w.id join subcounty s on s.id =f.subcounty_fk join county c on c.id =s.county_fk join route r on r.id=f.route_fk  where f.farmer_no=:memberCode",nativeQuery = true)
-    Optional<FarmerInfo> findByFarmerNo(Integer memberCode);
+    @Query(value = "SELECT f.id,f.username,f.payment_freequency,r.route as route ,r.id as routeId,f.first_name,b.account_name ,b.account_number  ,f.alternative_mobile_no   ,f.id_number ,f.created_at ,f.payment_mode ,f.deleted_flag,f.mobile_no ,f.member_type ,f.no_of_cows ,f.farmer_no ,s.name as subcounty,c.name as county,p.name as pickUpLocation from farmer f join ward w  on f.ward_fk =w.id join subcounty s on s.id =f.subcounty_fk join county c on c.id =s.county_fk join route r on r.id=f.route_fk join pick_up_locations p on p.id =r.location_id join bank_details b on b.id =f.bank_details_id where f.farmer_no=:farmer_no",nativeQuery = true)
+    Optional<FarmerInfo> findByFarmerNo(Integer farmer_no);
 
 @Query(value = "SELECT SUM(c.amount) as amount,SUM(c.quantity) as quantity  from collections c  join farmer f  on f.farmer_no=c.farmer_no  WHERE f.id = :id and c.payment_status = :paymentyStatus",nativeQuery = true)
 FarmerAccruedAmount getFarmerAccruedAmount(Long id, Character paymentyStatus);
