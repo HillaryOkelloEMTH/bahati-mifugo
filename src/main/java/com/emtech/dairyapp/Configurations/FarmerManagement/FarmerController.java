@@ -37,6 +37,11 @@ public class FarmerController {
         EntityResponse response = farmerService.fetchFarmer();
         return ResponseEntity.ok().body(response);
     }
+    @GetMapping("all")
+    public ResponseEntity<EntityResponse> getAllfarmers(){
+        EntityResponse response = farmerService.fetchFarmers();
+        return ResponseEntity.ok().body(response);
+    }
     @PutMapping("update")
     public ResponseEntity<EntityResponse> updatefarmer(@RequestBody Farmer farmer){
         EntityResponse response = farmerService.updateFarmer(farmer);
@@ -56,6 +61,11 @@ public class FarmerController {
     @GetMapping("farmers/details")
     public ResponseEntity<EntityResponse> getfarmerDetails(@RequestParam Long farmerId){
         EntityResponse response = farmerService.fetchFarmerById(farmerId);
+        return ResponseEntity.ok().body(response);
+    }
+    @GetMapping("farmer/id")
+    public ResponseEntity<EntityResponse> findById(@RequestParam Long farmerId){
+        EntityResponse response = farmerService.findById(farmerId);
         return ResponseEntity.ok().body(response);
     }
     @GetMapping("farmers/collector")

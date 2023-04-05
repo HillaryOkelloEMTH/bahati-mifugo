@@ -40,8 +40,8 @@ public class Payment {
     @Column(name = "amount")
     private Double amount;
 
-    @Column(name = "mpesa_receipt_number")
-    private String mpesaReceiptNumber;
+    @Column(name = "receipt_number")
+    private String receiptNumber;
 
     @JsonFormat(pattern = "dd-MMM-yyyy HH:mm:ss")
     @Column(name = "transaction_date")

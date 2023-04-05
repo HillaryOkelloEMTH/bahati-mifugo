@@ -1,14 +1,13 @@
 package com.emtech.dairyapp.Transactions.Payment;
 
+import com.emtech.dairyapp.Transactions.Data.Http.Request.CashPaymentRequest;
+import com.emtech.dairyapp.Transactions.Data.Http.Response.PaymentEntityResponse;
 import com.emtech.dairyapp.Transactions.Data.Http.Response.PaymentResponse;
 import com.emtech.dairyapp.Transactions.Data.Http.Response.PaymentsResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 @RestController
@@ -18,6 +17,17 @@ import reactor.core.publisher.Mono;
 public class PaymentController {
     @Autowired
     private PaymentService paymentService;
+
+
+    @RequestMapping(
+            path = "/cash-payment",
+            method = RequestMethod.POST,
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public Mono<ResponseEntity<PaymentEntityResponse>> processCashPayment(@RequestBody CashPaymentRequest body){
+        return Mono.just(ResponseEntity.ok().body(this.paymentService.processCashPayment(body.getAmount(), body.getMobile(), body.getCollectorId(), body.getCollectionId())));
+    }
 
     @RequestMapping(
             path = "/all-payments",

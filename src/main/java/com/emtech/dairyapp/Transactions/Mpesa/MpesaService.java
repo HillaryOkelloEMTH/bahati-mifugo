@@ -328,7 +328,7 @@ public class MpesaService {
 
                 myPayment.get().setAmount(finalAmount);
                 myPayment.get().setResultCode(resultCode);
-                myPayment.get().setMpesaReceiptNumber(finalMpesaCode);
+                myPayment.get().setReceiptNumber(finalMpesaCode);
                 myPayment.get().setResultDescription(resultDesc);
                 assert finalTransactionDate != null;
                 myPayment.get().setTransactionDate(new Timestamp(finalTransactionDate.getTime()));
@@ -338,7 +338,7 @@ public class MpesaService {
                 myPayment.set(this.paymentRepository.save(myPayment.get()));
             }else {
                 myPayment.get().setResultCode(resultCode);
-                myPayment.get().setMpesaReceiptNumber(finalMpesaCode);
+                myPayment.get().setReceiptNumber(finalMpesaCode);
                 myPayment.get().setResultDescription(resultDesc);
                 myPayment.get().setStatus("Failed");
 

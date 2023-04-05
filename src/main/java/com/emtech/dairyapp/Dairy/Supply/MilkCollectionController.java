@@ -56,9 +56,14 @@ public class MilkCollectionController {
     }
 
 
+    @GetMapping("collector-purchases/date-range/")
+    public ResponseEntity<EntityResponse> getCollectorsPurchasesByDateRange(@RequestParam Long collectorId, @RequestParam String from,@RequestParam String to ){
+        EntityResponse response = collectionService.getCollectorsPurchasesByDateRange(collectorId,from,to);
+        return ResponseEntity.ok().body(response);
+    }
     @GetMapping("collector-purchases/date/")
-    public ResponseEntity<EntityResponse> getCollectorsPurchases(@RequestParam Long collectorId, @RequestParam String date, @RequestParam String event ){
-        EntityResponse response = collectionService.getCollectorsPurchases(collectorId,date,event);
+    public ResponseEntity<EntityResponse> getCollectorsPurchasesByDate(@RequestParam Long collectorId, @RequestParam String date ){
+        EntityResponse response = collectionService.getCollectorsPurchasesByDate(collectorId,date);
         return ResponseEntity.ok().body(response);
     }
 
@@ -149,13 +154,13 @@ public class MilkCollectionController {
     }
 
     @GetMapping("amount")
-    public ResponseEntity<?> getCollectionAmount(@RequestParam Long farmerId,@RequestParam Character paymentFlag){
-        EntityResponse response = collectionService.getAmountPerPaymentStatus(paymentFlag,farmerId);
+    public ResponseEntity<?> getCollectionAmount(@RequestParam Integer farmerNo,@RequestParam Character paymentFlag){
+        EntityResponse response = collectionService.getAmountPerPaymentStatus(paymentFlag,farmerNo);
         return ResponseEntity.ok().body(response);
     }
     @GetMapping("farmer/collections/price")
-    public ResponseEntity<?> getCollectorColnsPerDay(@RequestParam Long farmerId,@RequestParam Character paymentFlag){
-        EntityResponse response = collectionService.getCollectionRecordsByPrice(paymentFlag,farmerId);
+    public ResponseEntity<?> getCollectorColnsPerDay(@RequestParam Integer farmerNo,@RequestParam Character paymentFlag){
+        EntityResponse response = collectionService.getCollectionRecordsByPrice(paymentFlag,farmerNo);
         return ResponseEntity.ok().body(response);
     }
 

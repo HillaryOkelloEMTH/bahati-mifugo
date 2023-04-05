@@ -30,12 +30,15 @@ public class MilkCollections {
     private String event;//buying or selling
     private Double currentPrice;
     private Date collectionDate=new Date();
+    private Double originalQuantity=0.0;//KG
     private Double quantity=0.0;//KG
     private Double proteinContent=0.0;
+    private Double deductedWeight=0.0;
     private Double fatContent=0.0;
     private String longitude;
     private String latitude;
     private String session;
+    private String phoneNo;
     private Character returned=CONSTANTS.NO;
     private String remarks;
     private Double amount;
