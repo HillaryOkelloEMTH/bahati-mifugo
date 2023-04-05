@@ -196,7 +196,7 @@ public class MilkCollectionService {
             response.setEntity(cdata);
             response.setMessage(HttpStatus.OK.getReasonPhrase());
 
-        } catch (Exception e) {git
+        } catch (Exception e) {
             log.error(e.getMessage());
             response.setStatusCode(HttpStatus.BAD_REQUEST.value());
             response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
