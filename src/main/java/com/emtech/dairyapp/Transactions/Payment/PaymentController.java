@@ -26,7 +26,7 @@ public class PaymentController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     public Mono<ResponseEntity<PaymentEntityResponse>> processCashPayment(@RequestBody CashPaymentRequest body){
-        return Mono.just(ResponseEntity.ok().body(this.paymentService.processCashPayment(body.getAmount(), body.getMobile(), body.getCollectorId(), body.getCollectionId())));
+        return Mono.just(ResponseEntity.ok().body(this.paymentService.processCashPayment(body.getAmount(), body.getCollectorId(), body.getCollectionId())));
     }
 
     @RequestMapping(

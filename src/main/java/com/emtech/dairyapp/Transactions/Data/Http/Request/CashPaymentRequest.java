@@ -13,9 +13,6 @@ public class CashPaymentRequest implements Serializable {
     @JsonProperty(value = "amount")
     private Double amount;
 
-    @JsonProperty(value = "mobile")
-    private String mobile;
-
     @JsonProperty(value = "collectorId")
     private Long collectorId;
 

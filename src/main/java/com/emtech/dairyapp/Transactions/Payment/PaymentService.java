@@ -32,19 +32,21 @@ public class PaymentService {
     @Autowired
     private MilkCollectionRepo milkCollectionRepo;
 
-    public PaymentEntityResponse processCashPayment(@NonNull double amount, @NonNull String mobile, @NonNull long collectorId, @NonNull long collectionId){
+    public PaymentEntityResponse processCashPayment(@NonNull double amount,  @NonNull long collectorId, @NonNull long collectionId){
         AtomicReference<PaymentEntityResponse> response = new AtomicReference<>();
 
         this.milkCollectionRepo.findById(collectionId).ifPresentOrElse(collection -> {
             this.floatManagerRepo.findByCollectorId(collectorId).ifPresentOrElse(floatManager -> {
-                if(floatManager.getFloatAmount() > amount){
+                if(floatManager.getBalance() < amount){
+                    log.log(Level.WARNING, String.format("Amount to be paid %s is more than your float amount %s", amount, floatManager.getBalance()));
+
                     response.set(PaymentEntityResponse.builder().message("Amount to be paid is more than your float amount").statusCode(HttpStatus.BAD_REQUEST.value()).build());
                 }else{
-                    double newFloatAmount = floatManager.getFloatAmount() - amount;
+                    double newBalance = floatManager.getBalance() - amount;
 
                     AtomicReference<FloatManager> myFloatManager = new AtomicReference<>(floatManager);
 
-                    myFloatManager.get().setFloatAmount(newFloatAmount);
+                    myFloatManager.get().setBalance(newBalance);
 
                     myFloatManager.set(floatManagerRepo.save(myFloatManager.get()));
 
@@ -53,7 +55,6 @@ public class PaymentService {
 
                     payment.get().setAmount(amount);
                     payment.get().setStatus("Success");
-                    payment.get().setPhoneNumber(Long.valueOf(mobile));
                     payment.get().setTransactionType("Cash");
                     payment.get().setResultCode("0");
                     payment.get().setReceiptNumber(generatecSystemCode(10));
@@ -67,9 +68,12 @@ public class PaymentService {
                     response.set(PaymentEntityResponse.builder().message(String.format("Payment with receipt number %s processed successfully", payment.get().getReceiptNumber())).statusCode(HttpStatus.OK.value()).build());
                 }
             }, () -> {
+                log.log(Level.WARNING, String.format("Collector with the id %s not found ", collectorId));
                 response.set(PaymentEntityResponse.builder().message(String.format("Collector with the id %s not found ", collectorId)).statusCode(HttpStatus.BAD_REQUEST.value()).build());
+
             });
         }, () -> {
+            log.log(Level.WARNING, (String.format("Collection with the is %s not found", collectionId)));
             response.set(PaymentEntityResponse.builder().message(String.format("Collection with the is %s not found", collectionId)).statusCode(HttpStatus.BAD_REQUEST.value()).build());
         });
 
