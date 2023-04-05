@@ -1,6 +1,7 @@
 package com.emtech.dairyapp.Configurations.PickUpLocations;
 
 
+import com.emtech.dairyapp.Configurations.Collectors.Collector;
 import com.emtech.dairyapp.Configurations.Interfaces.Locations;
 import com.emtech.dairyapp.Configurations.Interfaces.PickUpLocation;
 import com.emtech.dairyapp.Configurations.Interfaces.PickUpPoints;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -33,7 +35,30 @@ public class PickUpLocationService {
         log.info("saving PickUpLocations...");
         EntityResponse response = new EntityResponse<>();
         try {
-            pickUpLocationsRepo.save(pickUpLocations);
+
+            List<Collector> collectors= pickUpLocations.getCollectors();
+            List<String> usernames=collectors.stream()
+                    .map(collector -> collector.getUsername())
+                    .collect(Collectors.toList());
+
+            long distinctCount = usernames.stream()
+                    .distinct()
+                    .count();
+            boolean hasDuplicates = distinctCount != collectors.size();
+            if(hasDuplicates){
+                response.setStatusCode(HttpStatus.NOT_ACCEPTABLE.value());
+                response.setEntity(usernames);
+                response.setMessage("The Collectors Contains Duplicates");
+                return  response;
+            }
+            PickUpLocations p =pickUpLocationsRepo.save(pickUpLocations);
+
+            for (Collector c:collectors ) {
+                pickUpLocationsRepo.updateCollectorInformation(p.getName(),c.getUsername());
+            }
+
+
+
             response.setStatusCode(HttpStatus.CREATED.value());
             response.setEntity(pickUpLocations);
             response.setMessage(HttpStatus.CREATED.getReasonPhrase());

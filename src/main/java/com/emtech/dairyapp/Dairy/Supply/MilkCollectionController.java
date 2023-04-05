@@ -163,6 +163,17 @@ public class MilkCollectionController {
         EntityResponse response = collectionService.getCollectionRecordsByPrice(paymentFlag,farmerNo);
         return ResponseEntity.ok().body(response);
     }
+    @GetMapping("farmer/collections/pickupLocations")
+    public ResponseEntity<?> getCollectorbyPickUpLocations(@RequestParam Long pickUpLocation){
+        EntityResponse response = collectionService.getCollectionByPickUpLocation(pickUpLocation);
+        return ResponseEntity.ok().body(response);
+    }
+    @GetMapping("farmer/collections/pickuplocations/date")
+    public ResponseEntity<?> getCollectorbyPickUpLocationsAndDate(@RequestParam  Long pickUpLocation,@RequestParam String date){
+        EntityResponse response = collectionService.getCollectionByPickUpCollationsAndDate(pickUpLocation,date);
+        return ResponseEntity.ok().body(response);
+    }
+
 
 
 

@@ -2,9 +2,10 @@ package com.emtech.dairyapp.Reports;
 
 
 import com.emtech.dairyapp.Analytics.AnalyticsData;
+import com.emtech.dairyapp.Configurations.PickUpLocations.PickUpLocations;
+import com.emtech.dairyapp.Configurations.PickUpLocations.PickUpLocationsRepo;
 import com.emtech.dairyapp.Configurations.Profile.Profile;
 import com.emtech.dairyapp.Configurations.Profile.ProfileRepo;
-import com.emtech.dairyapp.Configurations.Utils.CONSTANTS;
 import com.emtech.dairyapp.Dairy.Interface.CollectionsData;
 import com.emtech.dairyapp.Dairy.Interface.FarmerCollections;
 
@@ -40,6 +41,7 @@ public class ReportController {
     private final ProfileRepo profileRepo;
     private final MilkCollectionRepo collectionRepo;
     private final FarmerProdAllocattionsRepo allocattionsRepo;
+    private final PickUpLocationsRepo pickUpLocationsRepo;
 
 
 
@@ -56,11 +58,12 @@ public class ReportController {
     @Value("${spring.datasource.password}")
     private String dbpassword;
 
-    public ReportController(ReportService reportService, ProfileRepo profileRepo, MilkCollectionRepo collectionRepo, FarmerProdAllocattionsRepo allocattionsRepo) {
+    public ReportController(ReportService reportService, ProfileRepo profileRepo, MilkCollectionRepo collectionRepo, FarmerProdAllocattionsRepo allocattionsRepo, PickUpLocationsRepo pickUpLocationsRepo) {
         this.reportService = reportService;
         this.profileRepo = profileRepo;
         this.collectionRepo = collectionRepo;
         this.allocattionsRepo = allocattionsRepo;
+        this.pickUpLocationsRepo = pickUpLocationsRepo;
     }
 
 
@@ -170,8 +173,8 @@ public class ReportController {
                 Double totalPaid = 0.0;
 
                 List<FarmerStmtDetails> fd = collectionRepo.getFarmerStmntdetails(from, to, farmerNo);
-                if (fd.size() > 0) {
-                    log.info("Data found " +fd.size());
+//                if (fd.size() > 0) {
+//                    log.info("Data found " +fd.size());
                     MilkCollectionRepo.Totals unpaid = collectionRepo.getUnPaidAmount(farmerNo,from,to);
                     MilkCollectionRepo.Totals ut = collectionRepo.getPaidAmount(farmerNo,from,to);
                     income = unpaid.getCollectionAmount();
@@ -238,13 +241,13 @@ public class ReportController {
                     HttpHeaders headers = new HttpHeaders();
                     headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + "statement" + "-collections-report");
                     return ResponseEntity.ok().headers(headers).contentType(MediaType.APPLICATION_PDF).body(data);
-                }else {
-                    EntityResponse response = new EntityResponse();
-                    response.setMessage(HttpStatus.NOT_FOUND.getReasonPhrase());
-                    response.setStatusCode(HttpStatus.NOT_FOUND.value());
-                    response.setEntity(null);
-                    return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-                }
+//                }else {
+//                    EntityResponse response = new EntityResponse();
+//                    response.setMessage(HttpStatus.NOT_FOUND.getReasonPhrase());
+//                    response.setStatusCode(HttpStatus.NOT_FOUND.value());
+//                    response.setEntity(null);
+//                    return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+//                }
             } else {
                 EntityResponse response = new EntityResponse();
                 response.setMessage("No record found");
@@ -415,6 +418,53 @@ public class ReportController {
                 byte[] data = JasperExportManager.exportReportToPdf(print);
                 HttpHeaders headers = new HttpHeaders();
                 headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + month + "-paymentfile-report");
+                return ResponseEntity.ok().headers(headers).contentType(MediaType.APPLICATION_PDF).body(data);
+
+            } else {
+                EntityResponse response = new EntityResponse();
+                response.setMessage("No record found");
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setEntity(record);
+                return new ResponseEntity<>(response, HttpStatus.OK);
+            }
+        } catch (Exception exc) {
+            EntityResponse response = new EntityResponse();
+            response.setMessage(exc.getLocalizedMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setEntity(null);
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @GetMapping("collections/per/pickUpLocation")
+    public ResponseEntity<?> getCollectionsPerDate(@RequestParam Long pickUpLocationId, @RequestParam String date) {
+        try {
+
+            List<CollectionsData> record = reportService.fetchCollectionsPickUpCollectionsAndDate(pickUpLocationId,date);
+            if (record.size() > 0) {
+                log.info("Data found");
+                Optional<PickUpLocations> p =pickUpLocationsRepo.findById(pickUpLocationId);
+                String pickupLocation=p.get().getName();
+
+
+                Connection connection = DriverManager.getConnection(this.db, this.dbusername, this.dbpassword);
+                JasperReport compileReport = JasperCompileManager.compileReport(new FileInputStream(report_path + "/paymentFile.jrxml"));
+
+                Profile profile = profileRepo.getProfile();
+
+                Map<String, Object> parameters = new HashMap<>();
+                parameters.put("location",pickupLocation );
+                parameters.put("date",date);
+                parameters.put("logo", report_icon);
+                parameters.put("location", profile.getLocation());
+                parameters.put("company", profile.getCompanyName());
+                parameters.put("address", profile.getPhysicalAddress());
+
+
+                JasperPrint print = JasperFillManager.fillReport(compileReport, parameters, connection);
+                byte[] data = JasperExportManager.exportReportToPdf(print);
+                HttpHeaders headers = new HttpHeaders();
+                headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + pickupLocation + "-collections-report");
                 return ResponseEntity.ok().headers(headers).contentType(MediaType.APPLICATION_PDF).body(data);
 
             } else {

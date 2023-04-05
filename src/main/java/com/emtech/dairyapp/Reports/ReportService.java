@@ -35,6 +35,14 @@ public class ReportService {
             return null;
         }
     }
+    public List<CollectionsData> fetchCollectionsPickUpCollectionsAndDate(Long pickupcollations,String date) {
+        try {
+            return collectionRepo.getCollectionsbyPickUpLocationAndDate(pickupcollations, date);
+        }catch (Exception exc){
+            log.info(exc.getLocalizedMessage());
+            return null;
+        }
+    }
     public List<FarmerCollections> getFarmerCollections(Integer farmerNo) {
         try {
 

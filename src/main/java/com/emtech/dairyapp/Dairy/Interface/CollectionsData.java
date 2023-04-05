@@ -12,6 +12,7 @@ public interface CollectionsData {
     Date getCollection_date();
     String getWard();
     String getPickUpLocation();
+
     Long getId();
     String getEvent();
     Double getCurrentPrice();

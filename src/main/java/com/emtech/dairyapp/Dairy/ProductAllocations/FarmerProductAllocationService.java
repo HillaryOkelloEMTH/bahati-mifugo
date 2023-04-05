@@ -40,9 +40,11 @@ public class FarmerProductAllocationService {
         try {
             Optional<Farmer> f = farmerRepo.findById(allocation.getFarmerId());
             if (f.isPresent()) {
+                Integer p_quantity=0;
                 Optional<Product> p = productRepository.findById(allocation.getProductId());
                 if (p.isPresent()) {
                     Product product = p.get();
+                    p_quantity=product.getStock();
                     MilkCollectionRepo.Totals ut = milkCollectionRepo.getTotalUnPaidAmount(f.get().getFarmerNo());
                     Double unpaid= ut.getCollectionAmount();
                     salesPrice = product.getSalePrice();
@@ -54,11 +56,18 @@ public class FarmerProductAllocationService {
                         response.setMessage("Milk Collection income amount is too low");
                         return response;
                     }
+
+
+
+
                     allocation.setProductPrice(salesPrice);
                     allocation.setAmount(amount);
                     allocation.setAllocatioDate(new Date());
                     farmerProdAllocattionsRepo.save(allocation);
                     log.info("Saving Farmer Product Allocations ...");
+                    p_quantity = (int) (p_quantity-allocation.getQuantity());
+                    product.setStock(p_quantity);
+                    productRepository.save(product);
                     response.setEntity(allocation);
                     response.setStatusCode(HttpStatus.CREATED.value());
                     response.setMessage(HttpStatus.CREATED.getReasonPhrase());
