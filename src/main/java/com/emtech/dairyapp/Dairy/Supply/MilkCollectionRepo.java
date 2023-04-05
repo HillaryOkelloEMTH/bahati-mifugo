@@ -52,45 +52,49 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
     @Query(value = "SELECT count(*) as count,sum(c.quantity)  as quantity,sum(c.amount) as amount FROM collections c WHERE DATE(c.collection_date) = :date and c.event ='Collection'", nativeQuery = true)
     List<DailyRecords> getSpecificDateRecord(String date);
 
-    @Query(value = "SELECT f.first_name ,f.last_name ,f.farmer_no as farmerNO, c.id, c.collection_number as collectionCode ,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer,c.amount,c.quantity,c.collection_date,r.route as route from collections c join users u on c.collector_id =u.id join farmer f on f.farmer_no=c.farmer_no join route r on r.id=c.route_fk  where DATE(c.collection_date)= :date order by c.collection_date", nativeQuery = true)
+    @Query(value = "SELECT f.first_name ,f.last_name ,f.farmer_no as farmerNO, c.id, c.collection_number as collectionCode ,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer,c.amount,c.quantity,c.collection_date,r.route as route ,p.name as pickUpLocation from collections c join users u on c.collector_id =u.id join farmer f on f.farmer_no=c.farmer_no join route r on r.id=c.route_fk join pick_up_locations p on p.id =r.location_id where DATE(c.collection_date)= :date order by c.collection_date", nativeQuery = true)
     List<CollectionsData> getCollectionsbyDate(String date);
 
-    @Query(value = "SELECT f.first_name ,f.last_name ,f.farmer_no , c.id, c.collection_number as collectionCode ,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer,c.amount,c.quantity,c.collection_date,r.route as route from collections c join users u on c.collector_id =u.id join farmer f on f.farmer_no=c.farmer_no join route r on r.id=c.route_fk ", nativeQuery = true)
+    @Query(value = "SELECT f.first_name ,f.last_name ,f.farmer_no , c.id, c.collection_number as collectionCode ,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer,c.amount,c.quantity,c.collection_date,r.route as route,p.name as pickUpLocation from collections c join users u on c.collector_id =u.id join farmer f on f.farmer_no=c.farmer_no join route r on r.id=c.route_fk join pick_up_locations p on p.id =r.location_id", nativeQuery = true)
     List<CollectionsData> getAllCollections();
 
-    @Query(value = "SELECT f.first_name ,f.last_name ,f.farmer_no, c.id, c.collection_number as collectionCode,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer,c.amount,c.quantity,c.collection_date,r.route as route  from collections c join users u on c.collector_id =u.id join farmer f on f.farmer_no=c.farmer_no join route r on r.id=c.route_fk  where f.id =:farmerId order by c.collection_date", nativeQuery = true)
+    @Query(value = "SELECT f.first_name ,f.last_name ,f.farmer_no, c.id, c.collection_number as collectionCode,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer,c.amount,c.quantity,c.collection_date,r.route as route,p.name as pickUpLocation  from collections c join users u on c.collector_id =u.id join farmer f on f.farmer_no=c.farmer_no join route r on r.id=c.route_fk join pick_up_locations p on p.id =r.location_id where f.id =:farmerId order by c.collection_date", nativeQuery = true)
     List<CollectionsData> getCollectionsbyFarmer(Long farmerId);
+    @Query(value = "SELECT f.first_name ,f.last_name ,f.farmer_no, c.id, c.collection_number as collectionCode,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer,c.amount,c.quantity,c.collection_date,r.route as route,p.name as pickUpLocation  from collections c join users u on c.collector_id =u.id join farmer f on f.farmer_no=c.farmer_no join route r on r.id=c.route_fk join pick_up_locations p on p.id =r.location_id where DATE(c.collection_date)=:date and p.id =:locationid order by c.collection_date",nativeQuery = true)
+    List<CollectionsData> getCollectionsbyPickUpLocationAndDate(Long locationid,String date);
+    @Query(value = "SELECT f.first_name ,f.last_name ,f.farmer_no, c.id, c.collection_number as collectionCode,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer,c.amount,c.quantity,c.collection_date,r.route as route,p.name as pickUpLocation  from collections c join users u on c.collector_id =u.id join farmer f on f.farmer_no=c.farmer_no join route r on r.id=c.route_fk join pick_up_locations p on p.id =r.location_id where p.id =:locationid order by c.collection_date",nativeQuery = true)
+    List<CollectionsData> getCollectionsbyPickUpLocation(Long locationid);
 
-    @Query(value = "SELECT f.first_name ,f.last_name ,f.farmer_no,c.id, c.collection_number as collectionCode ,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer ,c.amount,c.quantity,c.collection_date,r.route as route from collections c join users u on c.collector_id =u.id join farmer f on f.farmer_no=c.farmer_no join route r on r.id=c.route_fk   where c.collector_id =:collectorId order by c.collection_date", nativeQuery = true)
+    @Query(value = "SELECT f.first_name ,f.last_name ,f.farmer_no,c.id, c.collection_number as collectionCode ,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer ,c.amount,c.quantity,c.collection_date,r.route as route,p.name as pickUpLocation from collections c join users u on c.collector_id =u.id join farmer f on f.farmer_no=c.farmer_no join route r on r.id=c.route_fk join pick_up_locations p on p.id =r.location_id  where c.collector_id =:collectorId order by c.collection_date", nativeQuery = true)
     List<CollectionsData> getCollectionsbyCollector(Long collectorId);
 
-    @Query(value = "SELECT c.id, c.collection_number as collectionCode ,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,u.user_name as collector,c.amount,c.quantity,c.collection_date,r.route as route from collections c join users u on c.collector_id =u.id  join route r on r.id=c.route_fk   where c.collector_id =:collectorId order by c.collection_date", nativeQuery = true)
+    @Query(value = "SELECT c.id, c.collection_number as collectionCode ,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,u.user_name as collector,c.amount,c.quantity,c.collection_date,r.route as route,p.name as pickUpLocation from collections c join users u on c.collector_id =u.id  join route r on r.id=c.route_fk join pick_up_locations p on p.id =r.location_id  where c.collector_id =:collectorId order by c.collection_date", nativeQuery = true)
     List<CollectionsData> getBuyingCollectionsbyCollector(Long collectorId);
 
-    @Query(value = "SELECT f.first_name ,f.last_name ,f.farmer_no,c.id , c.collection_number as collectionCode,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer ,c.amount,c.quantity,c.collection_date,r.route as route from collections c join users u on c.collector_id =u.id join farmer f on f.farmer_no=c.farmer_no join route r on r.id=c.route_fk   where DATE(c.collection_date) BETWEEN :fromDate and :toDate order by c.collection_date", nativeQuery = true)
+    @Query(value = "SELECT f.first_name ,f.last_name ,f.farmer_no,c.id , c.collection_number as collectionCode,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer ,c.amount,c.quantity,c.collection_date,r.route as route,p.name as pickUpLocation from collections c join users u on c.collector_id =u.id join farmer f on f.farmer_no=c.farmer_no join route r on r.id=c.route_fk join pick_up_locations p on p.id =r.location_id   where DATE(c.collection_date) BETWEEN :fromDate and :toDate order by c.collection_date", nativeQuery = true)
     List<CollectionsData> getCollectionByDateRange(String fromDate, String toDate);
 
-    @Query(value = "SELECT SUM(c.amount) as amount,CAST(SUM(c.quantity)as DECIMAL(5,2)) as quantity,u.user_name as collector from collections c join users u on u.id =c.collector_id WHERE DATE(c.collection_date) =:date GROUP BY c.collector_id desc", nativeQuery = true)
+    @Query(value = "SELECT SUM(c.amount) as amount,SUM(c.quantity) as quantity,u.user_name as collector from collections c join users u on u.id =c.collector_id WHERE DATE(c.collection_date) =:date GROUP BY c.collector_id desc", nativeQuery = true)
     List<AnalyticsData> getCOllectionsPerCollectors(String date);
 
 
 //    @Query(value = "select  max(id) from collections",nativeQuery = true)
 //    Long getMaxVaue();
 
-    @Query(value = "SELECT sum(c.amount)  as amount,CAST(SUM(c.quantity) as DECIMAL(5,2)) as quantity from collections c where MONTH(c.collection_date)=:month and YEAR(c.collection_date)=:year  and c.collector_id=:collectorId group by c.session", nativeQuery = true)
+    @Query(value = "SELECT sum(c.amount)  as amount,SUM(c.quantity) as quantity from collections c where MONTH(c.collection_date)=:month and YEAR(c.collection_date)=:year  and c.collector_id=:collectorId group by c.session", nativeQuery = true)
     Optional<AnalyticsData> getCollectorRecord(Integer year, Integer month, Long collectorId);
 
     @Query(value = "SELECT DISTINCT  sum(c.amount) as amount,SUM(c.quantity) as quantity,c.session  from collections c where MONTH(c.collection_date)=:month and YEAR(c.collection_date)=:year  and c.collector_id=:collectorId GROUP  by c.session ", nativeQuery = true)
     List<AnalyticsData> getCollectorDataPerSerssion(Integer year, Integer month, Long collectorId);
 
 
-    @Query(value = "SELECT sum(c.amount) as amount,CAST(SUM(c.quantity)as DECIMAL(5,2)) as quantity ,u.user_name as collector  from collections c join users u on u.id=c.collector_id  WHERE DATE(c.collection_date)=:date  GROUP BY c.collector_id", nativeQuery = true)
+    @Query(value = "SELECT sum(c.amount) as amount,SUM(c.quantity) as quantity ,u.user_name as collector  from collections c join users u on u.id=c.collector_id  WHERE DATE(c.collection_date)=:date  GROUP BY c.collector_id", nativeQuery = true)
     List<AnalyticsData> getCollectorDataPerDate(String date);
 
-    @Query(value = "SELECT sum(c.amount) as amount,CAST(SUM(c.quantity)as DECIMAL(5,2)) as quantity,MONTHNAME(c.collection_date) as month from collections c where YEAR (c.collection_date)=:year GROUP BY MONTH(c.collection_date)", nativeQuery = true)
+    @Query(value = "SELECT sum(c.amount) as amount,SUM(c.quantity) as quantity,MONTHNAME(c.collection_date) as month from collections c where YEAR (c.collection_date)=:year GROUP BY MONTH(c.collection_date)", nativeQuery = true)
     List<AnalyticsData> getCollectorDataPerYear(Integer year);
 
-    @Query(value = "SELECT  DATE_FORMAT(c.collection_date,'%Y-%m-%d %T') as date,u.user_name as collector,f.username as farmer,c.amount,c.quantity,r.route as route, c.collection_number as collectionCode,c.current_price as currentPrice ,c.event from collections c join users u on c.collector_id =u.id join farmer f on f.farmer_no=c.farmer_no join route r on r.id=c.route_fk  where c.collection_number =:collection_code", nativeQuery = true)
+    @Query(value = "SELECT  DATE_FORMAT(c.collection_date,'%Y-%m-%d %T') as date,u.user_name as collector,f.username as farmer,c.amount,c.quantity,r.route as route, c.collection_number as collectionCode,c.current_price as currentPrice ,c.event,p.name as pickUpLocation from collections c join users u on c.collector_id =u.id join farmer f on f.farmer_no=c.farmer_no join route r on r.id=c.route_fk join pick_up_locations p on p.id =r.location_id   where c.collection_number =:collection_code", nativeQuery = true)
     Optional<CollectionsData> getCollectionsbyCollectionCode(String collection_code);
 
     @Query(value = "SELECT f.id,f.username as farmerName ,f.farmer_no as farmerNo,r.route as route,p.name as pickUpLocation from farmer f  join route r  on r.id=f.route_fk join pick_up_locations p on p.id=r.location_id  where f.farmer_no = :farmerNo", nativeQuery = true)
@@ -192,7 +196,7 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
             "\tWHERE f.farmer_no IS NOT NULL AND f.payment_mode = :mode\n" +
             "\tGROUP BY f.farmer_no, f.username",nativeQuery = true)
     List<PaymentFileData> getFilteredFarmersPaymentRecords(String month,String mode);
-    @Query(value = "SELECT f.farmer_no, f.username,SUM(c.quantity) AS deliveries, SUM(c.amount) AS collectionAmount \n" +
+    @Query(value = "SELECT f.farmer_no, f.username,COALESCE(SUM(c.amount), 0.0) AS collectionAmount \n" +
             "FROM collections c \n" +
             "JOIN farmer f ON f.farmer_no = c.farmer_no\n" +
             "WHERE f.farmer_no = :farmer_no AND c.payment_status ='N'",nativeQuery = true)

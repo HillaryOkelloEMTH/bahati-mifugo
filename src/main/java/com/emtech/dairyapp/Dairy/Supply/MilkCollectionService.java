@@ -78,13 +78,13 @@ public class MilkCollectionService {
                 if (manager.isPresent()) {
                     log.info("Collector allocation found ..");
 
-                    Double famount = manager.get().getFloatAmount();
-                    Double balance = famount - totalAmount;
-                    Double spent = famount - balance;
-                    manager.get().setFloatSpent(spent);
-                    manager.get().setBalance(balance);
+//                    Double famount = manager.get().getFloatAmount();
+//                    Double balance = famount - totalAmount;
+//                    Double spent = famount - balance;
+//                    manager.get().setFloatSpent(spent);
+//                    manager.get().setBalance(balance);
 
-                    floatManagerRepo.save(manager.get());
+//                    floatManagerRepo.save(manager.get());
                     MilkCollections c = milkCollectionRepo.save(collections);
 
                     response.setStatusCode(HttpStatus.CREATED.value());
@@ -501,6 +501,53 @@ public class MilkCollectionService {
             response.setStatusCode(HttpStatus.OK.value());
             response.setEntity(todaysCollections);
             response.setMessage(HttpStatus.OK.getReasonPhrase());
+
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+        }
+        return response;
+    }
+    public EntityResponse getCollectionByPickUpCollationsAndDate(Long pickuplocation,String date) {
+
+        EntityResponse response = new EntityResponse();
+        try {
+
+            List<CollectionsData> collections = milkCollectionRepo.getCollectionsbyPickUpLocationAndDate(pickuplocation, date);
+            if(collections.size()>0){
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setEntity(collections);
+                response.setMessage(HttpStatus.OK.getReasonPhrase());
+            }else {
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                response.setEntity(collections);
+                response.setMessage(HttpStatus.NOT_FOUND.getReasonPhrase());
+            }
+
+
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+        }
+        return response;
+    }
+    public EntityResponse getCollectionByPickUpLocation(Long pickuplocation) {
+
+        EntityResponse response = new EntityResponse();
+        try {
+
+            List<CollectionsData> collections = milkCollectionRepo.getCollectionsbyPickUpLocation(pickuplocation);
+            if(collections.size()>0){
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setEntity(collections);
+                response.setMessage(HttpStatus.OK.getReasonPhrase());
+            }else {
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                response.setEntity(collections);
+                response.setMessage(HttpStatus.NOT_FOUND.getReasonPhrase());
+            }
 
         } catch (Exception e) {
             log.error(e.getMessage());
