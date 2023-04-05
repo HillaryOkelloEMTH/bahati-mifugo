@@ -100,7 +100,7 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
     List<FarmerCollections> getFarmerCollections(Integer farmerNo);
 
 
-    @Query(value = "SELECT c.collection_number as deliveryNo,c.quantity ,c.collection_date ,c.session  from collections c join farmer f where DATE(c.collection_date) BETWEEN :from and :to and f.farmer_no =:farmerNo", nativeQuery = true)
+    @Query(value = "SELECT c.collection_number as deliveryNo,c.quantity ,c.collection_date ,c.session  from collections c join farmer f where DATE(c.collection_date) BETWEEN :from and :to and f.farmer_no =:farmerNo and c.payment_status='N'", nativeQuery = true)
     List<FarmerStmtDetails> getFarmerStmntdetails(String from, String to, Integer farmerNo);
 
     @Query(value = "SELECT SUM(c.quantity) as totaldeliveries,SUM(c.amount) as totalIncome ,f.farmer_no,f.username  from collections c join farmer f where DATE(c.collection_date) BETWEEN :from and :to and f.farmer_no =:farmerNo and c.payment_status=:payment_status", nativeQuery = true)
@@ -192,6 +192,32 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
             "\tWHERE f.farmer_no IS NOT NULL AND f.payment_mode = :mode\n" +
             "\tGROUP BY f.farmer_no, f.username",nativeQuery = true)
     List<PaymentFileData> getFilteredFarmersPaymentRecords(String month,String mode);
+    @Query(value = "SELECT f.farmer_no, f.username,SUM(c.quantity) AS deliveries, SUM(c.amount) AS collectionAmount \n" +
+            "FROM collections c \n" +
+            "JOIN farmer f ON f.farmer_no = c.farmer_no\n" +
+            "WHERE f.farmer_no = :farmer_no AND c.payment_status ='N'",nativeQuery = true)
+    Totals getTotalUnPaidAmount(Integer farmer_no);
 
+    @Query(value = "SELECT f.farmer_no, f.username,SUM(c.quantity) AS deliveries, SUM(c.amount) AS collectionAmount, \n" +
+            "    (SELECT SUM(fa.amount) FROM farmer_product_allocations fa WHERE fa.farmer_id = f.farmer_no AND fa.payment_status ='N') AS allocationAmount\n" +
+            "FROM collections c \n" +
+            "JOIN farmer f ON f.farmer_no = c.farmer_no\n" +
+            "WHERE f.farmer_no = :farmer_no AND c.payment_status ='N' AND DATE(c.collection_date) BETWEEN :from and :to",nativeQuery = true)
+    Totals getUnPaidAmount(Integer farmer_no,String from,String to);
+    @Query(value = "SELECT f.farmer_no, f.username, SUM(c.quantity) AS deliveries,SUM(c.amount) AS collectionAmount, \n" +
+            "    (SELECT SUM(fa.amount) FROM farmer_product_allocations fa WHERE fa.farmer_id = f.farmer_no AND fa.payment_status ='Y') AS allocationAmount\n" +
+            "   FROM collections c \n" +
+            "JOIN farmer f ON f.farmer_no = c.farmer_no\n" +
+            "WHERE f.farmer_no = :farmer_no AND c.payment_status ='Y' AND DATE(c.collection_date) BETWEEN :from and :to",nativeQuery = true)
+    Totals getPaidAmount(Integer farmer_no,String from,String to);
+
+
+    interface Totals{
+        Integer getFarmer_no();
+        String getUsername();
+        Double getCollectionAmount();
+        Double getAllocationAmount();
+        Double getDeliveries();
+    }
 
 }

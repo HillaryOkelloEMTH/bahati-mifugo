@@ -165,35 +165,46 @@ public class ReportController {
                 Double income = 0.0;
                 Double expenses = 0.0;
                 Double deliveries = 0.0;
+                Double paidincome = 0.0;
+                Double paidexpenses = 0.0;
+                Double totalPaid = 0.0;
 
                 List<FarmerStmtDetails> fd = collectionRepo.getFarmerStmntdetails(from, to, farmerNo);
                 if (fd.size() > 0) {
-                    log.info("Data found" +fd.size());
-
-
-                    MilkCollectionRepo.StatementSummry unpaid = collectionRepo.getFarmerStmntSummary(from, to, farmerNo, CONSTANTS.NO);
-//                MilkCollectionRepo.StatementSummry paid=collectionRepo.getFarmerStmntSummary(from,to,farmerNo, CONSTANTS.YES);
-                    income = unpaid.getTotalIncome();
+                    log.info("Data found " +fd.size());
+                    MilkCollectionRepo.Totals unpaid = collectionRepo.getUnPaidAmount(farmerNo,from,to);
+                    MilkCollectionRepo.Totals ut = collectionRepo.getPaidAmount(farmerNo,from,to);
+                    income = unpaid.getCollectionAmount();
                     if(income==null){
                         income=0.00;
                     }
                     log.info("income  " + income);
 
-                    deliveries = unpaid.getTotaldeliveries();
+                    deliveries = unpaid.getDeliveries();
                     if(deliveries==null){
                         deliveries=0.00;
                     }
                     log.info("deliveries  " + deliveries);
-
-
                     log.info("Farmer id ", farmer_id);
-                    FarmerProdAllocattionsRepo.FarmerAllocationDatail unpaidfad = allocattionsRepo.getFAllocationsSummary(farmer_id, from, to, CONSTANTS.NO);
-//                FarmerProdAllocattionsRepo.FarmerAllocationDatail paidfad= allocattionsRepo.getFAllocationsSummary(record.getId(),from,to,CONSTANTS.NO);
-                    expenses = unpaidfad.getAccruedamount();
+
+                    expenses = unpaid.getAllocationAmount();
                     if (expenses ==null){
                         expenses=0.00;
                     }
                     log.info("Expenses " + expenses);
+
+                    paidincome=ut.getCollectionAmount();
+                    if(paidincome==null){
+                        paidincome=0.00;
+                    }
+                    paidexpenses=ut.getAllocationAmount();
+                    if(paidexpenses==null){
+                        paidexpenses=0.00;
+                    }
+                    totalPaid=paidincome+paidexpenses;
+                    log.info("Total paid "+totalPaid);
+
+
 
 
                     Connection connection = DriverManager.getConnection(this.db, this.dbusername, this.dbpassword);
@@ -220,7 +231,6 @@ public class ReportController {
                     parameters.put("deliveries", deliveries);
                     parameters.put("expenses", expenses);
 
-//                    System.out.println("parameters  " + parameters);
 
 
                     JasperPrint print = JasperFillManager.fillReport(compileReport, parameters, connection);
