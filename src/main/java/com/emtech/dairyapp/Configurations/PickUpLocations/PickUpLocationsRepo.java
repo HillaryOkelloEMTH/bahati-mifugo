@@ -33,9 +33,7 @@ public interface PickUpLocationsRepo extends JpaRepository<PickUpLocations, Long
         String getRoute();
     }
 
-    @Query(value = "update table users set pick_up_location=:location WHERE  username=:username",nativeQuery = true)
+    @Query(value = "update users set pick_up_location=:location WHERE  user_name=:username",nativeQuery = true)
     void  updateCollectorInformation(String location,String username);
-
-
 
 }

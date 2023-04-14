@@ -11,5 +11,7 @@ public class FloatAllocationRequest {
     private Long collectorId;
     private Double allocationAmount;
     private String allocateBy;
+    private String mode;//cash/mpesa
+
 
 }

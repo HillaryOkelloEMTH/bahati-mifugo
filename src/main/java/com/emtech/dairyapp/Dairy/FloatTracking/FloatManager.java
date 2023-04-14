@@ -22,11 +22,12 @@ public class FloatManager {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private Long collectorId;//collector id
-    private Double floatAmount; //100000
-    private Double floatSpent; //100000
+    private Double floatAmount=0.00; //100000
+    private Double floatSpent=0.0; //100000
     private Double balance=0.0;//9000
     private Date date;
     private String allocatedBy;
+    private String mode;
     private Character deletedFlag='N';
 
 //    @OneToMany(targetEntity = FloatDetails.class,cascade = CascadeType.ALL,fetch = FetchType.LAZY)
