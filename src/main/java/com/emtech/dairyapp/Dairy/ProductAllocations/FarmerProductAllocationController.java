@@ -25,8 +25,8 @@ public class FarmerProductAllocationController {
         return ResponseEntity.ok().body(response);
     }
     @GetMapping("farmer")
-    public ResponseEntity<EntityResponse> getFarmerAllocations(@RequestParam Long farmerId){
-        EntityResponse response = service.fetchFarmerAllocations(farmerId);
+    public ResponseEntity<EntityResponse> getFarmerAllocations(@RequestParam Integer farmerNo){
+        EntityResponse response = service.fetchFarmerAllocations(farmerNo);
         return ResponseEntity.ok().body(response);
     }
     @GetMapping("date")
@@ -35,14 +35,14 @@ public class FarmerProductAllocationController {
         return ResponseEntity.ok().body(response);
     }
     @GetMapping("farmer/date")
-    public ResponseEntity<EntityResponse> getFarmerAllocationsyDate(@RequestParam Long farmerId,@RequestParam String date){
-        EntityResponse response = service.fetchFarmerAllocationsBYDate(farmerId,date);
+    public ResponseEntity<EntityResponse> getFarmerAllocationsyDate(@RequestParam Integer farmerNo,@RequestParam String date){
+        EntityResponse response = service.fetchFarmerAllocationsBYDate(farmerNo,date);
         return ResponseEntity.ok().body(response);
     }
 
     @GetMapping("farmer/paymentstatus")
-    public ResponseEntity<EntityResponse> getFarmerAllocationsPerPaymentStatus(@RequestParam Long farmerId,@RequestParam Character paymentStatus){
-        EntityResponse response = service.fetchFarmerAllocationsByPaymentStatus(farmerId,paymentStatus);
+    public ResponseEntity<EntityResponse> getFarmerAllocationsPerPaymentStatus(@RequestParam Integer farmerNo,@RequestParam Character paymentStatus){
+        EntityResponse response = service.fetchFarmerAllocationsByPaymentStatus(farmerNo,paymentStatus);
         return ResponseEntity.ok().body(response);
     }
     @PutMapping("update")
@@ -56,8 +56,8 @@ public class FarmerProductAllocationController {
         return ResponseEntity.ok().body(response);
     }
     @GetMapping("farmer/accruals")
-    public ResponseEntity<EntityResponse> getFarmerAccruals(@RequestParam Long farmerId,@RequestParam Character paymentStatus){
-        EntityResponse response = service.getFarmerAccruals(farmerId,paymentStatus);
+    public ResponseEntity<EntityResponse> getFarmerAccruals(@RequestParam Integer farmerNo,@RequestParam Character paymentStatus){
+        EntityResponse response = service.getFarmerAccruals(farmerNo,paymentStatus);
         return ResponseEntity.ok().body(response);
     }
 }

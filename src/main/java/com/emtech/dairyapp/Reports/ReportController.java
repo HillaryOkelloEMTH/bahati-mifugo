@@ -448,12 +448,11 @@ public class ReportController {
 
 
                 Connection connection = DriverManager.getConnection(this.db, this.dbusername, this.dbpassword);
-                JasperReport compileReport = JasperCompileManager.compileReport(new FileInputStream(report_path + "/paymentFile.jrxml"));
+                JasperReport compileReport = JasperCompileManager.compileReport(new FileInputStream(report_path + "/collectionsPerPickupLocations.jrxml"));
 
                 Profile profile = profileRepo.getProfile();
-
                 Map<String, Object> parameters = new HashMap<>();
-                parameters.put("location",pickupLocation );
+                parameters.put("pickupLocation",pickupLocation );
                 parameters.put("date",date);
                 parameters.put("logo", report_icon);
                 parameters.put("location", profile.getLocation());

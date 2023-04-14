@@ -30,6 +30,7 @@ public class FloatManagerController {
             Double rmfloat = manager.get().getFloatAmount();
             Double rmbalance = manager.get().getBalance();
             manager.get().setDate(new Date());
+            manager.get().setMode(request.getMode());
             manager.get().setAllocatedBy(authentication.getName());
             manager.get().setCollectorId(request.getCollectorId());
             manager.get().setFloatAmount(request.getAllocationAmount() + rmfloat);
@@ -39,7 +40,9 @@ public class FloatManagerController {
         } else {
             FloatManager newfm = new FloatManager();
             newfm.setDate(new Date());
+           newfm.setMode(request.getMode());
             newfm.setAllocatedBy(authentication.getName());
+            newfm.setBalance(request.getAllocationAmount());
             newfm.setCollectorId(request.getCollectorId());
             newfm.setFloatAmount(request.getAllocationAmount());
             floatManagerRepo.save(newfm);

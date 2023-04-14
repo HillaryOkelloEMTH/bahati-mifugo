@@ -22,7 +22,7 @@ public class FarmerProductAllocations {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Long farmerId;
+    private Integer farmerNo;//farmer no
     private Long productId;
     private Date allocatioDate;
     private String allocatedBY;

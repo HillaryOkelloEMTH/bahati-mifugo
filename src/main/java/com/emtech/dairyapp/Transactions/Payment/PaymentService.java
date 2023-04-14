@@ -43,10 +43,12 @@ public class PaymentService {
                     response.set(PaymentEntityResponse.builder().message("Amount to be paid is more than your float amount").statusCode(HttpStatus.BAD_REQUEST.value()).build());
                 }else{
                     double newBalance = floatManager.getBalance() - amount;
+                    double newamountSpent = floatManager.getFloatSpent() +amount;
 
                     AtomicReference<FloatManager> myFloatManager = new AtomicReference<>(floatManager);
 
                     myFloatManager.get().setBalance(newBalance);
+                    myFloatManager.get().setFloatSpent(newamountSpent);
 
                     myFloatManager.set(floatManagerRepo.save(myFloatManager.get()));
 

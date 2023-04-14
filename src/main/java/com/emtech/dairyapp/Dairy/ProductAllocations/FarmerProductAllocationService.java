@@ -2,6 +2,7 @@ package com.emtech.dairyapp.Dairy.ProductAllocations;
 
 import com.emtech.dairyapp.Configurations.FarmerManagement.Farmer;
 import com.emtech.dairyapp.Configurations.FarmerManagement.FarmerRepo;
+import com.emtech.dairyapp.Configurations.Interfaces.FarmerInfo;
 import com.emtech.dairyapp.Configurations.Utils.CONSTANTS;
 import com.emtech.dairyapp.Dairy.Interface.Allocations;
 import com.emtech.dairyapp.Dairy.Supply.MilkCollectionRepo;
@@ -38,14 +39,14 @@ public class FarmerProductAllocationService {
         Double amount = 0.0;
         Double salesPrice = 0.0;
         try {
-            Optional<Farmer> f = farmerRepo.findById(allocation.getFarmerId());
+            Optional<FarmerInfo> f = farmerRepo.findByFarmerNo(allocation.getFarmerNo());
             if (f.isPresent()) {
                 Integer p_quantity=0;
                 Optional<Product> p = productRepository.findById(allocation.getProductId());
                 if (p.isPresent()) {
                     Product product = p.get();
                     p_quantity=product.getStock();
-                    MilkCollectionRepo.Totals ut = milkCollectionRepo.getTotalUnPaidAmount(f.get().getFarmerNo());
+                    MilkCollectionRepo.Totals ut = milkCollectionRepo.getTotalUnPaidAmount(f.get().getFarmer_no());
                     Double unpaid= ut.getCollectionAmount();
                     salesPrice = product.getSalePrice();
                     amount = product.getSalePrice() * allocation.getQuantity();
@@ -63,7 +64,7 @@ public class FarmerProductAllocationService {
                     allocation.setProductPrice(salesPrice);
                     allocation.setAmount(amount);
                     allocation.setAllocatioDate(new Date());
-                    farmerProdAllocattionsRepo.save(allocation);
+                   farmerProdAllocattionsRepo.save(allocation);
                     log.info("Saving Farmer Product Allocations ...");
                     p_quantity = (int) (p_quantity-allocation.getQuantity());
                     product.setStock(p_quantity);
@@ -119,11 +120,11 @@ public class FarmerProductAllocationService {
         }
     }
 
-    public EntityResponse fetchFarmerAllocations(Long farmerId) {
+    public EntityResponse fetchFarmerAllocations(Integer farmerNo) {
         log.info("Fetching FarmerProductAllocationss ...");
         EntityResponse response = new EntityResponse();
         try {
-            List<Allocations> FarmerProductAllocationss = farmerProdAllocattionsRepo.getAllocationsByFarmer(farmerId, CONSTANTS.NO);
+            List<Allocations> FarmerProductAllocationss = farmerProdAllocattionsRepo.getAllocationsByFarmer(farmerNo, CONSTANTS.NO);
             if (FarmerProductAllocationss.size() > 0) {
                 log.info("FarmerProductAllocationss Found " + "(" + FarmerProductAllocationss.size() + ")");
                 response.setEntity(FarmerProductAllocationss);
@@ -169,11 +170,11 @@ public class FarmerProductAllocationService {
         }
     }
 
-    public EntityResponse fetchFarmerAllocationsBYDate(Long farmerId, String date) {
+    public EntityResponse fetchFarmerAllocationsBYDate(Integer farmerNO, String date) {
         log.info("Fetching FarmerProductAllocationss ...");
         EntityResponse response = new EntityResponse();
         try {
-            List<Allocations> FarmerProductAllocationss = farmerProdAllocattionsRepo.getFAllocationsPerDate(farmerId, date);
+            List<Allocations> FarmerProductAllocationss = farmerProdAllocattionsRepo.getFAllocationsPerDate(farmerNO, date);
             if (FarmerProductAllocationss.size() > 0) {
                 log.info("FarmerProductAllocationss Found " + "(" + FarmerProductAllocationss.size() + ")");
                 response.setEntity(FarmerProductAllocationss);
@@ -194,11 +195,11 @@ public class FarmerProductAllocationService {
         }
     }
 
-    public EntityResponse fetchFarmerAllocationsByPaymentStatus(Long farmerId, Character paymentStatus) {
+    public EntityResponse fetchFarmerAllocationsByPaymentStatus(Integer farmerNO, Character paymentStatus) {
         log.info("Fetching FarmerProductAllocationss ...");
         EntityResponse response = new EntityResponse();
         try {
-            List<Allocations> FarmerProductAllocationss = farmerProdAllocattionsRepo.getAllocationsByFarmerByPaymentStatus(farmerId, paymentStatus, CONSTANTS.NO);
+            List<Allocations> FarmerProductAllocationss = farmerProdAllocattionsRepo.getAllocationsByFarmerByPaymentStatus(farmerNO, paymentStatus, CONSTANTS.NO);
             if (FarmerProductAllocationss.size() > 0) {
                 log.info("FarmerProductAllocationss Found " + "(" + FarmerProductAllocationss.size() + ")");
                 response.setEntity(FarmerProductAllocationss);
@@ -219,11 +220,11 @@ public class FarmerProductAllocationService {
         }
     }
 
-    public EntityResponse getFarmerAccruals(Long farmerId, Character paymentStatus) {
+    public EntityResponse getFarmerAccruals(Integer farmerNO, Character paymentStatus) {
         log.info("Fetching farmer accruals ...");
         EntityResponse response = new EntityResponse();
         try {
-            FarmerProdAllocattionsRepo.FarmerAccruals accruals = farmerProdAllocattionsRepo.getFarmerAccruas(farmerId, paymentStatus);
+            FarmerProdAllocattionsRepo.FarmerAccruals accruals = farmerProdAllocattionsRepo.getFarmerAccruas(farmerNO, paymentStatus);
 
             response.setEntity(accruals);
             response.setStatusCode(HttpStatus.OK.value());
