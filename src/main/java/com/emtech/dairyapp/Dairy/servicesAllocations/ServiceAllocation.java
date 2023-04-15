@@ -26,6 +26,8 @@ public class ServiceAllocation {
     private String requestedBy;
     private String servicingStatus; //Pending, Cancelled, Done
     private Date requestedOn;
+    private Date updatedOn;
+    private String updatedBy;
     private Integer farmerno;
     private Double amount;
     private String paymentStatus; //N or Y

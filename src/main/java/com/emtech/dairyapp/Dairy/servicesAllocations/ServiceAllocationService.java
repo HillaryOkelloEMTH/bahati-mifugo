@@ -69,4 +69,30 @@ public class ServiceAllocationService {
             return Optional.empty();
         }
     }
+
+    public ServiceAllocation updateServiceAllocation(ServiceAllocation serviceAllocation) {
+        try {
+            LOG.error("UPDATING SERVICE ALLOCATION ::: {}", serviceAllocation.toString());
+
+            Double amount = servicesConfigRepository.findServiceAmountByid(serviceAllocation.getServiceId());
+            serviceAllocation.setAmount(amount);
+            serviceAllocation.setUpdatedOn(new Date());
+            serviceAllocation.setPaymentStatus(serviceAllocation.getPaymentStatus());
+            ServiceAllocation allocation = allocationRepository.save(serviceAllocation);
+
+            return allocation;
+        }catch (Exception exc){
+            LOG.error("ERROR ENCOUNTERED WHILE UPDATING SERVICE ALLOCATION ::: {}", exc.getLocalizedMessage());
+            return null;
+        }
+    }
+
+    public void deleteServiceAllocation(Long id) {
+        try {
+            LOG.error("DELETING ALLOCATION SERVICE WITH ID ::: {}", id);
+            allocationRepository.deleteById(id);
+        }catch (Exception exc){
+            LOG.error("ERROR ENCOUNTERED WHILE DELETING ALLOCATION SERVICE ::: {}", exc.getLocalizedMessage());
+        }
+    }
 }

@@ -124,4 +124,40 @@ public class ServiceAllocationController {
         }
     }
 
+    @PutMapping("update")
+    public ResponseEntity<?> updateServiceAllocation(@RequestBody ServiceAllocation  serviceAllocation){
+        String status = servicesConfigRepository.findAvailabilityStatus(serviceAllocation.getServiceId());
+        if (Objects.equals(status, "Available")){
+            ServiceAllocation allocation = allocationService.updateServiceAllocation(serviceAllocation);
+            if (allocation != null){
+                response.setMessage("Record Updated Successfully");
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setEntity(allocation);
+
+                return new ResponseEntity<>(response, HttpStatus.OK);
+            }else{
+                response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+                response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+                response.setEntity(allocation);
+
+                return new ResponseEntity<>(response, HttpStatus.OK);
+            }
+        }else {
+            response.setMessage("Service Requested is Unavailable at the moment");
+            response.setStatusCode(HttpStatus.NOT_FOUND.value());
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        }
+    }
+
+    @DeleteMapping("delete")
+    public ResponseEntity<?> deleteServiceAllocation(@RequestParam Long id){
+        allocationService.deleteServiceAllocation(id);
+        response.setMessage("Record deleted Successfully");
+        response.setStatusCode(HttpStatus.OK.value());
+        response.setEntity("[]");
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
+
+    }
+
 }
