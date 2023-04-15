@@ -24,6 +24,7 @@ public class ServiceAllocation {
     private Integer numberofCows;
     private String description;
     private String requestedBy;
+    private Date requestedOn;
     private Integer farmerno;
     private Double amount;
     private String paymentStatus; //N or Y

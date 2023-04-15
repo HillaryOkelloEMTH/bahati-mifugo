@@ -20,6 +20,7 @@ public class ServicesConfig {
     private Long id;
     private String servicename;
     private Double serviceAmount;
+    private String servicingStatus; //Pending, Cancelled, Done
     private String status; //Available or Unavailable
     private Long routeFk;
     private Date createdDate;

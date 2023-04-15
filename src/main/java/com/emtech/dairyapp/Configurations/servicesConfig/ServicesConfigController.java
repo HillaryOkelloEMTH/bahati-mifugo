@@ -110,6 +110,30 @@ public class ServicesConfigController {
         }
     }
 
+    @GetMapping("fetch/by-servicing-status")
+    public ResponseEntity<?> fetchServicingStatus(@RequestParam String status){
+        List<ServicesConfig> services = configService.fetchServicingStatus(status);
+        if (services.size() > 0){
+            response.setMessage(HttpStatus.OK.getReasonPhrase());
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(services);
+
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        }else if (services.size() <= 0){
+            response.setMessage("No Record Found");
+            response.setStatusCode(HttpStatus.NOT_FOUND.value());
+            response.setEntity(services);
+
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        }else {
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setEntity(null);
+
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        }
+    }
+
 
     @PutMapping("update")
     public ResponseEntity<?> updateService(@RequestBody ServicesConfig  servicesConfig){
