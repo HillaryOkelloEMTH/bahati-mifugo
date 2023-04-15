@@ -95,4 +95,14 @@ public class ServiceAllocationService {
             LOG.error("ERROR ENCOUNTERED WHILE DELETING ALLOCATION SERVICE ::: {}", exc.getLocalizedMessage());
         }
     }
+
+    public List<ServiceAllocation> fetchFarmerAllServiceAllocations(Long farmerno) {
+        try {
+            LOG.error("FETCHING ALL FARMER's SERVICE ALLOCATIONS [farmer number]=:::= {}", farmerno);
+            return allocationRepository.fetchFarmerAllServiceAllocations(farmerno);
+        }catch (Exception exc){
+            LOG.error("ERROR ENCOUNTERED WHILE FETCHING ALL FARMER's SERVICE ALLOCATIONS ::: {}", exc.getLocalizedMessage());
+            return null;
+        }
+    }
 }
