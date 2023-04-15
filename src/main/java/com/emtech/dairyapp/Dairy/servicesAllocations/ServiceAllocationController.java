@@ -106,6 +106,30 @@ public class ServiceAllocationController {
         }
     }
 
+    @GetMapping("fetch-all/by-farmer")
+    public ResponseEntity<?> fetchFarmerAllServiceAllocations(@RequestParam Long farmerno){
+        List<ServiceAllocation> services = allocationService.fetchFarmerAllServiceAllocations(farmerno);
+        if (services.size() > 0){
+            response.setMessage(HttpStatus.OK.getReasonPhrase());
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(services);
+
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        }else if (services.size() <= 0){
+            response.setMessage("No Record Found");
+            response.setStatusCode(HttpStatus.NOT_FOUND.value());
+            response.setEntity(services);
+
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        }else {
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setEntity(null);
+
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        }
+    }
+
     @GetMapping("fetch/by-id")
     public ResponseEntity<?> fetchServiceAllocationById(@RequestParam Long id){
         Optional<ServiceAllocation> allocation = allocationService.fetchServiceAllocationById(id);
