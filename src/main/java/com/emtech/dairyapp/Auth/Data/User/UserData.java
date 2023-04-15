@@ -30,6 +30,8 @@ public class UserData implements Serializable {
 
     @Builder.Default
     private String lastName = null;
+    @Builder.Default
+    private String pickUpLocation=null;
 
     @Builder.Default
     private String email = null;

@@ -63,7 +63,7 @@ public class MilkCollectionService {
             collections.setCollectionNumber(collectionNumber);
 
 
-            collections.setProductType("Milk");
+            collections.setProductType("Fresh Milk");
             String event = collections.getEvent();
 
             log.info("Price management fro route found...");
