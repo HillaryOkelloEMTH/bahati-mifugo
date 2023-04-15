@@ -37,6 +37,9 @@ public class ProductData implements Serializable {
     private Double profit = null;
 
     @Builder.Default
+    private Integer stock=null;
+
+    @Builder.Default
     private  Double discount = null;
 
     @Builder.Default

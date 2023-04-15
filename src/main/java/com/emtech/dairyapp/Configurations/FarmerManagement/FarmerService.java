@@ -9,6 +9,7 @@ import com.emtech.dairyapp.Notifications.SMS.SMSService;
 import com.emtech.dairyapp.Response.EntityResponse;
 import io.swagger.models.auth.In;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +19,8 @@ import java.util.*;
 @Service
 @Slf4j
 public class FarmerService {
-
+    @Value("${sms.enable}")
+    private boolean sms;
 
 
 
@@ -53,8 +55,8 @@ public class FarmerService {
             Integer memberNO=null;
             if (count > 0) {
                 Integer max = farmerRepo.getMaxVaue()+1;;
-                memberNO= max + 1;
-                for (int i = 0; i < 10; i++) { // loop 10 times
+                memberNO= max;
+                for (int i = 0; i < 5; i++) { // loop 10 times
                     log.info("Initial member No "+ memberNO);
                     if (farmerRepo.existsByFarmerNo(memberNO)) {
                         log.info("Member No "+ memberNO+ " already exist");
@@ -84,21 +86,22 @@ public class FarmerService {
             response.setEntity(farmer);
             response.setStatusCode(HttpStatus.CREATED.value());
             response.setMessage(HttpStatus.CREATED.getReasonPhrase());
+            if (sms) {
+                log.info("Sending sms ...");
 
-
-//            String message = "Dear " + username + ", your registration was successful. Your member number is "+farmer.getMemberCode()+ ". Welcome to Bahati Dairies";
-//            String phoneno = farmer.getMobileNo().trim();
-//            if (phoneno.startsWith("0")) {
-//                log.info("Starting with 0");
-//                phoneno = phoneno.replaceFirst("0", "254");
-//            } else if (phoneno.startsWith("+")) {
-//                log.info("Starting with +");
-//                phoneno = phoneno.substring(1, phoneno.length());
-//            } else if (phoneno.startsWith("7") || phoneno.startsWith("1")) {
-//                phoneno = "254" + phoneno;
-//            }
-//            smsService.SMSNOtification(message, phoneno);
-
+                String message = "Dear " + username + ", your registration was successful. Your member number is " + farmer.getFarmerNo() + ". Welcome to Bahati Dairies";
+                String phoneno = farmer.getMobileNo().trim();
+                if (phoneno.startsWith("0")) {
+                    log.info("Starting with 0");
+                    phoneno = phoneno.replaceFirst("0", "254");
+                } else if (phoneno.startsWith("+")) {
+                    log.info("Starting with +");
+                    phoneno = phoneno.substring(1, phoneno.length());
+                } else if (phoneno.startsWith("7") || phoneno.startsWith("1")) {
+                    phoneno = "254" + phoneno;
+                }
+                smsService.SMSNOtification(message, phoneno);
+            }
             log.info("Farmer Added");
             return response;
 
