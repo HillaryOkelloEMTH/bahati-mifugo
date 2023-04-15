@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.List;
 
 @Service
 public class ServiceAllocationService {
@@ -33,6 +34,16 @@ public class ServiceAllocationService {
             return serviceAllocation;
         }catch (Exception exc){
             LOG.error("ERROR ENCOUNTERED WHILE ALLOCATING SERVICE::: {}", exc.getLocalizedMessage());
+            return null;
+        }
+    }
+
+    public List<ServiceAllocation> fetchAllServiceAllocations() {
+        try {
+            LOG.error("FETCHING ALL SERVICE ALLOCATIONS ::: ");
+            return allocationRepository.findAll();
+        }catch (Exception exc){
+            LOG.error("ERROR ENCOUNTERED WHILE FETCHING ALL SERVICE ALLOCATIONS ::: {}", exc.getLocalizedMessage());
             return null;
         }
     }

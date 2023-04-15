@@ -11,11 +11,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Objects;
 
 @RestController
@@ -54,6 +52,31 @@ public class ServiceAllocationController {
         }else {
             response.setMessage("Service Requested is Unavailable at the moment");
             response.setStatusCode(HttpStatus.NOT_FOUND.value());
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        }
+    }
+
+    @GetMapping("fetch-all")
+    public ResponseEntity<?> fetchAllServiceAllocations(){
+
+        List<ServiceAllocation> allocations = allocationService.fetchAllServiceAllocations();
+        if (allocations.size() > 0){
+            response.setMessage(HttpStatus.OK.getReasonPhrase());
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(allocations);
+
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        }else if (allocations.size() <= 0){
+            response.setMessage("No Record Found");
+            response.setStatusCode(HttpStatus.NOT_FOUND.value());
+            response.setEntity(allocations);
+
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        }else {
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setEntity(null);
+
             return new ResponseEntity<>(response, HttpStatus.OK);
         }
     }
