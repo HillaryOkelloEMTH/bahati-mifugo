@@ -1,6 +1,7 @@
 package com.emtech.dairyapp.Dairy.servicesAllocations;
 
 
+import com.emtech.dairyapp.Configurations.servicesConfig.ServicesConfig;
 import com.emtech.dairyapp.Configurations.servicesConfig.ServicesConfigRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ServiceAllocationService {
@@ -45,6 +47,26 @@ public class ServiceAllocationService {
         }catch (Exception exc){
             LOG.error("ERROR ENCOUNTERED WHILE FETCHING ALL SERVICE ALLOCATIONS ::: {}", exc.getLocalizedMessage());
             return null;
+        }
+    }
+
+    public List<ServiceAllocation> fetchServicingStatus(String status) {
+        try {
+            LOG.error("FETCHING ALL SERVICES BY SERVICING STATUS ::: {}", status);
+            return allocationRepository.findAllByServicingStatus(status);
+        }catch (Exception exc){
+            LOG.error("ERROR ENCOUNTERED WHILE FETCHING ALL SERVICES BY SERVICING STATUS ::: {}", exc.getLocalizedMessage());
+            return null;
+        }
+    }
+
+    public Optional<ServiceAllocation> fetchServiceAllocationById(Long id) {
+        try {
+            LOG.error("FETCHING SERVICE ALLOCATION WITH ID ::: {}", id);
+            return allocationRepository.findById(id);
+        }catch (Exception exc){
+            LOG.error("ERROR ENCOUNTERED WHILE FETCHING ALLOCATION SERVICE ::: {}", exc.getLocalizedMessage());
+            return Optional.empty();
         }
     }
 }

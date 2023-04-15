@@ -56,17 +56,6 @@ public class ServicesConfigService {
         }
     }
 
-
-    public List<ServicesConfig> fetchServicingStatus(String status) {
-        try {
-            LOG.error("FETCHING ALL SERVICES BY SERVICING STATUS ::: {}", status);
-            return servicesConfigRepository.findAllByServicingStatus(status);
-        }catch (Exception exc){
-            LOG.error("ERROR ENCOUNTERED WHILE FETCHING ALL SERVICES BY SERVICING STATUS ::: {}", exc.getLocalizedMessage());
-            return null;
-        }
-    }
-
     public ServicesConfig updateService(ServicesConfig servicesConfig) {
         try {
             LOG.error("UPDATING SERVICE ::: {}", servicesConfig.toString());

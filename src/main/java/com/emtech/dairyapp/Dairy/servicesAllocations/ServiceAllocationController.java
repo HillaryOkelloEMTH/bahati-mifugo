@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("api/service-allocation")
@@ -31,7 +32,7 @@ public class ServiceAllocationController {
     private ServicesConfigRepository servicesConfigRepository;
 
     @PostMapping
-    public ResponseEntity<?> addService(@RequestBody ServiceAllocation allocation){
+    public ResponseEntity<?> addServiceAllocation(@RequestBody ServiceAllocation allocation){
 
         String status = servicesConfigRepository.findAvailabilityStatus(allocation.getServiceId());
         if (Objects.equals(status, "Available")){
@@ -76,6 +77,48 @@ public class ServiceAllocationController {
             response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
             response.setStatusCode(HttpStatus.BAD_REQUEST.value());
             response.setEntity(null);
+
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        }
+    }
+
+    @GetMapping("fetch-all/by-servicing-status")
+    public ResponseEntity<?> fetchServicingStatus(@RequestParam String status){
+        List<ServiceAllocation> services = allocationService.fetchServicingStatus(status);
+        if (services.size() > 0){
+            response.setMessage(HttpStatus.OK.getReasonPhrase());
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(services);
+
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        }else if (services.size() <= 0){
+            response.setMessage("No Record Found");
+            response.setStatusCode(HttpStatus.NOT_FOUND.value());
+            response.setEntity(services);
+
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        }else {
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setEntity(null);
+
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        }
+    }
+
+    @GetMapping("fetch/by-id")
+    public ResponseEntity<?> fetchServiceAllocationById(@RequestParam Long id){
+        Optional<ServiceAllocation> allocation = allocationService.fetchServiceAllocationById(id);
+        if (allocation.isPresent()){
+            response.setMessage(HttpStatus.OK.getReasonPhrase());
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(allocation);
+
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        }else{
+            response.setMessage("No Record Found");
+            response.setStatusCode(HttpStatus.NOT_FOUND.value());
+            response.setEntity(allocation);
 
             return new ResponseEntity<>(response, HttpStatus.OK);
         }
