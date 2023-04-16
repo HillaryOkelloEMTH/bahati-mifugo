@@ -83,6 +83,12 @@ public class FarmerController {
         EntityResponse response = farmerService.fetchFarmerByMemberNO(farmer_number);
         return ResponseEntity.ok().body(response);
     }
+    @GetMapping("farmerNumber")
+    public ResponseEntity<?> getfarmerByfarmerNumber(@RequestParam Integer farmer_number,@RequestParam Long collectorId){
+
+        EntityResponse response = farmerService.fetchFarmerByfarmerNo(farmer_number,collectorId);
+        return ResponseEntity.ok().body(response);
+    }
     @GetMapping("accruals")
     public ResponseEntity<?> getfarmerAccruedAmount(@RequestParam Long farmerId){
         EntityResponse response = farmerService.fetchFarmerAccrualAmount(farmerId);
