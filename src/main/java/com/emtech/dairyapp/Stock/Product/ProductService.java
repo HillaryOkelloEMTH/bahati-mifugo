@@ -223,6 +223,7 @@ public class ProductService {
                         .salePrice(product.getSalePrice())
                         .profit(product.getProfit())
                         .discount(product.getDiscount())
+                        .type(product.getType())
                         .discounted(product.getDiscounted())
                         .deleted(product.getDeleted())
                         .stock(product.getStock())
