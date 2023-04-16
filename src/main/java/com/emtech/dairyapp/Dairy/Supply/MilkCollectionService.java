@@ -383,6 +383,24 @@ public class MilkCollectionService {
         return response;
     }
 
+
+    public EntityResponse getFilteredCollections(Long collector, String farmerNo, String from, String to) {
+
+        EntityResponse response = new EntityResponse();
+        try {
+            List<CollectionsData> farmerrecord = milkCollectionRepo.getFilteredCollections(collector, farmerNo, from, to);
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(farmerrecord);
+            response.setMessage(HttpStatus.OK.getReasonPhrase());
+
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+        }
+        return response;
+    }
+
     public List<CollectionsData> fetchCollectorsCollectionsHistoryByDateRangeAndPaymentStatus(Long
                                                                                                       collectorId, String from, String to, Character paymentStatus) {
         try {
