@@ -28,15 +28,15 @@ public class FarmerService {
     private final SMSService smsService;
 
 
-    public static String generatecSystemCode(int len) {
-        String chars = "01234567890";
-        Random rnd = new Random();
-        String S = "S";
-        StringBuilder sb = new StringBuilder(len);
-        for (int i = 0; i < 10; i++)
-            sb.append(chars.charAt(rnd.nextInt(chars.length()))).toString();
-        return S + sb;
-    }
+//    public static String generatecSystemCode(int len) {
+//        String chars = "01234567890";
+//        Random rnd = new Random();
+//        String S = "S";
+//        StringBuilder sb = new StringBuilder(len);
+//        for (int i = 0; i < 10; i++)
+//            sb.append(chars.charAt(rnd.nextInt(chars.length()))).toString();
+//        return S + sb;
+//    }
 
     public FarmerService(FarmerRepo farmerRepo, SMSService smsService) {
         this.farmerRepo = farmerRepo;

@@ -483,6 +483,7 @@ public class UserService {
                         .email(user.getEmail())
                         .mobile(user.getMobile())
                         .status(user.getStatus())
+                        .pickUpLocation(user.getPickUpLocation())
                         .creationDate(user.getCreationDate())
                         .updateDate(user.getUpdateDate())
                         .isLoggedIn(user.getIsLoggedIn())

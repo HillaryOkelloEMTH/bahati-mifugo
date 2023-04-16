@@ -5,7 +5,7 @@ server:
 
 spring:
   datasource:
-    url: jdbc:mariadb://localhost:3306/dairydb
+    url: jdbc:mariadb://localhost:3306/bahati
     username: ibrahim
     password: kali
     driver-class-name: org.mariadb.jdbc.Driver
