@@ -215,7 +215,7 @@ public class FarmerService {
         }
     }
     public EntityResponse fetchFarmerByMemberNO(Integer memberNO) {
-        log.info("Fetching Farmers ...");
+        log.info("Fetching Farmer with Farmer No."+ memberNO );
         EntityResponse response = new EntityResponse();
         try {
             Optional<FarmerInfo> farmer = farmerRepo.findByFarmerNo(memberNO);
@@ -238,6 +238,44 @@ public class FarmerService {
             return response;
         }
     }
+    public EntityResponse fetchFarmerByfarmerNo(Integer farmerNo,Long collectorId) {
+        log.info("Fetching Farmer with Farmer No."+ farmerNo );
+        EntityResponse response = new EntityResponse();
+        try {
+
+            List<Farmer> collectorfarmers = farmerRepo.getfarmersPerCollector(collectorId);
+            log.info("Collector "+collectorId+" Farmers size "+ collectorfarmers.size());
+            boolean farmerCheck= collectorfarmers.stream().anyMatch(f-> f.getFarmerNo().equals(farmerNo));
+            if(farmerCheck) {
+
+                Optional<FarmerInfo> farmer = farmerRepo.findByFarmerNo(farmerNo);
+                if (farmer.isPresent()) {
+                    log.info("Farmers Found " + "(" + farmer.get().getUsername() + ")");
+                    response.setEntity(farmer.get());
+                    response.setStatusCode(HttpStatus.OK.value());
+                    response.setMessage(HttpStatus.FOUND.getReasonPhrase());
+                } else {
+                    log.info("Farmers Not Found " + "(" + farmer.get().getUsername() + ")");
+                    response.setEntity(farmer);
+                    response.setStatusCode(HttpStatus.OK.value());
+                    response.setMessage(HttpStatus.NO_CONTENT.getReasonPhrase());
+                }
+            }else {
+                log.info("Farmer number "+ farmerNo + " belongs to another pick up location");
+
+                response.setStatusCode(HttpStatus.NOT_ACCEPTABLE.value());
+                response.setMessage("Farmer number "+ farmerNo + " belongs to another pick up location");
+
+            }
+            return response;
+        } catch (Exception e) {
+            log.error("Error: " + e.getLocalizedMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+            return response;
+        }
+    }
+
     public EntityResponse fetchFarmersByward(Long wardId) {
         log.info("Fetching Farmers ...");
         EntityResponse response = new EntityResponse();
@@ -312,6 +350,7 @@ public class FarmerService {
         EntityResponse response = new EntityResponse();
         try {
             List<Farmer> farmer = farmerRepo.getfarmersPerCollector(collectorId);
+
             if(farmer.size()>0) {
                 response.setEntity(farmer);
                 response.setStatusCode(HttpStatus.OK.value());
