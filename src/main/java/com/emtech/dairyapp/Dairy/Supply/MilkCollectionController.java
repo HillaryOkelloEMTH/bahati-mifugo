@@ -73,6 +73,16 @@ public class MilkCollectionController {
         return ResponseEntity.ok().body(response);
     }
 
+    @GetMapping("filtered-collections/date")
+    public ResponseEntity<EntityResponse> getFilteredCollections(@RequestParam Long collectorId, @RequestParam(required = false) String farmerNo, @RequestParam String from , @RequestParam String to ){
+        if (farmerNo.isEmpty()){
+            farmerNo = "%%";
+        }
+
+        EntityResponse response = collectionService.getFilteredCollections(collectorId, farmerNo, from,to);
+        return ResponseEntity.ok().body(response);
+    }
+
     @GetMapping("fetch-by/collectorId/date-range/payment-status")
     public ResponseEntity<?> fetchCollectorsCollectionsHistoryByDateRangeAndPaymentStatus(@RequestParam Long collectorId, @RequestParam String from , @RequestParam String to, @RequestParam Character paymentStatus ){
         List<CollectionsData> collectionsData = collectionService.fetchCollectorsCollectionsHistoryByDateRangeAndPaymentStatus(collectorId, from, to, paymentStatus);
