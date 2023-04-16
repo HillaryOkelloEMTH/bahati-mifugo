@@ -11,6 +11,7 @@ public interface CollectionsData {
     Double getQuantity();
     Date getCollection_date();
     String getWard();
+    String getSession();
     String getPickUpLocation();
 
     Long getId();

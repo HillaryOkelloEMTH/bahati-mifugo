@@ -225,6 +225,7 @@ public class ProductService {
                         .discount(product.getDiscount())
                         .discounted(product.getDiscounted())
                         .deleted(product.getDeleted())
+                        .stock(product.getStock())
                         .creationDate(product.getCreationDate())
                         .updateDate(product.getUpdateDate())
                         .build();
