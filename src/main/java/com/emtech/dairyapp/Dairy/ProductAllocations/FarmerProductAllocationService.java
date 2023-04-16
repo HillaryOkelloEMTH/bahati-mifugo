@@ -57,18 +57,17 @@ public class FarmerProductAllocationService {
                         response.setMessage("Milk Collection income amount is too low");
                         return response;
                     }
-
-
-
-
                     allocation.setProductPrice(salesPrice);
                     allocation.setAmount(amount);
                     allocation.setAllocatioDate(new Date());
                    farmerProdAllocattionsRepo.save(allocation);
                     log.info("Saving Farmer Product Allocations ...");
-                    p_quantity = (int) (p_quantity-allocation.getQuantity());
-                    product.setStock(p_quantity);
-                    productRepository.save(product);
+                    if(product.getType().equalsIgnoreCase("Good")) {
+                        p_quantity = (int) (p_quantity - allocation.getQuantity());
+                        product.setStock(p_quantity);
+                        productRepository.save(product);
+
+                    }
                     response.setEntity(allocation);
                     response.setStatusCode(HttpStatus.CREATED.value());
                     response.setMessage(HttpStatus.CREATED.getReasonPhrase());
