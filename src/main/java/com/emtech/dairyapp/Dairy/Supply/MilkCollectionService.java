@@ -556,7 +556,29 @@ public class MilkCollectionService {
         }
         return response;
     }
+    public EntityResponse getCollectionByRoute(Long routeId) {
 
+        EntityResponse response = new EntityResponse();
+        try {
+
+            List<CollectionsData> collections = milkCollectionRepo.getCollectionsbyRoute(routeId);
+            if(collections.size()>0){
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setEntity(collections);
+                response.setMessage(HttpStatus.OK.getReasonPhrase());
+            }else {
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                response.setEntity(collections);
+                response.setMessage(HttpStatus.NOT_FOUND.getReasonPhrase());
+            }
+
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+        }
+        return response;
+    }
     public EntityResponse getCollectionByColector(Long collectorId) {
 
         EntityResponse response = new EntityResponse();

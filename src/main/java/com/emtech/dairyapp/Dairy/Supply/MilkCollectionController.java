@@ -176,6 +176,11 @@ public class MilkCollectionController {
         EntityResponse response = collectionService.getCollectionByPickUpLocation(pickUpLocation);
         return ResponseEntity.ok().body(response);
     }
+    @GetMapping("route")
+    public ResponseEntity<?> getCollectorbyRoute(@RequestParam Long routeId){
+        EntityResponse response = collectionService.getCollectionByRoute(routeId);
+        return ResponseEntity.ok().body(response);
+    }
     @GetMapping("pickuplocations/date")
     public ResponseEntity<?> getCollectorbyPickUpLocationsAndDate(@RequestParam  Long pickUpLocation,@RequestParam String date){
         EntityResponse response = collectionService.getCollectionByPickUpCollationsAndDate(pickUpLocation,date);
