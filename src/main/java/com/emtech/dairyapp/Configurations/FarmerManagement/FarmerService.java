@@ -242,30 +242,36 @@ public class FarmerService {
         log.info("Fetching Farmer with Farmer No."+ farmerNo );
         EntityResponse response = new EntityResponse();
         try {
+            boolean farmerexist= farmerRepo.existsByFarmerNo(farmerNo);
+            if(farmerexist) {
 
-            List<Farmer> collectorfarmers = farmerRepo.getfarmersPerCollector(collectorId);
-            log.info("Collector "+collectorId+" Farmers size "+ collectorfarmers.size());
-            boolean farmerCheck= collectorfarmers.stream().anyMatch(f-> f.getFarmerNo().equals(farmerNo));
-            if(farmerCheck) {
+                List<Farmer> collectorfarmers = farmerRepo.getfarmersPerCollector(collectorId);
+                log.info("Collector " + collectorId + " Farmers size " + collectorfarmers.size());
+                boolean farmerCheck = collectorfarmers.stream().anyMatch(f -> f.getFarmerNo().equals(farmerNo));
+                if (farmerCheck) {
 
-                Optional<FarmerInfo> farmer = farmerRepo.findByFarmerNo(farmerNo);
-                if (farmer.isPresent()) {
-                    log.info("Farmers Found " + "(" + farmer.get().getUsername() + ")");
-                    response.setEntity(farmer.get());
-                    response.setStatusCode(HttpStatus.OK.value());
-                    response.setMessage(HttpStatus.FOUND.getReasonPhrase());
+                    Optional<FarmerInfo> farmer = farmerRepo.findByFarmerNo(farmerNo);
+                    if (farmer.isPresent()) {
+                        log.info("Farmers Found " + "(" + farmer.get().getUsername() + ")");
+                        response.setEntity(farmer.get());
+                        response.setStatusCode(HttpStatus.OK.value());
+                        response.setMessage(HttpStatus.FOUND.getReasonPhrase());
+                    } else {
+                        log.info("Farmers Not Found " + "(" + farmer.get().getUsername() + ")");
+                        response.setEntity(farmer);
+                        response.setStatusCode(HttpStatus.OK.value());
+                        response.setMessage(HttpStatus.NO_CONTENT.getReasonPhrase());
+                    }
                 } else {
-                    log.info("Farmers Not Found " + "(" + farmer.get().getUsername() + ")");
-                    response.setEntity(farmer);
-                    response.setStatusCode(HttpStatus.OK.value());
-                    response.setMessage(HttpStatus.NO_CONTENT.getReasonPhrase());
+                    log.info("Farmer number " + farmerNo + " belongs to another pick up location");
+
+                    response.setStatusCode(HttpStatus.NOT_ACCEPTABLE.value());
+                    response.setMessage("Farmer number " + farmerNo + " belongs to another pick up location");
+
                 }
             }else {
-                log.info("Farmer number "+ farmerNo + " belongs to another pick up location");
-
-                response.setStatusCode(HttpStatus.NOT_ACCEPTABLE.value());
-                response.setMessage("Farmer number "+ farmerNo + " belongs to another pick up location");
-
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                response.setMessage("Farmer number " + farmerNo + " does not exist");
             }
             return response;
         } catch (Exception e) {
