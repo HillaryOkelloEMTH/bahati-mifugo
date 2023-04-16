@@ -31,6 +31,7 @@ public class ServiceAllocationService {
             allocation.setAmount(amount);
             allocation.setRequestedOn(new Date());
             allocation.setPaymentStatus("N");
+            allocation.setServicingStatus("Pending");
             ServiceAllocation serviceAllocation = allocationRepository.save(allocation);
 
             return serviceAllocation;

@@ -1,6 +1,9 @@
 package com.emtech.dairyapp.Dairy.servicesAllocations;
 
 
+import com.emtech.dairyapp.Configurations.FarmerManagement.Farmer;
+import com.emtech.dairyapp.Configurations.FarmerManagement.FarmerRepo;
+import com.emtech.dairyapp.Configurations.Interfaces.FarmerInfo;
 import com.emtech.dairyapp.Configurations.servicesConfig.ServicesConfig;
 import com.emtech.dairyapp.Configurations.servicesConfig.ServicesConfigController;
 import com.emtech.dairyapp.Configurations.servicesConfig.ServicesConfigRepository;
@@ -31,25 +34,37 @@ public class ServiceAllocationController {
     @Autowired
     private ServicesConfigRepository servicesConfigRepository;
 
+    @Autowired
+    private FarmerRepo farmerRepo;
+
     @PostMapping
     public ResponseEntity<?> addServiceAllocation(@RequestBody ServiceAllocation allocation){
 
         String status = servicesConfigRepository.findAvailabilityStatus(allocation.getServiceId());
+
         if (Objects.equals(status, "Available")){
-            ServiceAllocation service = allocationService.addService(allocation);
-            if (service != null){
-                response.setMessage(HttpStatus.CREATED.getReasonPhrase());
-                response.setStatusCode(HttpStatus.CREATED.value());
-                response.setEntity(service);
+            Optional<FarmerInfo> farmer = farmerRepo.findByFarmerNo(allocation.getFarmerno());
+            if (farmer.isPresent()){
+                ServiceAllocation service = allocationService.addService(allocation);
+                if (service != null){
+                    response.setMessage(HttpStatus.CREATED.getReasonPhrase());
+                    response.setStatusCode(HttpStatus.CREATED.value());
+                    response.setEntity(service);
 
-                return new ResponseEntity<>(response, HttpStatus.CREATED);
+                    return new ResponseEntity<>(response, HttpStatus.CREATED);
+                }else {
+                    response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+                    response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+                    response.setEntity(service);
+
+                    return new ResponseEntity<>(response, HttpStatus.OK);
+                }
             }else {
-                response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
-                response.setStatusCode(HttpStatus.BAD_REQUEST.value());
-                response.setEntity(service);
-
+                response.setMessage("Farmer with number " + allocation.getFarmerno() +" does not exist");
+                response.setStatusCode(HttpStatus.NOT_ACCEPTABLE.value());
                 return new ResponseEntity<>(response, HttpStatus.OK);
             }
+
         }else {
             response.setMessage("Service Requested is Unavailable at the moment");
             response.setStatusCode(HttpStatus.NOT_FOUND.value());
