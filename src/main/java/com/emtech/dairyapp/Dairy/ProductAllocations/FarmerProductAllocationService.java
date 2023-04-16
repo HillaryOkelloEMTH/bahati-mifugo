@@ -45,11 +45,17 @@ public class FarmerProductAllocationService {
                 Optional<Product> p = productRepository.findById(allocation.getProductId());
                 if (p.isPresent()) {
                     Product product = p.get();
+
                     p_quantity=product.getStock();
                     MilkCollectionRepo.Totals ut = milkCollectionRepo.getTotalUnPaidAmount(f.get().getFarmer_no());
                     Double unpaid= ut.getCollectionAmount();
                     salesPrice = product.getSalePrice();
-                    amount = product.getSalePrice() * allocation.getQuantity();
+                    if(product.getType().equalsIgnoreCase("Good")){
+                        amount = product.getSalePrice() * allocation.getQuantity();
+                    }else if(product.getType().equalsIgnoreCase("Service")){
+                        amount = product.getSalePrice();
+                    }
+
 
                     if(amount>unpaid){
 
