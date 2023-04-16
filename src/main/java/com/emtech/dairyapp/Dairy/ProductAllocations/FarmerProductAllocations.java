@@ -27,7 +27,11 @@ public class FarmerProductAllocations {
     private Date allocatioDate;
     private String allocatedBY;
     private Double quantity;
+    private String type;//Good/Service
     private Double amount;
+    private Date heatStartDate;
+    private Integer noOfCows;
+    private Character status=CONSTANTS.NO;
     private Double productPrice;
     private Character revokeStatus=CONSTANTS.NO;
     private Character paymentStatus= CONSTANTS.NO;

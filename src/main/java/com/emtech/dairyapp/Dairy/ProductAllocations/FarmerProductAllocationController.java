@@ -45,6 +45,11 @@ public class FarmerProductAllocationController {
         EntityResponse response = service.fetchFarmerAllocationsByPaymentStatus(farmerNo,paymentStatus);
         return ResponseEntity.ok().body(response);
     }
+    @GetMapping("type")
+    public ResponseEntity<EntityResponse> getFarmerAllocationsPertype(@RequestParam String type){
+        EntityResponse response = service.fetchFarmerProductAllocationsPerType(type);
+        return ResponseEntity.ok().body(response);
+    }
     @PutMapping("update")
     public ResponseEntity<EntityResponse> updateFarmerProductAllocations(@RequestBody FarmerProductAllocations allocations){
         EntityResponse response = service.updateFarmerProductAllocations(allocations);

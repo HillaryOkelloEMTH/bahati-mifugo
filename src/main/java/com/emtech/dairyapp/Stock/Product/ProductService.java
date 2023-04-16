@@ -34,7 +34,7 @@ public class ProductService {
     @Autowired
     private CategoryRepo categoryRepo;
 
-    public StockEntitiesResponse createProduct(@NonNull String name, @NonNull String description, @NonNull Double price, @NonNull Double salePrice, @NonNull Integer stock, @NonNull Long categoryId){
+    public StockEntitiesResponse createProduct(@NonNull String name, @NonNull String description, @NonNull Double price, @NonNull Double salePrice,Integer stock, @NonNull Long categoryId){
         AtomicReference<StockEntitiesResponse> response = new AtomicReference<>();
 
         this.categoryRepo.findById(categoryId).ifPresentOrElse(category -> {
@@ -223,6 +223,7 @@ public class ProductService {
                         .salePrice(product.getSalePrice())
                         .profit(product.getProfit())
                         .discount(product.getDiscount())
+                        .type(product.getType())
                         .discounted(product.getDiscounted())
                         .deleted(product.getDeleted())
                         .stock(product.getStock())

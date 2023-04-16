@@ -45,11 +45,17 @@ public class FarmerProductAllocationService {
                 Optional<Product> p = productRepository.findById(allocation.getProductId());
                 if (p.isPresent()) {
                     Product product = p.get();
+
                     p_quantity=product.getStock();
                     MilkCollectionRepo.Totals ut = milkCollectionRepo.getTotalUnPaidAmount(f.get().getFarmer_no());
                     Double unpaid= ut.getCollectionAmount();
                     salesPrice = product.getSalePrice();
-                    amount = product.getSalePrice() * allocation.getQuantity();
+                    if(product.getType().equalsIgnoreCase("Good")){
+                        amount = product.getSalePrice() * allocation.getQuantity();
+                    }else if(product.getType().equalsIgnoreCase("Service")){
+                        amount = product.getSalePrice();
+                    }
+
 
                     if(amount>unpaid){
 
@@ -57,18 +63,17 @@ public class FarmerProductAllocationService {
                         response.setMessage("Milk Collection income amount is too low");
                         return response;
                     }
-
-
-
-
                     allocation.setProductPrice(salesPrice);
                     allocation.setAmount(amount);
                     allocation.setAllocatioDate(new Date());
                    farmerProdAllocattionsRepo.save(allocation);
                     log.info("Saving Farmer Product Allocations ...");
-                    p_quantity = (int) (p_quantity-allocation.getQuantity());
-                    product.setStock(p_quantity);
-                    productRepository.save(product);
+                    if(product.getType().equalsIgnoreCase("Good")) {
+                        p_quantity = (int) (p_quantity - allocation.getQuantity());
+                        product.setStock(p_quantity);
+                        productRepository.save(product);
+
+                    }
                     response.setEntity(allocation);
                     response.setStatusCode(HttpStatus.CREATED.value());
                     response.setMessage(HttpStatus.CREATED.getReasonPhrase());
@@ -100,6 +105,30 @@ public class FarmerProductAllocationService {
         EntityResponse response = new EntityResponse();
         try {
             List<Allocations> FarmerProductAllocationss = farmerProdAllocattionsRepo.getAllocations(CONSTANTS.NO);
+            if (FarmerProductAllocationss.size() > 0) {
+                log.info("FarmerProductAllocationss Found " + "(" + FarmerProductAllocationss.size() + ")");
+                response.setEntity(FarmerProductAllocationss);
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setMessage(HttpStatus.FOUND.getReasonPhrase());
+            } else {
+                log.info("FarmerProductAllocationss Not Found " + "(" + FarmerProductAllocationss.size() + ")");
+                response.setEntity(FarmerProductAllocationss);
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setMessage(HttpStatus.NO_CONTENT.getReasonPhrase());
+            }
+            return response;
+        } catch (Exception e) {
+            log.error("Error: " + e.getLocalizedMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+            return response;
+        }
+    }
+    public EntityResponse fetchFarmerProductAllocationsPerType(String type) {
+        log.info("Fetching FarmerProductAllocationss ...");
+        EntityResponse response = new EntityResponse();
+        try {
+            List<Allocations> FarmerProductAllocationss = farmerProdAllocattionsRepo.getAllocationsPerType(type);
             if (FarmerProductAllocationss.size() > 0) {
                 log.info("FarmerProductAllocationss Found " + "(" + FarmerProductAllocationss.size() + ")");
                 response.setEntity(FarmerProductAllocationss);

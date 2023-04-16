@@ -39,6 +39,9 @@ public class Product implements Serializable {
     @Column(name = "stock")
     private Integer stock;
 
+    @Column(name = "type")
+    private String type;
+
     @Column(name = "sale_price")
     private Double salePrice;
 
