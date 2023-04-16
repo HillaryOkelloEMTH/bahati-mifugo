@@ -118,6 +118,30 @@ public class FarmerProductAllocationService {
             return response;
         }
     }
+    public EntityResponse fetchFarmerProductAllocationsPerType(String type) {
+        log.info("Fetching FarmerProductAllocationss ...");
+        EntityResponse response = new EntityResponse();
+        try {
+            List<Allocations> FarmerProductAllocationss = farmerProdAllocattionsRepo.getAllocationsPerType(type);
+            if (FarmerProductAllocationss.size() > 0) {
+                log.info("FarmerProductAllocationss Found " + "(" + FarmerProductAllocationss.size() + ")");
+                response.setEntity(FarmerProductAllocationss);
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setMessage(HttpStatus.FOUND.getReasonPhrase());
+            } else {
+                log.info("FarmerProductAllocationss Not Found " + "(" + FarmerProductAllocationss.size() + ")");
+                response.setEntity(FarmerProductAllocationss);
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setMessage(HttpStatus.NO_CONTENT.getReasonPhrase());
+            }
+            return response;
+        } catch (Exception e) {
+            log.error("Error: " + e.getLocalizedMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+            return response;
+        }
+    }
 
     public EntityResponse fetchFarmerAllocations(Integer farmerNo) {
         log.info("Fetching FarmerProductAllocationss ...");
