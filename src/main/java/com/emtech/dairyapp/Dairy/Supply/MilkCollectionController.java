@@ -74,12 +74,15 @@ public class MilkCollectionController {
     }
 
     @GetMapping("filtered-collections/date")
-    public ResponseEntity<EntityResponse> getFilteredCollections(@RequestParam Long collectorId, @RequestParam(required = false) String farmerNo, @RequestParam String from , @RequestParam String to ){
+    public ResponseEntity<EntityResponse> getFilteredCollections(@RequestParam Long collectorId, @RequestParam(required = false) String farmerNo, @RequestParam(required = false) String session, @RequestParam String from , @RequestParam String to ){
         if (farmerNo.isEmpty()){
             farmerNo = "%%";
         }
+        if (session.isEmpty()){
+            session = "%%";
+        }
 
-        EntityResponse response = collectionService.getFilteredCollections(collectorId, farmerNo, from,to);
+        EntityResponse response = collectionService.getFilteredCollections(collectorId, farmerNo, session, from,to);
         return ResponseEntity.ok().body(response);
     }
 

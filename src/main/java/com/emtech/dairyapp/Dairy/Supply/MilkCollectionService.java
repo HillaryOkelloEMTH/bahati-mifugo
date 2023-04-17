@@ -384,11 +384,11 @@ public class MilkCollectionService {
     }
 
 
-    public EntityResponse getFilteredCollections(Long collector, String farmerNo, String from, String to) {
+    public EntityResponse getFilteredCollections(Long collector, String farmerNo, String session, String from, String to) {
 
         EntityResponse response = new EntityResponse();
         try {
-            List<CollectionsData> farmerrecord = milkCollectionRepo.getFilteredCollections(collector, farmerNo, from, to);
+            List<CollectionsData> farmerrecord = milkCollectionRepo.getFilteredCollections(collector, farmerNo, session, from, to);
             response.setStatusCode(HttpStatus.OK.value());
             response.setEntity(farmerrecord);
             response.setMessage(HttpStatus.OK.getReasonPhrase());
