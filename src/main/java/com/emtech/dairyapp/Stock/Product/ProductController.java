@@ -99,8 +99,11 @@ public class ProductController {
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public Mono<ResponseEntity<ProductsResponse>> findAllProducts(){
-        ProductsResponse response = this.productService.findAllProducts();
+    public Mono<ResponseEntity<ProductsResponse>> findAllProducts(@RequestParam(required = false) String type){
+        if (type.isEmpty() || type.isBlank() || type == null){
+            type = "";
+        }
+        ProductsResponse response = this.productService.findAllProducts(type);
 
         return Mono.just(ResponseEntity.ok().body(response));
     }
