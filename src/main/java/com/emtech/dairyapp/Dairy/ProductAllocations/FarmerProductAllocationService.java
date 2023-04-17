@@ -124,6 +124,38 @@ public class FarmerProductAllocationService {
             return response;
         }
     }
+    public EntityResponse updateStatus(Long id,String status) {
+        log.info("verify  FarmerProductAllocationss ...");
+        EntityResponse response = new EntityResponse();
+        try {
+            Optional<FarmerProductAllocations> FarmerProductAllocationss = farmerProdAllocattionsRepo.findById(id);
+            if (FarmerProductAllocationss.isPresent()) {
+
+                FarmerProductAllocations f= FarmerProductAllocationss.get();
+                if(status.equalsIgnoreCase("Approved")){
+                    f.setStatus(CONSTANTS.YES);
+                }else if (status.equalsIgnoreCase("Rejected")){
+                    f.setStatus(CONSTANTS.NO);
+                }
+                farmerProdAllocattionsRepo.save(f);
+                response.setEntity(FarmerProductAllocationss);
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setMessage(HttpStatus.FOUND.getReasonPhrase());
+            } else {
+                log.info("FarmerProductAllocationss Not Found");
+                response.setEntity(FarmerProductAllocationss);
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setMessage(HttpStatus.NO_CONTENT.getReasonPhrase());
+            }
+            return response;
+        } catch (Exception e) {
+            log.error("Error: " + e.getLocalizedMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+            return response;
+        }
+    }
+
     public EntityResponse fetchFarmerProductAllocationsPerType(String type) {
         log.info("Fetching FarmerProductAllocationss ...");
         EntityResponse response = new EntityResponse();
