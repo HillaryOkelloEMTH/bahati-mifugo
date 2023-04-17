@@ -207,10 +207,10 @@ public class ProductService {
         return response.get();
     }
 
-    public ProductsResponse findAllProducts(){
+    public ProductsResponse findAllProducts(String type){
         AtomicReference<ProductsResponse> response = new AtomicReference<>();
 
-        List<Product> products = this.productRepository.findAll();
+        List<Product> products = this.productRepository.findAllByType(type);
 
         List<ProductData> productsData = new ArrayList<>();
 
