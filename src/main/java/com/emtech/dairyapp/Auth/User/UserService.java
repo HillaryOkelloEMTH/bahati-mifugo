@@ -532,6 +532,7 @@ public class UserService {
                     .firstName(user.getFirstName())
                     .lastName(user.getLastName())
                     .email(user.getEmail())
+                    .pickUpLocation(user.getPickUpLocation())
                     .mobile(user.getMobile())
                     .status(user.getStatus())
                     .creationDate(user.getCreationDate())
