@@ -78,7 +78,7 @@ public class MilkCollectionController {
         if (farmerNo.isEmpty()){
             farmerNo = "%%";
         }
-        if (session.isEmpty()){
+        if (session.isEmpty() || session.equalsIgnoreCase("All Sessions")){
             session = "%%";
         }
 
