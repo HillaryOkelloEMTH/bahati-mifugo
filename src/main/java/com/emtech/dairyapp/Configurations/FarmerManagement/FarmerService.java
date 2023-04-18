@@ -86,7 +86,7 @@ public class FarmerService {
             response.setEntity(farmer);
             response.setStatusCode(HttpStatus.CREATED.value());
             response.setMessage(HttpStatus.CREATED.getReasonPhrase());
-            if (sms) {
+//            if (sms) {
                 log.info("Sending sms ...");
 
                 String message = "Dear " + username + ", your registration was successful. Your member number is " + farmer.getFarmerNo() + ". Welcome to Bahati Dairies";
@@ -101,7 +101,7 @@ public class FarmerService {
                     phoneno = "254" + phoneno;
                 }
                 smsService.SMSNOtification(message, phoneno);
-            }
+//            }
             log.info("Farmer Added");
             return response;
 

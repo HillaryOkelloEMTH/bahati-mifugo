@@ -157,7 +157,7 @@ public class MilkCollectionService {
                 response.setMessage(HttpStatus.CREATED.getReasonPhrase());
 
                 //send sms
-                if (sms) {
+//                if (sms) {
                     log.info("Sending sms ...");
                                 String message = "Dear " + username + ", we have received your " + collections.getQuantity() + " of milk" +
                                         " collections for " + collections.getSession() + " at " + collections.getCollectionDate() + ".";
@@ -172,7 +172,7 @@ public class MilkCollectionService {
                                     phoneno = "254" + phoneno;
                                 }
                                 smsservice.SMSNOtification(message, phoneno);
-                }
+//                }
             }
 
 

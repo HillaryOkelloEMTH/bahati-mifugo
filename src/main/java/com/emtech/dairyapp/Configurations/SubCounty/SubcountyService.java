@@ -74,8 +74,6 @@ public class SubcountyService {
         EntityResponse response = new EntityResponse<>();
         try {
 
-
-
             List<com.emtech.dairyapp.Configurations.Interfaces.Subcounty> all = subcountyRepo.selectAll();
 
             if(all.size()>0){
@@ -105,6 +103,8 @@ public class SubcountyService {
     public EntityResponse update(Subcounty subcounty) {
         EntityResponse response = new EntityResponse<>();
         try {
+
+
             Subcounty data = subcountyRepo.save(subcounty);
             response.setStatusCode(HttpStatus.OK.value());
             response.setEntity(data);
