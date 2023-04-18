@@ -115,10 +115,31 @@ public class PickUpLocationService {
     }
 
 
-    public EntityResponse update(PickUpLocations PickUpLocations) {
+    public EntityResponse update(PickUpLocations pickUpLocations) {
         EntityResponse response = new EntityResponse<>();
         try {
-            PickUpLocations data = pickUpLocationsRepo.save(PickUpLocations);
+
+            List<Collector> collectors= pickUpLocations.getCollectors();
+            List<String> usernames=collectors.stream()
+                    .map(collector -> collector.getUsername())
+                    .collect(Collectors.toList());
+
+            long distinctCount = usernames.stream()
+                    .distinct()
+                    .count();
+            boolean hasDuplicates = distinctCount != collectors.size();
+            if(hasDuplicates){
+                response.setStatusCode(HttpStatus.NOT_ACCEPTABLE.value());
+                response.setEntity(usernames);
+                response.setMessage("The Collectors Contains Duplicates");
+                return  response;
+            }
+            PickUpLocations data = pickUpLocationsRepo.save(pickUpLocations);
+
+            for (Collector c:collectors ) {
+                pickUpLocationsRepo.updateCollectorInformation(data.getName(),c.getUsername());
+            }
+
             response.setStatusCode(HttpStatus.OK.value());
             response.setEntity(data);
             response.setMessage(HttpStatus.OK.getReasonPhrase());
