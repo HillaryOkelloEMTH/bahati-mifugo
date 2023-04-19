@@ -99,11 +99,19 @@ public class ProductController {
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public Mono<ResponseEntity<ProductsResponse>> findAllProducts(@RequestParam(required = false) String type){
-        if (type.isEmpty() || type.isBlank() || type == null){
-            type = "";
-        }
-        ProductsResponse response = this.productService.findAllProducts(type);
+    public Mono<ResponseEntity<ProductsResponse>> findAllProducts(){
+        ProductsResponse response = this.productService.findAllProducts();
+
+        return Mono.just(ResponseEntity.ok().body(response));
+    }
+
+    @RequestMapping(
+            path = "/all/type",
+            method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public Mono<ResponseEntity<ProductsResponse>> findAllProductByType(String type){
+        ProductsResponse response = this.productService.findAllProductByType(type);
 
         return Mono.just(ResponseEntity.ok().body(response));
     }

@@ -207,7 +207,43 @@ public class ProductService {
         return response.get();
     }
 
-    public ProductsResponse findAllProducts(String type){
+    public ProductsResponse findAllProducts(){
+        AtomicReference<ProductsResponse> response = new AtomicReference<>();
+
+        List<Product> products = this.productRepository.findAll();
+
+        List<ProductData> productsData = new ArrayList<>();
+
+        if(!products.isEmpty()){
+            products.forEach(product -> {
+                ProductData productData = ProductData.builder()
+                        .id(product.getId())
+                        .name(product.getName())
+                        .description(product.getDescription())
+                        .price(product.getPrice())
+                        .salePrice(product.getSalePrice())
+                        .profit(product.getProfit())
+                        .discount(product.getDiscount())
+                        .type(product.getType())
+                        .discounted(product.getDiscounted())
+                        .deleted(product.getDeleted())
+                        .stock(product.getStock())
+                        .creationDate(product.getCreationDate())
+                        .updateDate(product.getUpdateDate())
+                        .build();
+
+                productsData.add(productData);
+            });
+
+            response.set(ProductsResponse.builder().productData(productsData).statusCode(HttpStatus.OK.value()).build());
+        }else {
+            log.log(Level.INFO, "Products not found ");
+        }
+
+        return response.get();
+    }
+
+    public ProductsResponse findAllProductByType(String type){
         AtomicReference<ProductsResponse> response = new AtomicReference<>();
 
         List<Product> products = this.productRepository.findAllByType(type);
