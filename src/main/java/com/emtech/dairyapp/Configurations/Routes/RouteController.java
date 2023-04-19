@@ -29,6 +29,11 @@ public class RouteController {
         EntityResponse response = routeService.fetchRoute();
         return ResponseEntity.ok().body(response);
     }
+    @GetMapping("colector")
+    public ResponseEntity<EntityResponse> getColelctorRoutes(@RequestParam Long collectorId){
+        EntityResponse response = routeService.fetchCollectorRoutes(collectorId);
+        return ResponseEntity.ok().body(response);
+    }
     @PutMapping("update")
     public ResponseEntity<EntityResponse> updateroute(@RequestBody Route route){
         EntityResponse response = routeService.updateRoute(route);
