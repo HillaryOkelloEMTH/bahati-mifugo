@@ -330,7 +330,7 @@ public class MilkCollectionService {
         return response;
     }
     
-    public EntityResponse filterTodaysCollections(Long collectorId, String date, Long farmerNo, String session) {
+    public EntityResponse filterTodaysCollections(Long collectorId, String date, String farmerNo, String session) {
 
         EntityResponse response = new EntityResponse();
         try {

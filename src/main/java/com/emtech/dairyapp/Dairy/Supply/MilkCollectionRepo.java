@@ -25,7 +25,7 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
 
 
     @Query(value = "SELECT f.first_name ,f.last_name ,f.farmer_no,c.id, c.session, c.collection_number as collectionCode,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer ,c.amount,c.quantity,c.collection_date,r.route as route from collections c join users u on c.collector_id =u.id join farmer f on f.farmer_no=c.farmer_no join route r on r.id=c.route_fk  where c.collector_id =:collectorId and c.session like :session and c.farmer_no = :farmerNo and c.event= 'Collection' and DATE(c.collection_date)= :date order by c.collection_date", nativeQuery = true)
-    List<CollectionsData> filterTodaysCollections(Long collectorId, String date, Long farmerNo, String session);
+    List<CollectionsData> filterTodaysCollections(Long collectorId, String date, String farmerNo, String session);
 
     @Query(value = "SELECT f.first_name ,f.last_name ,f.farmer_no,c.id, c.session, c.collection_number as collectionCode,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer ,c.amount,c.quantity,c.collection_date,r.route as route from collections c join users u on c.collector_id =u.id join farmer f on f.farmer_no=c.farmer_no join route r on r.id=c.route_fk  where c.collector_id =:collectorId and c.session = :session  and c.event= 'Collection' and DATE(c.collection_date)= :date order by c.collection_date", nativeQuery = true)
     List<CollectionsData> filterTodaysCollectionsBySession(Long collectorId, String date, String session);
