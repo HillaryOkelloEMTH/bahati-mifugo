@@ -58,11 +58,11 @@ public class MilkCollectionController {
 
     @GetMapping("collector/farmer-no/date")
     public ResponseEntity<EntityResponse> filterTodaysCollections(@RequestParam Long collectorId, @RequestParam String date, @RequestParam(required = false) String farmerNo, @RequestParam(required = false) String session){
-        if (farmerNo == null){
+        if (farmerNo == null || farmerNo.isEmpty()){
             EntityResponse response = collectionService.filterTodaysCollectionsBySession(collectorId, date, session);
             return ResponseEntity.ok().body(response);
         }else {
-            if (session.isEmpty() || session == null){
+            if (session == null || session.isEmpty()){
                 session = "%%";
             }
 
