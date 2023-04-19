@@ -14,6 +14,7 @@ import com.emtech.dairyapp.Auth.Utilities.JWTUtil;
 import com.emtech.dairyapp.Auth.Utilities.PasswordUtil;
 import com.emtech.dairyapp.Auth.Utilities.SendCredentialToMail;
 import com.emtech.dairyapp.Auth.Utilities.ToolKit;
+import com.emtech.dairyapp.Response.EntityResponse;
 import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -59,7 +60,7 @@ public class UserService {
     @Value("${jwt.password.token.expirationMs}")
     private String resetPasswordTokenExpiration;
 
-
+    EntityResponse res= new EntityResponse<>();
 
     public List<Role> validateUser(@NonNull String username) {
         List<Role> roles = new ArrayList<>();
@@ -135,12 +136,14 @@ public class UserService {
 
                                 log.log(Level.INFO, String.format("User Email [ %s ]", user.get().getEmail()));
 
-                                sm.sendMail(user.get().getEmail(), user.get().getUsername(), userPassword);
+                                 res= sm.sendMail(user.get().getEmail(), user.get().getUsername(), userPassword);
 
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
-                            response.set(RecordCreateResponse.builder().message("User created successfully !").statusCode(HttpStatus.CREATED.value()).build());
+                            if(res.getStatusCode()==200) {
+                                response.set(RecordCreateResponse.builder().message("User created successfully !").statusCode(HttpStatus.CREATED.value()).build());
+                            }
                         }else {
                             log.log(Level.SEVERE, String.format("Selected role with the id %s is not active !", roleId));
 
