@@ -47,6 +47,7 @@ public class MilkCollections {
     private Long routeFk;
     private  Character status= CONSTANTS.NO;
     private  Character updatedStatus= CONSTANTS.NO;
+    private  Date updatedDate;
     private Character paymentStatus=CONSTANTS.NO;
 
 

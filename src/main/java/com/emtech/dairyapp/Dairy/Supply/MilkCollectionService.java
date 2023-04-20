@@ -9,6 +9,7 @@ import com.emtech.dairyapp.Configurations.ProductPriceConfiguration.ProductConfi
 import com.emtech.dairyapp.Configurations.ProductPriceConfiguration.ProductConfigRepo;
 import com.emtech.dairyapp.Configurations.Routes.Route;
 import com.emtech.dairyapp.Configurations.Routes.RouteRepo;
+import com.emtech.dairyapp.Configurations.Utils.CONSTANTS;
 import com.emtech.dairyapp.Dairy.FloatTracking.FloatManager;
 import com.emtech.dairyapp.Dairy.FloatTracking.FloatManagerRepo;
 import com.emtech.dairyapp.Dairy.Interface.*;
@@ -20,6 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -229,6 +231,8 @@ public class MilkCollectionService {
                         log.info("total amount " + totalAmount);
                         collections.setAmount(totalAmount);
                         collections.setCurrentPrice(buyingPrice);
+                        collections.setUpdatedStatus(CONSTANTS.YES);
+                        collections.setUpdatedDate(new Date());
                         MilkCollections cdata = milkCollectionRepo.save(collections);
                         response.setStatusCode(HttpStatus.OK.value());
                         response.setEntity(cdata);
