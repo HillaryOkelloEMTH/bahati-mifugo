@@ -310,6 +310,8 @@ public class FarmerService {
     public EntityResponse updateFarmer(Farmer farmer) {
         EntityResponse response = new EntityResponse();
         try {
+            String username = farmer.getFirstName()+ " " +farmer.getLastName();
+            farmer.setUsername(username);
             farmer.setCreatedAt(new Date());
             Farmer f= farmerRepo.save(farmer);
             response.setEntity(f);

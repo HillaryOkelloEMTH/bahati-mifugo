@@ -158,20 +158,20 @@ public class MilkCollectionService {
 
                 //send sms
 //                if (sms) {
-                    log.info("Sending sms ...");
-                                String message = "Dear " + username + ", we have received your " + collections.getQuantity() + " of milk" +
-                                        " collections for " + collections.getSession() + " at " + collections.getCollectionDate() + ".";
-                                String phoneno = check.get().getMobile_no().trim();
-                                if (phoneno.startsWith("0")) {
-                                    log.info("Starting with 0");
-                                    phoneno = phoneno.replaceFirst("0", "254");
-                                } else if (phoneno.startsWith("+")) {
-                                    log.info("Starting with +");
-                                    phoneno = phoneno.substring(1, phoneno.length());
-                                } else if (phoneno.startsWith("7") || phoneno.startsWith("1")) {
-                                    phoneno = "254" + phoneno;
-                                }
-                                smsservice.SMSNOtification(message, phoneno);
+                log.info("Sending sms ...");
+                String message = "Dear " + username + ", we have received your " + collections.getQuantity() + " of milk" +
+                        " collections for " + collections.getSession() + " at " + collections.getCollectionDate() + ".";
+                String phoneno = check.get().getMobile_no().trim();
+                if (phoneno.startsWith("0")) {
+                    log.info("Starting with 0");
+                    phoneno = phoneno.replaceFirst("0", "254");
+                } else if (phoneno.startsWith("+")) {
+                    log.info("Starting with +");
+                    phoneno = phoneno.substring(1, phoneno.length());
+                } else if (phoneno.startsWith("7") || phoneno.startsWith("1")) {
+                    phoneno = "254" + phoneno;
+                }
+                smsservice.SMSNOtification(message, phoneno);
 //                }
             }
 
@@ -204,16 +204,54 @@ public class MilkCollectionService {
         return response;
     }
 
-    public EntityResponse updateCollections(MilkCollections collections) {
+    public EntityResponse updateCollections(UpdateMilkCollectiorequest col) {
+        log.info("Updating milk collection ...");
 
         EntityResponse response = new EntityResponse();
         try {
+            Optional<MilkCollections> collectionCheck = milkCollectionRepo.findByCollectionNumber(col.getCollectionNumber());
+            if (collectionCheck.isPresent()) {
+                MilkCollections collections= collectionCheck.get();
+                Optional<ProductConfig> productConfig = productConfigRepo.findByRouteFk(collections.getRouteFk());
+                if (productConfig.isPresent()) {
+                    Optional<Can> cancheck = canRepo.findByCanNo(collections.getCanNo());
+                    if (cancheck.isPresent()) {
+
+                        log.info("----Collection event----");
+                        Can can = cancheck.get();
+                        Double lessWeight = Double.valueOf(can.getDeductionWeight());
+                        Double actual_quantity = col.getOriginalQuantity() - lessWeight;
+                        collections.setQuantity(actual_quantity);
+                        collections.setDeductedWeight(lessWeight);
+                        Double buyingPrice = productConfig.get().getBuyingPrice();
+                        log.info("buying price ", +buyingPrice);
+                        Double totalAmount = buyingPrice * collections.getQuantity();
+                        log.info("total amount " + totalAmount);
+                        collections.setAmount(totalAmount);
+                        collections.setCurrentPrice(buyingPrice);
+                        MilkCollections cdata = milkCollectionRepo.save(collections);
+                        response.setStatusCode(HttpStatus.OK.value());
+                        response.setEntity(cdata);
+                        response.setMessage(HttpStatus.OK.getReasonPhrase());
+                    } else {
+                        response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                        response.setMessage("Can Not Found");
+                    }
+                } else {
+                    Optional<Route> r = routeRepo.findById(collections.getRouteFk());
+
+                    log.info("Price Configuration for " + r.get().getRoute() + " Not Found");
+                    response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+                    response.setMessage("Price Configuration for " + r.get().getRoute() + " Not Found");
+                }
+            } else {
+                log.info("Milk collection Record Not Found");
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                response.setMessage("Milk collection Record Not Found");
+            }
 
 
-            MilkCollections cdata = milkCollectionRepo.save(collections);
-            response.setStatusCode(HttpStatus.OK.value());
-            response.setEntity(cdata);
-            response.setMessage(HttpStatus.OK.getReasonPhrase());
+
 
         } catch (Exception e) {
             log.error(e.getMessage());
@@ -564,17 +602,18 @@ public class MilkCollectionService {
         }
         return response;
     }
-    public EntityResponse getCollectionByPickUpCollationsAndDate(Long pickuplocation,String date) {
+
+    public EntityResponse getCollectionByPickUpCollationsAndDate(Long pickuplocation, String date) {
 
         EntityResponse response = new EntityResponse();
         try {
 
             List<CollectionsData> collections = milkCollectionRepo.getCollectionsbyPickUpLocationAndDate(pickuplocation, date);
-            if(collections.size()>0){
+            if (collections.size() > 0) {
                 response.setStatusCode(HttpStatus.OK.value());
                 response.setEntity(collections);
                 response.setMessage(HttpStatus.OK.getReasonPhrase());
-            }else {
+            } else {
                 response.setStatusCode(HttpStatus.NOT_FOUND.value());
                 response.setEntity(collections);
                 response.setMessage(HttpStatus.NOT_FOUND.getReasonPhrase());
@@ -588,17 +627,18 @@ public class MilkCollectionService {
         }
         return response;
     }
+
     public EntityResponse getCollectionByPickUpLocation(Long pickuplocation) {
 
         EntityResponse response = new EntityResponse();
         try {
 
             List<CollectionsData> collections = milkCollectionRepo.getCollectionsbyPickUpLocation(pickuplocation);
-            if(collections.size()>0){
+            if (collections.size() > 0) {
                 response.setStatusCode(HttpStatus.OK.value());
                 response.setEntity(collections);
                 response.setMessage(HttpStatus.OK.getReasonPhrase());
-            }else {
+            } else {
                 response.setStatusCode(HttpStatus.NOT_FOUND.value());
                 response.setEntity(collections);
                 response.setMessage(HttpStatus.NOT_FOUND.getReasonPhrase());
@@ -611,17 +651,18 @@ public class MilkCollectionService {
         }
         return response;
     }
+
     public EntityResponse getCollectionByRoute(Long routeId) {
 
         EntityResponse response = new EntityResponse();
         try {
 
             List<CollectionsData> collections = milkCollectionRepo.getCollectionsbyRoute(routeId);
-            if(collections.size()>0){
+            if (collections.size() > 0) {
                 response.setStatusCode(HttpStatus.OK.value());
                 response.setEntity(collections);
                 response.setMessage(HttpStatus.OK.getReasonPhrase());
-            }else {
+            } else {
                 response.setStatusCode(HttpStatus.NOT_FOUND.value());
                 response.setEntity(collections);
                 response.setMessage(HttpStatus.NOT_FOUND.getReasonPhrase());
@@ -634,6 +675,7 @@ public class MilkCollectionService {
         }
         return response;
     }
+
     public EntityResponse getCollectionByColector(Long collectorId) {
 
         EntityResponse response = new EntityResponse();

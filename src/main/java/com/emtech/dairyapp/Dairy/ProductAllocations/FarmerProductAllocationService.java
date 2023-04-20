@@ -135,16 +135,16 @@ public class FarmerProductAllocationService {
                 if(status.equalsIgnoreCase("Approved")){
                     f.setStatus(CONSTANTS.YES);
                 }else if (status.equalsIgnoreCase("Rejected")){
-                    f.setStatus(CONSTANTS.NO);
+                    f.setStatus(CONSTANTS.Reject);
                 }
                 farmerProdAllocattionsRepo.save(f);
                 response.setEntity(FarmerProductAllocationss);
                 response.setStatusCode(HttpStatus.OK.value());
-                response.setMessage(HttpStatus.FOUND.getReasonPhrase());
+                response.setMessage(HttpStatus.OK.getReasonPhrase());
             } else {
                 log.info("FarmerProductAllocationss Not Found");
                 response.setEntity(FarmerProductAllocationss);
-                response.setStatusCode(HttpStatus.OK.value());
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
                 response.setMessage(HttpStatus.NO_CONTENT.getReasonPhrase());
             }
             return response;

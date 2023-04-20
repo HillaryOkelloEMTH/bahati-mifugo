@@ -35,7 +35,7 @@ public class MilkCollectionController {
         return ResponseEntity.ok().body(response);
     }
     @PutMapping("update")
-    public ResponseEntity<EntityResponse> updateCollections(@RequestBody MilkCollections collections){
+    public ResponseEntity<EntityResponse> updateCollections(@RequestBody UpdateMilkCollectiorequest collections){
         EntityResponse response = collectionService.updateCollections(collections);
         return ResponseEntity.ok().body(response);
     }
