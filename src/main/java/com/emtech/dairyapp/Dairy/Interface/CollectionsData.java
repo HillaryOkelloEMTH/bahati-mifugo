@@ -9,6 +9,7 @@ public interface CollectionsData {
 
     Double getAmount();
     Double getQuantity();
+    Double getOriginalQuantity();
     Date getCollection_date();
     String getWard();
     String getSession();
