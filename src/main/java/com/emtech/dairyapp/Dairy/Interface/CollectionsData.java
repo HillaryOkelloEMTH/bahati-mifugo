@@ -7,6 +7,7 @@ public interface CollectionsData {
     String getCollector();
     String getCanNo();
     String getFarmer();
+    String getUpdateStatus();
 
     Double getAmount();
     Double getQuantity();
