@@ -5,6 +5,7 @@ import java.util.Date;
 public interface CollectionsData {
    Long getFarmerId();
     String getCollector();
+    String getCanNo();
     String getFarmer();
 
     Double getAmount();
