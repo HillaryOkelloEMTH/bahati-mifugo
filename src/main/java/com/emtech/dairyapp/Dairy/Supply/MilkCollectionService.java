@@ -233,6 +233,7 @@ public class MilkCollectionService {
                         collections.setCurrentPrice(buyingPrice);
                         collections.setUpdatedStatus(CONSTANTS.YES);
                         collections.setUpdatedDate(new Date());
+                        collections.setOriginalQuantity(col.getOriginalQuantity());
                         MilkCollections cdata = milkCollectionRepo.save(collections);
                         response.setStatusCode(HttpStatus.OK.value());
                         response.setEntity(cdata);
