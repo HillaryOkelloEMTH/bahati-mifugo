@@ -53,7 +53,7 @@ public class FarmerProductAllocationService {
                     if(product.getType().equalsIgnoreCase("Good")){
                         amount = product.getSalePrice() * allocation.getQuantity();
                     }else if(product.getType().equalsIgnoreCase("Service")){
-                        amount = product.getSalePrice();
+                        amount = product.getSalePrice()*allocation.getNoOfCows();
                     }
 
 

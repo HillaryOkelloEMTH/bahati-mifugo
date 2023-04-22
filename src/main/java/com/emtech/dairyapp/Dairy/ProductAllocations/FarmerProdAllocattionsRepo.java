@@ -46,4 +46,12 @@ public interface FarmerProdAllocattionsRepo extends JpaRepository<FarmerProductA
         Double getQuantity();
 
     }
+
+    @Query(nativeQuery = true,value = "SELECT p.name as product, CONVERT(a.farmer_no,CHAR)as farmer_no  ,COALESCE(ROUND(a.amount ,2),0.0) as amount,IFNULL (a.quantity,'-') as quantity ,a.status,IFNULL(DATE_FORMAT(a.heat_start_date,'%Y-%m-%d'),'-')as heat_start_date ,IFNULL(a.no_of_cows,'-') as noOfCows,a.`type`,DATE_FORMAT(a.allocatio_date ,'%Y-%m-%d') as allocationDate  from farmer_product_allocations a join product p on p.id =a.product_id  WHERE MONTHNAME(a.allocatio_date)=:month  and a.farmer_no =:farmer_no")
+    List<FarmerProducts> getFarmerProduct(Integer farmer_no,String month);
+
+    @Query(nativeQuery = true,value = "SELECT COALESCE(ROUND(SUM(a.amount),2),0.0) as amount  from farmer_product_allocations a WHERE a.status='Y' and a.farmer_no =:farmer_no and a.payment_status =:payment_status and MONTHNAME(a.allocatio_date)=:month")
+    Double getFPAmount(Integer farmer_no,Character payment_status,String month);
+
+
 }
