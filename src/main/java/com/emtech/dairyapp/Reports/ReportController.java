@@ -454,6 +454,7 @@ public class ReportController {
             List<CollectionsData> record = reportService.fetchCollectionsPickUpCollectionsAndDate(pickUpLocationId,date);
             if (record.size() > 0) {
                 log.info("Data found");
+                log.info("Records found :"+ record.size());
                 Optional<PickUpLocations> p =pickUpLocationsRepo.findById(pickUpLocationId);
                 String pickupLocation=p.get().getName();
 
@@ -464,6 +465,7 @@ public class ReportController {
                 Profile profile = profileRepo.getProfile();
                 Map<String, Object> parameters = new HashMap<>();
                 parameters.put("pickupLocation",pickupLocation );
+                parameters.put("locationid",pickUpLocationId );
                 parameters.put("date",date);
                 parameters.put("logo", report_icon);
                 parameters.put("location", profile.getLocation());
