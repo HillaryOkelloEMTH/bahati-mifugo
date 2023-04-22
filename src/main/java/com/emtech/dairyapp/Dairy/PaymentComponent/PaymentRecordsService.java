@@ -39,12 +39,12 @@ public class PaymentRecordsService {
         }
         return response;
     }
-    public EntityResponse getFilteredFarmerPaymentData(String month,String mode) {
+    public EntityResponse getFilteredFarmerPaymentData(String month,String mode,Character paymentStatus) {
 
         EntityResponse response = new EntityResponse();
         try {
 
-            List<PaymentFileData> cdata = collectionRepo.getFilteredFarmersPaymentRecords(month,mode);
+            List<PaymentFileData> cdata = collectionRepo.getFilteredFarmersPaymentRecords(month,mode,paymentStatus);
             if(cdata.size()>0) {
                 response.setStatusCode(HttpStatus.OK.value());
                 response.setEntity(cdata);

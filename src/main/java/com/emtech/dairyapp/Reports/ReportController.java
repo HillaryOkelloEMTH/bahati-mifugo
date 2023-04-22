@@ -394,11 +394,13 @@ public class ReportController {
     }
     @GetMapping("paymentfile")
     public ResponseEntity<?> getCollectionsPerDate(@RequestParam String month,@RequestParam String paymentMode) {
+        log.info("Generating payment file...");
         try {
 
             List<PaymentFileData> record = collectionRepo.getPaymentFileData(month,paymentMode);
             if (record.size() > 0) {
-                log.info("Data found");
+                log.info("Data found ");
+                log.info("Data size "+ record.size());
 
                 Connection connection = DriverManager.getConnection(this.db, this.dbusername, this.dbpassword);
                 JasperReport compileReport = JasperCompileManager.compileReport(new FileInputStream(report_path + "/paymentFile.jrxml"));

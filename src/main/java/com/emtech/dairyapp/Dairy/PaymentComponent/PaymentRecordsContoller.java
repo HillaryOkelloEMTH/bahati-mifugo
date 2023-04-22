@@ -23,8 +23,8 @@ public class PaymentRecordsContoller {
 
     }
     @GetMapping("filter")
-    public ResponseEntity<EntityResponse> getFilterPaymentData(@RequestParam String month,@RequestParam String paymentMode){
-        EntityResponse response = paymentRecordsService.getFilteredFarmerPaymentData(month, paymentMode);
+    public ResponseEntity<EntityResponse> getFilterPaymentData(@RequestParam String month,@RequestParam String paymentMode,@RequestParam Character paymentStatus){
+        EntityResponse response = paymentRecordsService.getFilteredFarmerPaymentData(month, paymentMode,paymentStatus);
         return ResponseEntity.ok().body(response);
 
     }
