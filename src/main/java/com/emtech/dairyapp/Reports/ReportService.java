@@ -4,6 +4,8 @@ import com.emtech.dairyapp.Analytics.AnalyticsData;
 import com.emtech.dairyapp.Dairy.Interface.CollectionsData;
 import com.emtech.dairyapp.Dairy.Interface.FarmerCollections;
 
+import com.emtech.dairyapp.Dairy.ProductAllocations.FarmerProdAllocattionsRepo;
+import com.emtech.dairyapp.Dairy.ProductAllocations.FarmerProducts;
 import com.emtech.dairyapp.Dairy.Supply.MilkCollectionRepo;
 
 import lombok.extern.slf4j.Slf4j;
@@ -20,10 +22,12 @@ public class ReportService {
 
 
     private final MilkCollectionRepo collectionRepo;
+    private final FarmerProdAllocattionsRepo allocattionsRepo;
 
 
-    public ReportService(MilkCollectionRepo collectionRepo) {
+    public ReportService(MilkCollectionRepo collectionRepo, FarmerProdAllocattionsRepo allocattionsRepo) {
         this.collectionRepo = collectionRepo;
+        this.allocattionsRepo = allocattionsRepo;
     }
 
 
@@ -87,6 +91,15 @@ public class ReportService {
         try {
 
             return collectionRepo.getCollectorsPerDate(date);
+        }catch (Exception exc){
+            log.info(exc.getLocalizedMessage());
+            return null;
+        }
+    }
+    public List<FarmerProducts> getFarmerProducts(Integer farmerNo,String month) {
+        try {
+
+            return allocattionsRepo.getFarmerProduct(farmerNo, month);
         }catch (Exception exc){
             log.info(exc.getLocalizedMessage());
             return null;

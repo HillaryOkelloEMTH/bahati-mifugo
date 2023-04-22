@@ -2,15 +2,20 @@ package com.emtech.dairyapp.Reports;
 
 
 import com.emtech.dairyapp.Analytics.AnalyticsData;
+import com.emtech.dairyapp.Configurations.FarmerManagement.Farmer;
+import com.emtech.dairyapp.Configurations.FarmerManagement.FarmerRepo;
+import com.emtech.dairyapp.Configurations.Interfaces.FarmerInfo;
 import com.emtech.dairyapp.Configurations.PickUpLocations.PickUpLocations;
 import com.emtech.dairyapp.Configurations.PickUpLocations.PickUpLocationsRepo;
 import com.emtech.dairyapp.Configurations.Profile.Profile;
 import com.emtech.dairyapp.Configurations.Profile.ProfileRepo;
+import com.emtech.dairyapp.Configurations.Utils.CONSTANTS;
 import com.emtech.dairyapp.Dairy.Interface.CollectionsData;
 import com.emtech.dairyapp.Dairy.Interface.FarmerCollections;
 
 import com.emtech.dairyapp.Dairy.PaymentComponent.PaymentFileData;
 import com.emtech.dairyapp.Dairy.ProductAllocations.FarmerProdAllocattionsRepo;
+import com.emtech.dairyapp.Dairy.ProductAllocations.FarmerProducts;
 import com.emtech.dairyapp.Dairy.Supply.MilkCollectionRepo;
 import com.emtech.dairyapp.Response.EntityResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -42,6 +47,8 @@ public class ReportController {
     private final MilkCollectionRepo collectionRepo;
     private final FarmerProdAllocattionsRepo allocattionsRepo;
     private final PickUpLocationsRepo pickUpLocationsRepo;
+    private final FarmerProdAllocattionsRepo farmerProdAllocattionsRepo;
+    private final FarmerRepo farmerRepo;
 
 
 
@@ -58,12 +65,14 @@ public class ReportController {
     @Value("${spring.datasource.password}")
     private String dbpassword;
 
-    public ReportController(ReportService reportService, ProfileRepo profileRepo, MilkCollectionRepo collectionRepo, FarmerProdAllocattionsRepo allocattionsRepo, PickUpLocationsRepo pickUpLocationsRepo) {
+    public ReportController(ReportService reportService, ProfileRepo profileRepo, MilkCollectionRepo collectionRepo, FarmerProdAllocattionsRepo allocattionsRepo, PickUpLocationsRepo pickUpLocationsRepo, FarmerProdAllocattionsRepo farmerProdAllocattionsRepo, FarmerRepo farmerRepo) {
         this.reportService = reportService;
         this.profileRepo = profileRepo;
         this.collectionRepo = collectionRepo;
         this.allocattionsRepo = allocattionsRepo;
         this.pickUpLocationsRepo = pickUpLocationsRepo;
+        this.farmerProdAllocattionsRepo = farmerProdAllocattionsRepo;
+        this.farmerRepo = farmerRepo;
     }
 
 
@@ -474,6 +483,67 @@ public class ReportController {
                 response.setStatusCode(HttpStatus.OK.value());
                 response.setEntity(record);
                 return new ResponseEntity<>(response, HttpStatus.OK);
+            }
+        } catch (Exception exc) {
+            EntityResponse response = new EntityResponse();
+            response.setMessage(exc.getLocalizedMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setEntity(null);
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        }
+    }
+    @GetMapping("farmer/product/allocations")
+    public ResponseEntity<?> getFarmerProducts(@RequestParam Integer farmer_no, @RequestParam String month) {
+        try {
+            EntityResponse response = new EntityResponse();
+            Optional<FarmerInfo> f =farmerRepo.findByFarmerNo(farmer_no);
+            if(f.isPresent()) {
+                List<FarmerProducts> record = reportService.getFarmerProducts(farmer_no, month);
+                if (record.size() > 0) {
+                    log.info("Data found");
+
+
+
+                    String farmer = f.get().getUsername();
+                    Double paidAmount= farmerProdAllocattionsRepo.getFPAmount(farmer_no, CONSTANTS.YES,month);
+                    Double UnpPidAmount= farmerProdAllocattionsRepo.getFPAmount(farmer_no, CONSTANTS.NO,month);
+
+
+                    Connection connection = DriverManager.getConnection(this.db, this.dbusername, this.dbpassword);
+                    JasperReport compileReport = JasperCompileManager.compileReport(new FileInputStream(report_path + "/farmerProductAllocations.jrxml"));
+
+                    Profile profile = profileRepo.getProfile();
+                    Map<String, Object> parameters = new HashMap<>();
+                    parameters.put("farmer", farmer);
+                    parameters.put("farmer_no", farmer_no);
+                    parameters.put("month", month);
+                    parameters.put("logo", report_icon);
+                    parameters.put("location", profile.getLocation());
+                    parameters.put("company", profile.getCompanyName());
+                    parameters.put("address", profile.getPhysicalAddress());
+                    parameters.put("paid", paidAmount);
+                    parameters.put("unpaid", UnpPidAmount);
+
+
+
+                    JasperPrint print = JasperFillManager.fillReport(compileReport, parameters, connection);
+                    byte[] data = JasperExportManager.exportReportToPdf(print);
+                    HttpHeaders headers = new HttpHeaders();
+                    headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + farmer + "-allocationsList-report");
+                    return ResponseEntity.ok().headers(headers).contentType(MediaType.APPLICATION_PDF).body(data);
+
+                } else {
+
+                    response.setMessage("No record found");
+                    response.setStatusCode(HttpStatus.OK.value());
+                    response.setEntity(record);
+                    return new ResponseEntity<>(response, HttpStatus.OK);
+                }
+            }else {
+                response.setMessage("Farmer with farmer number "+ farmer_no+"  Not found");
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                return new ResponseEntity<>(response, HttpStatus.OK);
+
             }
         } catch (Exception exc) {
             EntityResponse response = new EntityResponse();

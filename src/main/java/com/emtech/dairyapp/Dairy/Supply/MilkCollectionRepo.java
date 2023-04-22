@@ -77,6 +77,7 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
     List<CollectionsData> getCollectionsbyFarmer(Long farmerId);
     @Query(value = "SELECT f.first_name ,f.last_name ,f.farmer_no,c.can_no as canNo,c.original_quantity as originalQuantity,c.session, c.id, c.collection_number as collectionCode,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer,c.amount,c.quantity,c.collection_date,r.route as route,p.name as pickUpLocation  from collections c join users u on c.collector_id =u.id join farmer f on f.farmer_no=c.farmer_no join route r on r.id=c.route_fk join pick_up_locations p on p.id =r.location_id where DATE(c.collection_date)=:date and p.id =:locationid order by c.collection_date",nativeQuery = true)
     List<CollectionsData> getCollectionsbyPickUpLocationAndDate(Long locationid,String date);
+
     @Query(value = "SELECT f.first_name ,f.last_name ,f.farmer_no,c.updated_status as updateStatus,c.can_no as canNo,c.original_quantity as originalQuantity,c.session, c.id, c.collection_number as collectionCode,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer,c.amount,c.quantity,c.collection_date,r.route as route,p.name as pickUpLocation  from collections c join users u on c.collector_id =u.id join farmer f on f.farmer_no=c.farmer_no join route r on r.id=c.route_fk join pick_up_locations p on p.id =r.location_id where p.id =:locationid order by c.collection_date",nativeQuery = true)
     List<CollectionsData> getCollectionsbyPickUpLocation(Long locationid);
 
@@ -244,5 +245,9 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
         Double getAllocationAmount();
         Double getDeliveries();
     }
+
+
+
+
 
 }   
