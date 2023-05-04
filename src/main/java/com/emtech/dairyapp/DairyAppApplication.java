@@ -30,7 +30,7 @@ public class DairyAppApplication {
     public static void main(String[] args) {
         SpringApplication.run(DairyAppApplication.class, args);
         Date currentDate = Calendar.getInstance(TimeZone.getDefault()).getTime();
-        log.info("Cuurent date = "+ currentDate);
+        log.info("Current date = "+ currentDate);
 
         log.info("Up and Running ...");
     }

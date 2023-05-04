@@ -23,6 +23,7 @@ public class SMSNotifications {
     private String phoneNumber;
     private String farmerName;
     private String senderId;
+    @Column(length = 5000)
     private String message;
     private Date sentDate;
     private String eventType;
@@ -32,4 +33,7 @@ public class SMSNotifications {
     private String statusReason;
     private String statusDescription;
     private int responseCode;
+    private String category = "One";
+    private String bulkCode="NA";
+    private String smsTemplate="NA";
 }
