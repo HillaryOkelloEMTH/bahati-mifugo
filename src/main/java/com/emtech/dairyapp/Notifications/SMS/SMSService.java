@@ -173,5 +173,26 @@ public class SMSService {
         smsNotificationsRepository.save(sms);
     }
 
+    public void BulkSMSNotification(String message, String phoneNumber,String bulkCode,String smsTemplate) {
+        //Create Message and Save In DB
+//        SMSResponse sr = sendSMS(message, phoneNumber);
+        SMSNotifications sms = new SMSNotifications();
+//      sms.setResponseCode(sr.getResponseCode());
+        sms.setResponseCode(200);
+        sms.setEventType("-");
+        sms.setDeliveryTime("-");
+        sms.setMessageRef(generatecSystemCode(10));
+//      sms.setMessageId(sr.getMessageId());
+        sms.setMessageId("-");
+        sms.setMessage(message);
+        sms.setCategory("Bulk");
+        sms.setSentDate(new Date());
+        sms.setPhoneNumber(phoneNumber);
+        sms.setBulkCode(bulkCode);
+        sms.setSmsTemplate(smsTemplate);
+        smsNotificationsRepository.save(sms);
+    }
+
+
 
 }
