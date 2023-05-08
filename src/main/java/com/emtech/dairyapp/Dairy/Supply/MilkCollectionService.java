@@ -164,20 +164,20 @@ public class MilkCollectionService {
 
                 //send sms
 //                if (sms) {
-//                log.info("Sending sms ...");
-//                String message = "Dear " + username + ", we have received your " + collections.getQuantity() + " of milk" +
-//                        " collections for " + collections.getSession() + " at " + collections.getCollectionDate() + ".";
-//                String phoneno = check.get().getMobile_no().trim();
-//                if (phoneno.startsWith("0")) {
-//                    log.info("Starting with 0");
-//                    phoneno = phoneno.replaceFirst("0", "254");
-//                } else if (phoneno.startsWith("+")) {
-//                    log.info("Starting with +");
-//                    phoneno = phoneno.substring(1, phoneno.length());
-//                } else if (phoneno.startsWith("7") || phoneno.startsWith("1")) {
-//                    phoneno = "254" + phoneno;
-//                }
-//                smsservice.SMSNOtification(message, phoneno);
+                log.info("Sending sms ...");
+                String message = "Dear " + username + ", we have received your " + collections.getQuantity() + " of milk" +
+                        " collections for " + collections.getSession() + " at " + collections.getCollectionDate() + ".";
+                String phoneno = check.get().getMobile_no().trim();
+                if (phoneno.startsWith("0")) {
+                    log.info("Starting with 0");
+                    phoneno = phoneno.replaceFirst("0", "254");
+                } else if (phoneno.startsWith("+")) {
+                    log.info("Starting with +");
+                    phoneno = phoneno.substring(1, phoneno.length());
+                } else if (phoneno.startsWith("7") || phoneno.startsWith("1")) {
+                    phoneno = "254" + phoneno;
+                }
+                smsservice.SMSNOtification(message, phoneno);
 //                }
             }
 
