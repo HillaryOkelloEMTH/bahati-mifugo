@@ -95,7 +95,8 @@ public class MilkCollectionService {
                 } else {
                     log.info("Collector allocation Not Found!! ..");
                     response.setStatusCode(HttpStatus.NOT_ACCEPTABLE.value());
-                    response.setMessage(HttpStatus.NOT_ACCEPTABLE.getReasonPhrase());
+                    response.setMessage("Collector allocation Not Found!! ..");
+                    return response;
 
                 }
 
@@ -139,6 +140,7 @@ public class MilkCollectionService {
                         } else {
                             response.setStatusCode(HttpStatus.NOT_FOUND.value());
                             response.setMessage("Can Not Found");
+                            return response;
                         }
                     } else {
                         Optional<Route> r = routeRepo.findById(collections.getRouteFk());
@@ -146,10 +148,12 @@ public class MilkCollectionService {
                         log.info("Price Configuration for " + r.get().getRoute() + " Not Found");
                         response.setStatusCode(HttpStatus.BAD_REQUEST.value());
                         response.setMessage("Price Configuration for " + r.get().getRoute() + " Not Found");
+                        return response;
                     }
                 } else {
                     response.setStatusCode(HttpStatus.NOT_FOUND.value());
                     response.setMessage("Farmer Not Found");
+                    return response;
                 }
 
                 MilkCollections c = milkCollectionRepo.save(collections);
