@@ -160,12 +160,17 @@ public class MilkCollectionController {
         EntityResponse response = collectionService.getDayRecords(date);
         return ResponseEntity.ok().body(response);
     }
+
     @GetMapping("date/range")
     public ResponseEntity<EntityResponse> getDateRangeCollections(@RequestParam String fromdate,@RequestParam String toDate){
         EntityResponse response = collectionService.getCollectionsByDateRange(fromdate, toDate);
         return ResponseEntity.ok().body(response);
     }
-
+    @GetMapping("date/range/records")
+    public ResponseEntity<EntityResponse> getDateRangeRecords(@RequestParam String fromdate,@RequestParam String toDate){
+        EntityResponse response = collectionService.getDateRangeRecords(fromdate, toDate);
+        return ResponseEntity.ok().body(response);
+    }
     @GetMapping("all")
     public ResponseEntity<EntityResponse> getAllCollections(){
         EntityResponse response = collectionService.getAllCollections();
@@ -205,9 +210,19 @@ public class MilkCollectionController {
         EntityResponse response = collectionService.getCollectionByPickUpLocation(pickUpLocation);
         return ResponseEntity.ok().body(response);
     }
+    @GetMapping("record/pickupLocations")
+    public ResponseEntity<?> getRecordsbyPickUpLocations(@RequestParam Long pickUpLocation){
+        EntityResponse response = collectionService.getPickUpLocationRecords(pickUpLocation);
+        return ResponseEntity.ok().body(response);
+    }
     @GetMapping("route")
     public ResponseEntity<?> getCollectorbyRoute(@RequestParam Long routeId){
         EntityResponse response = collectionService.getCollectionByRoute(routeId);
+        return ResponseEntity.ok().body(response);
+    }
+    @GetMapping("records/route")
+    public ResponseEntity<?> getRouteRecords(@RequestParam Long routeId){
+        EntityResponse response = collectionService.getRouteRecords(routeId);
         return ResponseEntity.ok().body(response);
     }
     @GetMapping("pickuplocations/date")
