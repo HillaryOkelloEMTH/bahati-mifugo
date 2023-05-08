@@ -63,7 +63,7 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
     @Query(value = "SELECT count(*) as count,sum(c.quantity)  as quantity,sum(c.amount) as amount FROM collections c WHERE DATE(c.collection_date) = :date and c.event ='Collection'", nativeQuery = true)
     List<DailyRecords> getSpecificDateRecord(String date);
 
-    @Query(value = "SELECT f.first_name ,f.last_name ,f.farmer_no as farmerNO,c.updated_status as updateStatus,c.can_no as canNo,c.original_quantity as originalQuantity,c.session, c.id, c.collection_number as collectionCode ,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer,c.amount,c.quantity,c.collection_date,r.route as route ,p.name as pickUpLocation from collections c join users u on c.collector_id =u.id join farmer f on f.farmer_no=c.farmer_no join route r on r.id=c.route_fk join pick_up_locations p on p.id =r.location_id where DATE(c.collection_date)= :date order by c.collection_date", nativeQuery = true)
+    @Query(value = "SELECT f.first_name ,f.last_name ,f.farmer_no ,c.updated_status as updateStatus,c.can_no as canNo,c.original_quantity as originalQuantity,c.session, c.id, c.collection_number as collectionCode ,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer,c.amount,c.quantity,c.collection_date,r.route as route ,p.name as pickUpLocation from collections c join users u on c.collector_id =u.id join farmer f on f.farmer_no=c.farmer_no join route r on r.id=c.route_fk join pick_up_locations p on p.id =r.location_id where DATE(c.collection_date)= :date order by c.collection_date", nativeQuery = true)
     List<CollectionsData> getCollectionsbyDate(String date);
 
     @Query(value = "SELECT f.first_name ,f.last_name ,f.farmer_no ,c.updated_status as updateStatus,c.can_no as canNo,c.original_quantity as originalQuantity,c.session, c.id, c.collection_number as collectionCode ,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer,c.amount,c.quantity,c.collection_date,r.route as route,p.name as pickUpLocation from collections c join users u on c.collector_id =u.id join farmer f on f.farmer_no=c.farmer_no join route r on r.id=c.route_fk join pick_up_locations p on p.id =r.location_id", nativeQuery = true)
@@ -195,9 +195,15 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
             "\tGROUP BY f.farmer_no, f.username HAVING NetPay > 0",nativeQuery = true)
     List<PaymentFileData> getPaymentFileData(String month, String mode);
 
-
-
-
+//    @Query(value = "SELECT f.farmer_no,f.payment_mode, f.payment_freequency,f.username, \n" +
+//            "\tCOALESCE(SUM(c.amount), 0.0) AS collectionAmount, \n" +
+//            "    COALESCE((SELECT SUM(fa.amount) FROM farmer_product_allocations fa WHERE fa.farmer_no = f.farmer_no AND fa.payment_status ='N' and fa.status='Y' and MONTHNAME(fa.allocatio_date)=:month  ), 0.0) AS allocationAmount,\n" +
+//            "   ((COALESCE(SUM(c.amount), 0.0))-(COALESCE((SELECT SUM(fa.amount) FROM farmer_product_allocations fa WHERE fa.farmer_no = f.farmer_no AND fa.payment_status ='N' and MONTHNAME(fa.allocatio_date)=:month ), 0.0))) AS NetPay\n" +
+//            "    FROM farmer f \n" +
+//            "\tLEFT JOIN collections c ON f.farmer_no = c.farmer_no AND c.payment_status ='N' AND MONTHNAME(c.collection_date)  = :month  \n" +
+//            "\tWHERE f.farmer_no IS NOT NULL AND f.payment_mode=:mode\n" +
+//            "\tGROUP BY f.farmer_no, f.username HAVING NetPay > 0",nativeQuery = true)
+//    List<PaymentFileData> getweeklyPaymentFileData(String week, String mode);
 
     @Query(value = "SELECT CONVERT(f.farmer_no,char) as farmer_no,f.payment_mode as payment_mode,f.payment_freequency as freequency , f.username as username,\n" +
             "    COALESCE(ROUND(SUM(c.amount),2), 0.0) AS collectionAmount, \n" +

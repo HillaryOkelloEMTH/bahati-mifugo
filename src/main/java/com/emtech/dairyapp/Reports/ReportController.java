@@ -446,6 +446,52 @@ public class ReportController {
             return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
         }
     }
+    @GetMapping("weekly/paymentfile")
+    public ResponseEntity<?> getweekLyPayment(@RequestParam String week,@RequestParam String paymentMode) {
+        log.info("Generating payment file...");
+        try {
+
+            List<PaymentFileData> record = collectionRepo.getPaymentFileData(week,paymentMode);
+            if (record.size() > 0) {
+                log.info("Data found ");
+                log.info("Data size "+ record.size());
+
+                Connection connection = DriverManager.getConnection(this.db, this.dbusername, this.dbpassword);
+                JasperReport compileReport = JasperCompileManager.compileReport(new FileInputStream(report_path + "/paymentFile.jrxml"));
+
+                Profile profile = profileRepo.getProfile();
+
+                Map<String, Object> parameters = new HashMap<>();
+                parameters.put("month", month);
+                parameters.put("mode", paymentMode);
+                parameters.put("logo", report_icon);
+                parameters.put("location", profile.getLocation());
+                parameters.put("company", profile.getCompanyName());
+                parameters.put("address", profile.getPhysicalAddress());
+
+
+                JasperPrint print = JasperFillManager.fillReport(compileReport, parameters, connection);
+                byte[] data = JasperExportManager.exportReportToPdf(print);
+                HttpHeaders headers = new HttpHeaders();
+                headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + month + "-paymentfile-report");
+                return ResponseEntity.ok().headers(headers).contentType(MediaType.APPLICATION_PDF).body(data);
+
+            } else {
+                EntityResponse response = new EntityResponse();
+                response.setMessage("No record found");
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setEntity(record);
+                return new ResponseEntity<>(response, HttpStatus.OK);
+            }
+        } catch (Exception exc) {
+            EntityResponse response = new EntityResponse();
+            response.setMessage(exc.getLocalizedMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setEntity(null);
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        }
+    }
+
 
     @GetMapping("collections/per/pickUpLocation")
     public ResponseEntity<?> getCollectionsPerDate(@RequestParam Long pickUpLocationId, @RequestParam String date) {

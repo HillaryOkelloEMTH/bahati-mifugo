@@ -54,7 +54,8 @@ public class FarmerService {
 
             Integer memberNO=null;
             if (count > 0) {
-                Integer max = farmerRepo.getMaxVaue()+1;;
+                Integer max = farmerRepo.getMaxVaue()+1;
+                log.info("Max id "+ max);
                 memberNO= max;
                 for (int i = 0; i < 5; i++) { // loop 10 times
                     log.info("Initial member No "+ memberNO);
@@ -114,8 +115,6 @@ public class FarmerService {
             return response;
         }
     }
-
-
 
 
     public EntityResponse fetchFarmer() {
