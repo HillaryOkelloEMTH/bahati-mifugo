@@ -5,9 +5,9 @@ server:
 
 spring:
   datasource:
-    url: jdbc:mariadb://localhost:3306/dairy
-    username: jesse
-    password: 1905
+    url: jdbc:mariadb://52.15.152.26:3306/bahatiTest
+    username: emtech
+    password: emtech@2022
     driver-class-name: org.mariadb.jdbc.Driver
   jpa:
     properties:

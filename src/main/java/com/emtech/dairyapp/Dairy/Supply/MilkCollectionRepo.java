@@ -62,6 +62,13 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
 
     @Query(value = "SELECT count(*) as count,sum(c.quantity)  as quantity,sum(c.amount) as amount FROM collections c WHERE DATE(c.collection_date) = :date and c.event ='Collection'", nativeQuery = true)
     List<DailyRecords> getSpecificDateRecord(String date);
+    @Query(value = "SELECT count(*) as count,COALESCE(ROUND(SUM(c.quantity),2),0.0)  as quantity,COALESCE(ROUND(SUM(c.amount),2),0.0) as amount FROM collections c WHERE DATE(c.collection_date) between :from and :to and c.event ='Collection'", nativeQuery = true)
+    List<DailyRecords> getDateRangeRecord(String from,String to);
+    @Query(value = "SELECT count(*) as count,COALESCE(ROUND(SUM(c.quantity),2),0.0)  as quantity,COALESCE(ROUND(SUM(c.amount),2),0.0) as amount FROM collections c join route r on r.id=c.route_fk join pick_up_locations p on p.id =r.location_id where p.id =:locationid and  c.event ='Collection'", nativeQuery = true)
+    List<DailyRecords> getPickUpLocationRecord(Long locationid);
+    @Query(value = "SELECT count(*) as count,COALESCE(ROUND(SUM(c.quantity),2),0.0)  as quantity,COALESCE(ROUND(SUM(c.amount),2),0.0) as amount FROM collections c join route r on r.id=c.route_fk  where r.id =:routeId and  c.event ='Collection'", nativeQuery = true)
+    List<DailyRecords> getRouteRecord(Long routeId);
+
 
     @Query(value = "SELECT f.first_name ,f.last_name ,f.farmer_no ,c.updated_status as updateStatus,c.can_no as canNo,c.original_quantity as originalQuantity,c.session, c.id, c.collection_number as collectionCode ,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer,c.amount,c.quantity,c.collection_date,r.route as route ,p.name as pickUpLocation from collections c join users u on c.collector_id =u.id join farmer f on f.farmer_no=c.farmer_no join route r on r.id=c.route_fk join pick_up_locations p on p.id =r.location_id where DATE(c.collection_date)= :date order by c.collection_date", nativeQuery = true)
     List<CollectionsData> getCollectionsbyDate(String date);
