@@ -436,6 +436,7 @@ public class ReportController {
                 parameters.put("month", month);
                 parameters.put("mode", paymentMode);
                 parameters.put("mcc", mccname);
+                parameters.put("location_id", pickupLocationId);
                 parameters.put("logo", report_icon);
                 parameters.put("location", profile.getLocation());
                 parameters.put("company", profile.getCompanyName());
