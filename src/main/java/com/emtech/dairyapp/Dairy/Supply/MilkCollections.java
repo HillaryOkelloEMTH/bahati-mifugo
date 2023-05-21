@@ -24,7 +24,6 @@ public class MilkCollections {
     private Integer farmerNo;//farmer no
     @Column(unique = true)
     private String collectionNumber;
-
     private String canNo;
     private String productType;
     private String event;//buying or selling

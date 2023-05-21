@@ -225,6 +225,16 @@ public class MilkCollectionController {
         EntityResponse response = collectionService.getRouteRecords(routeId);
         return ResponseEntity.ok().body(response);
     }
+    @GetMapping("records/all")
+    public ResponseEntity<?> getAllRecords(){
+        EntityResponse response = collectionService.getAllCollectionsRecords();
+        return ResponseEntity.ok().body(response);
+    }
+    @GetMapping("summary/routes")
+    public ResponseEntity<?> getRoutedSummary(){
+        EntityResponse response = collectionService.getRouteSummary();
+        return ResponseEntity.ok().body(response);
+    }
     @GetMapping("pickuplocations/date")
     public ResponseEntity<?> getCollectorbyPickUpLocationsAndDate(@RequestParam  Long pickUpLocation,@RequestParam String date){
         EntityResponse response = collectionService.getCollectionByPickUpCollationsAndDate(pickUpLocation,date);

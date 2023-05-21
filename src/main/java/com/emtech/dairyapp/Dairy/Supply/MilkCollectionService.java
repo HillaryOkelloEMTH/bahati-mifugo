@@ -220,7 +220,7 @@ public class MilkCollectionService {
                 MilkCollections collections= collectionCheck.get();
                 Optional<ProductConfig> productConfig = productConfigRepo.findByRouteFk(collections.getRouteFk());
                 if (productConfig.isPresent()) {
-                    Optional<Can> cancheck = canRepo.findByCanNo(collections.getCanNo());
+                    Optional<Can> cancheck = canRepo.findByCanNo(col.getCanNo());
                     if (cancheck.isPresent()) {
 
                         log.info("----Collection event----");
@@ -233,6 +233,8 @@ public class MilkCollectionService {
                         log.info("buying price ", +buyingPrice);
                         Double totalAmount = buyingPrice * collections.getQuantity();
                         log.info("total amount " + totalAmount);
+                        collections.setSession(col.getSession());
+                        collections.setCanNo(col.getCanNo());
                         collections.setAmount(totalAmount);
                         collections.setCurrentPrice(buyingPrice);
                         collections.setUpdatedStatus(CONSTANTS.YES);
@@ -648,6 +650,54 @@ public class MilkCollectionService {
         try {
 
             List<DailyRecords> todaysCollections = milkCollectionRepo.getRouteRecord(routeId);
+            if (todaysCollections.size() > 0) {
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setEntity(todaysCollections);
+                response.setMessage(HttpStatus.OK.getReasonPhrase());
+            } else {
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                response.setEntity(todaysCollections);
+                response.setMessage(HttpStatus.NOT_FOUND.getReasonPhrase());
+            }
+
+
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+        }
+        return response;
+    }
+    public EntityResponse getRouteSummary() {
+
+        EntityResponse response = new EntityResponse();
+        try {
+
+            List<DailyRecords> todaysCollections = milkCollectionRepo.getRouteSummary();
+            if (todaysCollections.size() > 0) {
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setEntity(todaysCollections);
+                response.setMessage(HttpStatus.OK.getReasonPhrase());
+            } else {
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                response.setEntity(todaysCollections);
+                response.setMessage(HttpStatus.NOT_FOUND.getReasonPhrase());
+            }
+
+
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+        }
+        return response;
+    }
+    public EntityResponse getAllCollectionsRecords() {
+
+        EntityResponse response = new EntityResponse();
+        try {
+
+            List<DailyRecords> todaysCollections = milkCollectionRepo.getAllColectionsRecord();
             if (todaysCollections.size() > 0) {
                 response.setStatusCode(HttpStatus.OK.value());
                 response.setEntity(todaysCollections);

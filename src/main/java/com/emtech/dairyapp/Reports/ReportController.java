@@ -2,7 +2,6 @@ package com.emtech.dairyapp.Reports;
 
 
 import com.emtech.dairyapp.Analytics.AnalyticsData;
-import com.emtech.dairyapp.Configurations.FarmerManagement.Farmer;
 import com.emtech.dairyapp.Configurations.FarmerManagement.FarmerRepo;
 import com.emtech.dairyapp.Configurations.Interfaces.FarmerInfo;
 import com.emtech.dairyapp.Configurations.PickUpLocations.PickUpLocations;
@@ -17,15 +16,22 @@ import com.emtech.dairyapp.Dairy.PaymentComponent.PaymentFileData;
 import com.emtech.dairyapp.Dairy.ProductAllocations.FarmerProdAllocattionsRepo;
 import com.emtech.dairyapp.Dairy.ProductAllocations.FarmerProducts;
 import com.emtech.dairyapp.Dairy.Supply.MilkCollectionRepo;
+//import com.emtech.dairyapp.Reports.ExcelReports.ExcelExporterService;
+//import com.emtech.dairyapp.Reports.ExcelReports.ExelReportService;
+import com.emtech.dairyapp.Reports.ExcelReports.ExelReportService;
 import com.emtech.dairyapp.Response.EntityResponse;
+import io.netty.channel.ChannelHandlerContext;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jasperreports.engine.*;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 
 import java.io.FileInputStream;
 import java.sql.Connection;
@@ -49,6 +55,8 @@ public class ReportController {
     private final PickUpLocationsRepo pickUpLocationsRepo;
     private final FarmerProdAllocattionsRepo farmerProdAllocattionsRepo;
     private final FarmerRepo farmerRepo;
+//    private final ExcelExporterService excelExporterService;
+    private final ExelReportService exelReportService;
 
 
 
@@ -65,7 +73,7 @@ public class ReportController {
     @Value("${spring.datasource.password}")
     private String dbpassword;
 
-    public ReportController(ReportService reportService, ProfileRepo profileRepo, MilkCollectionRepo collectionRepo, FarmerProdAllocattionsRepo allocattionsRepo, PickUpLocationsRepo pickUpLocationsRepo, FarmerProdAllocattionsRepo farmerProdAllocattionsRepo, FarmerRepo farmerRepo) {
+    public ReportController(ReportService reportService, ProfileRepo profileRepo, MilkCollectionRepo collectionRepo, FarmerProdAllocattionsRepo allocattionsRepo, PickUpLocationsRepo pickUpLocationsRepo, FarmerProdAllocattionsRepo farmerProdAllocattionsRepo, FarmerRepo farmerRepo, ExelReportService exelReportService) {
         this.reportService = reportService;
         this.profileRepo = profileRepo;
         this.collectionRepo = collectionRepo;
@@ -73,6 +81,9 @@ public class ReportController {
         this.pickUpLocationsRepo = pickUpLocationsRepo;
         this.farmerProdAllocattionsRepo = farmerProdAllocattionsRepo;
         this.farmerRepo = farmerRepo;
+//        this.exelReportService = exelReportService;
+
+        this.exelReportService = exelReportService;
     }
 
 
@@ -402,11 +413,16 @@ public class ReportController {
         }
     }
     @GetMapping("paymentfile")
-    public ResponseEntity<?> getCollectionsPerDate(@RequestParam String month,@RequestParam String paymentMode) {
+    public ResponseEntity<?> getCollectionsPerDate(@RequestParam Long pickupLocationId,@RequestParam String month,@RequestParam String paymentMode) {
         log.info("Generating payment file...");
         try {
+            String mccname="";
+            Optional<PickUpLocations> pickUpLocation= pickUpLocationsRepo.findById(pickupLocationId);
+            if(pickUpLocation.isPresent()){
+                mccname=pickUpLocation.get().getName();
+            }
 
-            List<PaymentFileData> record = collectionRepo.getPaymentFileData(month,paymentMode);
+            List<PaymentFileData> record = collectionRepo.getPaymentFileData(pickupLocationId,month,paymentMode);
             if (record.size() > 0) {
                 log.info("Data found ");
                 log.info("Data size "+ record.size());
@@ -419,6 +435,7 @@ public class ReportController {
                 Map<String, Object> parameters = new HashMap<>();
                 parameters.put("month", month);
                 parameters.put("mode", paymentMode);
+                parameters.put("mcc", mccname);
                 parameters.put("logo", report_icon);
                 parameters.put("location", profile.getLocation());
                 parameters.put("company", profile.getCompanyName());
@@ -601,4 +618,7 @@ public class ReportController {
             return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
         }
     }
+
+
+
 }
