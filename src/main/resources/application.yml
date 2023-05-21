@@ -15,7 +15,6 @@ spring:
 #        dialect: org.hibernate.dialect.MariaDB53Dialect
         format_sql: true
     hibernate:
-
       ddl-auto: update
     show-sql: false
 
