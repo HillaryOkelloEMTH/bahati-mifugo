@@ -9,6 +9,9 @@ import com.emtech.dairyapp.Configurations.servicesConfig.ServicesConfigControlle
 import com.emtech.dairyapp.Configurations.servicesConfig.ServicesConfigRepository;
 import com.emtech.dairyapp.Dairy.Interface.Allocations;
 import com.emtech.dairyapp.Dairy.Interface.Services;
+import com.emtech.dairyapp.Dairy.ProductAllocations.FarmerProdAllocattionsRepo;
+import com.emtech.dairyapp.Dairy.ProductAllocations.FarmerProductAllocations;
+import com.emtech.dairyapp.Dairy.ProductAllocations.dto.ServiceApplicationUpdate;
 import com.emtech.dairyapp.Response.EntityResponse;
 import io.swagger.annotations.Api;
 import org.slf4j.Logger;
@@ -36,6 +39,9 @@ public class ServiceAllocationController {
 
     @Autowired
     private ServicesAllocationService allocationService;
+    
+    @Autowired
+    private FarmerProdAllocattionsRepo farmerProdAllocattionsRepo;
 
 
     @GetMapping("services/fetch-all")
@@ -68,6 +74,32 @@ public class ServiceAllocationController {
             response.setMessage("No Records Found ");
             response.setStatusCode(HttpStatus.OK.value());
             response.setEntity(allocationsList);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        }
+    }
+
+    @PutMapping("services/update")
+    public ResponseEntity<?> updateServiceDetails(@RequestBody ServiceApplicationUpdate applicationUpdate){
+        Optional<FarmerProductAllocations> allocationCheck = farmerProdAllocattionsRepo.findById(applicationUpdate.getServiceId());
+        if (allocationCheck.isPresent()){
+            FarmerProductAllocations service = allocationService.updateServiceDetails(applicationUpdate);
+            if (service != null){
+                response.setMessage("Record details updated successfully");
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setEntity(service);
+
+                return new ResponseEntity<>(response, HttpStatus.OK);
+            }else {
+                response.setMessage(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase());
+                response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+                response.setEntity(service);
+
+                return new ResponseEntity<>(response, HttpStatus.OK);
+            }
+        }else {
+            response.setMessage("No Record Found with id " + applicationUpdate.getServiceId());
+            response.setStatusCode(HttpStatus.NOT_FOUND.value());
+
             return new ResponseEntity<>(response, HttpStatus.OK);
         }
     }

@@ -41,6 +41,7 @@ public class FarmerProductAllocations {
     private Date requestedOn;
     private Date resolvedOn;
     private String resolvedBy;
+    private String comments;
 
 
 
