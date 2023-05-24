@@ -36,6 +36,13 @@ public class FarmerProductAllocations {
     private Character revokeStatus=CONSTANTS.NO;
     private Character paymentStatus= CONSTANTS.NO;
 
+    //Service properties
+    private String serviceStatus; //Pending, Closed, Cancelled
+    private Date requestedOn;
+    private Date resolvedOn;
+    private String resolvedBy;
+
+
 
 
 
