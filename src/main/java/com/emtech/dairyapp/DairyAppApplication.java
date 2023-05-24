@@ -49,7 +49,7 @@ public class DairyAppApplication {
         private RoleService roleService;
 
         @Autowired
-                private PasswordUtil passwordUtil;
+        private PasswordUtil passwordUtil;
 
 
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd-MMM-yyyy HH:mm:ss");

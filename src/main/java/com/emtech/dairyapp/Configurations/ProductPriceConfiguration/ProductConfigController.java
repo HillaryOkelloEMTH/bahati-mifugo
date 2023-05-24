@@ -31,9 +31,14 @@ public class ProductConfigController {
         EntityResponse response = service.fetchProductConfig();
         return ResponseEntity.ok().body(response);
     }
+    @GetMapping("id")
+    public ResponseEntity<EntityResponse> getproductConfigById(@RequestParam Long productconfigId){
+        EntityResponse response = service.fetchProductConfigById(productconfigId);
+        return ResponseEntity.ok().body(response);
+    }
     @PutMapping("update")
-    public ResponseEntity<EntityResponse> updateproductConfig(@RequestBody ProductConfig productConfig, Authentication auth){
-        EntityResponse response = service.updateProductConfig(productConfig,auth);
+    public ResponseEntity<EntityResponse> updateproductConfig(@RequestBody ProductConfig productConfig){
+        EntityResponse response = service.updateProductConfig(productConfig);
         return ResponseEntity.ok().body(response);
     }
     @DeleteMapping("delete/{id}")
