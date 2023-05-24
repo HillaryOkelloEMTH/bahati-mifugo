@@ -66,6 +66,7 @@ public class FarmerProductAllocationService {
                     allocation.setProductPrice(salesPrice);
                     allocation.setAmount(amount);
                     allocation.setAllocatioDate(new Date());
+                    allocation.setRequestedOn(new Date());
                    farmerProdAllocattionsRepo.save(allocation);
                     log.info("Saving Farmer Product Allocations ...");
                     if(product.getType().equalsIgnoreCase("Good")) {
