@@ -79,6 +79,30 @@ public class ProductConfigService {
             return response;
         }
     }
+    public EntityResponse fetchProductConfigById(Long productConfId) {
+        log.info("Fetching ProductConfig with id "+productConfId  +"...");
+        EntityResponse response = new EntityResponse();
+        try {
+            Optional<ProductConfig> ProductConfigs = productConfigRepo.findById(productConfId);
+            if(ProductConfigs.isPresent()) {
+                log.info("ProductConfigs Found ");
+                response.setEntity(ProductConfigs);
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setMessage(HttpStatus.FOUND.getReasonPhrase());
+            }else {
+                log.info("ProductConfigs Not Found ");
+                response.setEntity(ProductConfigs);
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                response.setMessage(HttpStatus.NOT_FOUND.getReasonPhrase());
+            }
+            return response;
+        } catch (Exception e) {
+            log.error("Error: " + e.getLocalizedMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+            return response;
+        }
+    }
     public EntityResponse fetchProductChangeHistory(Long productId) {
         log.info("Fetching Product Price change history ...");
         EntityResponse response = new EntityResponse();
@@ -103,7 +127,7 @@ public class ProductConfigService {
             return response;
         }
     }
-    public EntityResponse updateProductConfig(ProductConfig productConfig, Authentication auth) {
+    public EntityResponse updateProductConfig(ProductConfig productConfig) {
         EntityResponse response = new EntityResponse();
         try {
             Optional<ProductConfig> pc= productConfigRepo.findById(productConfig.getId());
@@ -115,7 +139,7 @@ public class ProductConfigService {
                 ch.setOldPrice(p.getBuyingPrice());
                 ch.setProductConfigId(productId);
                 ch.setNewPrice(productConfig.getBuyingPrice());
-                ch.setModifiedBy(auth.getName());
+//                ch.setModifiedBy(auth.getName());
                 ch.setModifiedDate(new Date());
                 ch.setProductName(p.getProductName());
                 ch.setRouteFk(productConfig.getRouteFk());
