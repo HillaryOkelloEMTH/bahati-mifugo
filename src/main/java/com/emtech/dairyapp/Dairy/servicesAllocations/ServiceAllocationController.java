@@ -78,6 +78,57 @@ public class ServiceAllocationController {
         }
     }
 
+    @GetMapping("services/fetch-all/history")
+    public ResponseEntity<?> fetchAllServicesHistoryApplications(){
+        List<Services> allocationsList = allocationService.fetchAllServicesHistoryApplications();
+        if (allocationsList.size() > 0){
+            response.setMessage(allocationsList.size() + " Records Found ");
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(allocationsList);
+
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        }else {
+            response.setMessage("No Records Found ");
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(allocationsList);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        }
+    }
+
+    @GetMapping("services/fetch-all/history/farmerNo")
+    public ResponseEntity<?> fetchAllServicesHistoryApplicationsByFarmerNo(@RequestParam Long memberNo){
+        List<Services> allocationsList = allocationService.fetchAllServicesHistoryApplicationsByFarmerNo(memberNo);
+        if (allocationsList.size() > 0){
+            response.setMessage(allocationsList.size() + " Records Found ");
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(allocationsList);
+
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        }else {
+            response.setMessage("No Records Found ");
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(allocationsList);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        }
+    }
+
+    @GetMapping("services/fetch-all/pending/farmerNo")
+    public ResponseEntity<?> fetchAllOpenServicesApplicationsByFarmerNo(@RequestParam Long memberNo){
+        List<Services> allocationsList = allocationService.fetchAllOpenServicesApplicationsByFarmerNo(memberNo);
+        if (allocationsList.size() > 0){
+            response.setMessage(allocationsList.size() + " Records Found ");
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(allocationsList);
+
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        }else {
+            response.setMessage("No Records Found ");
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(allocationsList);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        }
+    }
+
     @PutMapping("services/update")
     public ResponseEntity<?> updateServiceDetails(@RequestBody ServiceApplicationUpdate applicationUpdate){
         Optional<FarmerProductAllocations> allocationCheck = farmerProdAllocattionsRepo.findById(applicationUpdate.getServiceId());
@@ -103,6 +154,8 @@ public class ServiceAllocationController {
             return new ResponseEntity<>(response, HttpStatus.OK);
         }
     }
+
+
 
 
 

@@ -43,6 +43,33 @@ public class ServicesAllocationService {
         }
     }
 
+    public List<Services> fetchAllServicesHistoryApplications() {
+        try {
+            return farmerProdAllocattionsRepo.fetchAllServicesHistoryApplications();
+        }catch (Exception exc){
+            LOG.error("Error While Fetching Allocations ::: {}", exc.getLocalizedMessage());
+            return null;
+        }
+    }
+
+    public List<Services> fetchAllServicesHistoryApplicationsByFarmerNo(Long memberNo) {
+        try {
+            return farmerProdAllocattionsRepo.fetchAllServicesHistoryApplicationsByFarmerNo(memberNo);
+        }catch (Exception exc){
+            LOG.error("Error While Fetching Allocations ::: {}", exc.getLocalizedMessage());
+            return null;
+        }
+    }
+
+    public List<Services> fetchAllOpenServicesApplicationsByFarmerNo(Long memberNo) {
+        try {
+            return farmerProdAllocattionsRepo.fetchAllOpenServicesApplicationsByFarmerNo(memberNo);
+        }catch (Exception exc){
+            LOG.error("Error While Fetching Allocations ::: {}", exc.getLocalizedMessage());
+            return null;
+        }
+    }
+
     public FarmerProductAllocations updateServiceDetails(ServiceApplicationUpdate applicationUpdate) {
         try {
             Optional<FarmerProductAllocations> allocationCheck = farmerProdAllocattionsRepo.findById(applicationUpdate.getServiceId());
