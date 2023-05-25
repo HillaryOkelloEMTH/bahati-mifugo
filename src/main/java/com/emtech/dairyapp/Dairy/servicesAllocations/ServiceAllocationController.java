@@ -129,6 +129,75 @@ public class ServiceAllocationController {
         }
     }
 
+    @GetMapping("services/fetch-all/pending/dateRange")
+    public ResponseEntity<?> fetchAllOpenServicesApplicationsByDateRange(@RequestParam String fromDate, @RequestParam String toDate){
+        List<Services> allocationsList = allocationService.fetchAllOpenServicesApplicationsByDateRange(fromDate, toDate);
+        if (allocationsList.size() > 0){
+            response.setMessage(allocationsList.size() + " Records Found ");
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(allocationsList);
+
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        }else {
+            response.setMessage("No Records Found ");
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(allocationsList);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        }
+    }
+
+    @GetMapping("services/fetch-all/history/dateRange")
+    public ResponseEntity<?> fetchAllServicesHistoryApplicationsByDateRange(@RequestParam String fromDate, @RequestParam String toDate){
+        List<Services> allocationsList = allocationService.fetchAllServicesHistoryApplicationsByDateRange(fromDate, toDate);
+        if (allocationsList.size() > 0){
+            response.setMessage(allocationsList.size() + " Records Found ");
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(allocationsList);
+
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        }else {
+            response.setMessage("No Records Found ");
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(allocationsList);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        }
+    }
+
+
+    @GetMapping("services/fetch-all/pending/dateRange/memberNo")
+    public ResponseEntity<?> fetchAllOpenServicesApplicationsByDateRangeAndMemberNo(@RequestParam String fromDate, @RequestParam String toDate, @RequestParam Long memberNo){
+        List<Services> allocationsList = allocationService.fetchAllOpenServicesApplicationsByDateRangeAndMemberNo(fromDate, toDate, memberNo);
+        if (allocationsList.size() > 0){
+            response.setMessage(allocationsList.size() + " Records Found ");
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(allocationsList);
+
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        }else {
+            response.setMessage("No Records Found ");
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(allocationsList);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        }
+    }
+
+    @GetMapping("services/fetch-all/history/dateRange/memberNo")
+    public ResponseEntity<?> fetchAllServicesHistoryApplicationsByDateRangeAndMemberNo(@RequestParam String fromDate, @RequestParam String toDate, @RequestParam Long memberNo){
+        List<Services> allocationsList = allocationService.fetchAllServicesHistoryApplicationsByDateRangeAndMemberNo(fromDate, toDate, memberNo);
+        if (allocationsList.size() > 0){
+            response.setMessage(allocationsList.size() + " Records Found ");
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(allocationsList);
+
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        }else {
+            response.setMessage("No Records Found ");
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(allocationsList);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        }
+    }
+
     @PutMapping("services/update")
     public ResponseEntity<?> updateServiceDetails(@RequestBody ServiceApplicationUpdate applicationUpdate){
         Optional<FarmerProductAllocations> allocationCheck = farmerProdAllocattionsRepo.findById(applicationUpdate.getServiceId());
