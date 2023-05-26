@@ -70,6 +70,15 @@ public class ServicesAllocationService {
         }
     }
 
+    public List<Services> fetchAllServicesApplicationMonthly(Integer year, Integer month) {
+        try {
+            return farmerProdAllocattionsRepo.fetchAllServicesApplicationMonthly(year, month);
+        }catch (Exception exc){
+            LOG.error("Error While Fetching Allocations ::: {}", exc.getLocalizedMessage());
+            return null;
+        }
+    }
+
     public List<Services> fetchAllOpenServicesApplicationsByDateRangeAndMemberNo(String fromDate, String toDate, Long memberNo) {
         try {
             return farmerProdAllocattionsRepo.fetchAllOpenServicesApplicationsByDateRangeAndMemberNo(fromDate, toDate, memberNo);

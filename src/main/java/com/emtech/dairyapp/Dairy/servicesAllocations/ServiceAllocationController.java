@@ -163,6 +163,23 @@ public class ServiceAllocationController {
         }
     }
 
+    @GetMapping("services/fetch-all/year/monthly/")
+    public ResponseEntity<?> fetchAllServicesApplicationMonthly(@RequestParam Integer year, @RequestParam Integer month){
+        List<Services> allocationsList = allocationService.fetchAllServicesApplicationMonthly(year, month);
+        if (allocationsList.size() > 0){
+            response.setMessage(allocationsList.size() + " Records Found ");
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(allocationsList);
+
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        }else {
+            response.setMessage("No Records Found ");
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(allocationsList);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        }
+    }
+
 
     @GetMapping("services/fetch-all/pending/dateRange/memberNo")
     public ResponseEntity<?> fetchAllOpenServicesApplicationsByDateRangeAndMemberNo(@RequestParam String fromDate, @RequestParam String toDate, @RequestParam Long memberNo){
