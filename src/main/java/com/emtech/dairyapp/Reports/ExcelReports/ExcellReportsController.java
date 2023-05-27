@@ -6,10 +6,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @CrossOrigin
 @RestController
@@ -23,9 +20,18 @@ public class ExcellReportsController {
     }
 
     @GetMapping("/collectionsPerDate")
-    public ResponseEntity<Resource> downloadExcel(String date) {
+    public ResponseEntity<Resource> downloadExcel(@RequestParam String date) {
         String filename = "collectionsPerDateReport.xlsx";
-        InputStreamResource file =new InputStreamResource(exelReportService.generateExcelFile(date));
+        InputStreamResource file =new InputStreamResource(exelReportService.collecionsPerDate(date));
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
+                .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
+                .body(file);
+    }
+    @GetMapping("/collections/pickuplocation")
+    public ResponseEntity<Resource> collectinsPerPickuplocations(@RequestParam Long pid,@RequestParam String date) {
+        String filename = "collectionsPerPickuplocations.xlsx";
+        InputStreamResource file =new InputStreamResource(exelReportService.getCollectionsPerLocationsexcel(pid, date));
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
                 .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
