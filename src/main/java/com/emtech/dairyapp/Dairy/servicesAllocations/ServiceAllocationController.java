@@ -236,7 +236,7 @@ public class ServiceAllocationController {
         }else {
             response.setMessage("No Record Found with id " + applicationUpdate.getServiceId());
             response.setStatusCode(HttpStatus.NOT_FOUND.value());
-
+            response.setEntity(null);
             return new ResponseEntity<>(response, HttpStatus.OK);
         }
     }
