@@ -167,14 +167,19 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
     @Query(value = "SELECT ROUND(SUM(c.quantity),2) as quantity,ROUND(SUM(c.amount),2) as amount,u.user_name as collector,count(*) as ColectionsCount  from collections c join users u on u.id=c.collector_id where DATE(c.collection_date)=:date   GROUP BY c.collector_id", nativeQuery = true)
     List<AnalyticsData> getCollectorsPerCollector(String date);
 
-    @Query(value = "SELECT ROUND(SUM(c.quantity),2) as quantity,ROUND(SUM(c.amount),2) as amount,r.route as route from collections c join route r on r.id=c.route_fk  where DATE(c.collection_date)=:date GROUP BY r.id;", nativeQuery = true)
+    @Query(value = "SELECT ROUND(SUM(c.quantity),2) as quantity,ROUND(SUM(c.amount),2) as amount,r.route as route from collections c join route r on r.id=c.route_fk  join pick_up_locations p on p.id=r.location_id  where DATE(c.collection_date)=:date  GROUP BY r.id", nativeQuery = true)
     List<AnalyticsData> getCollectorsPerLocation(String date);
+    @Query(value = "SELECT ROUND(SUM(c.quantity),2) as quantity,ROUND(SUM(c.amount),2) as amount,r.route as route,p.name as location from collections c join route r on r.id=c.route_fk join pick_up_locations p on p.id=r.location_id  where DATE(c.collection_date)=:date GROUP BY p.id", nativeQuery = true)
+    List<AnalyticsData> getCollectorsPerMCCandDate(String date);
+    @Query(value = "SELECT ROUND(SUM(c.quantity),2) as quantity,ROUND(SUM(c.amount),2) as amount,r.route as route,p.name as location from collections c join route r on r.id=c.route_fk join pick_up_locations p on p.id=r.location_id  where MONTHNAME(c.collection_date)=:month  GROUP BY p.id", nativeQuery = true)
+    List<AnalyticsData> getCollectorsPerMCCandmonth(String month);
 
     @Query(value = "SELECT c.amount ,c.quantity ,c.current_price ,DATE_FORMAT(c.collection_date,'%Y-%m-%d %T') as date,c.session,c.collection_number ,u.user_name as collector,r.route as route,p.name as pickUpLocation from collections c join users u on u.id=c.collector_id join route r on r.id=c.route_fk join pick_up_locations p on p.id=r.location_id where DATE(c.collection_date) =:date", nativeQuery = true)
     List<ReportData> getCollectorsPerDate(String date);
 
     @Query(value = "SELECT COUNT(*) as colectionsCount,MONTHNAME(c.collection_date) as month  from collections c WHERE YEAR(c.collection_date)=:year and c.collector_id=:collectorId group by MONTH(c.collection_date)", nativeQuery = true)
     List<AnalyticsData> getCollectionCountPerMonth(Integer year, Long collectorId);
+
 
 
     interface Roleusers {

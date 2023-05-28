@@ -87,6 +87,24 @@ public class ReportService {
             return null;
         }
     }
+    public List<AnalyticsData> getCollectorperMccandDate(String date) {
+        try {
+
+            return collectionRepo.getCollectorsPerMCCandDate(date);
+        }catch (Exception exc){
+            log.info(exc.getLocalizedMessage());
+            return null;
+        }
+    }
+    public List<AnalyticsData> getCollectorperMccandmonth(String month) {
+        try {
+
+            return collectionRepo.getCollectorsPerMCCandmonth(month);
+        }catch (Exception exc){
+            log.info(exc.getLocalizedMessage());
+            return null;
+        }
+    }
     public List<ReportData> getDayCollections(String date) {
         try {
 

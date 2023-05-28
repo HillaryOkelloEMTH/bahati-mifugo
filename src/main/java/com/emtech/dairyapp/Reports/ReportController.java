@@ -36,6 +36,8 @@ import org.springframework.web.bind.annotation.*;
 import java.io.FileInputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -328,7 +330,7 @@ public class ReportController {
     }
 
     @GetMapping("perlocations")
-    public ResponseEntity<?> getCollectionsPerLocations(@RequestParam String date) {
+    public ResponseEntity<?> getCollectionsPerLocations(@RequestParam  String date) {
         try {
 
             List<AnalyticsData> record = reportService.getCollectorLocations(date);
@@ -342,6 +344,93 @@ public class ReportController {
 
                 Map<String, Object> parameters = new HashMap<>();
                 parameters.put("date", date);
+                parameters.put("logo", report_icon);
+                parameters.put("location", profile.getLocation());
+                parameters.put("company", profile.getCompanyName());
+                parameters.put("address", profile.getPhysicalAddress());
+
+
+                JasperPrint print = JasperFillManager.fillReport(compileReport, parameters, connection);
+                byte[] data = JasperExportManager.exportReportToPdf(print);
+                HttpHeaders headers = new HttpHeaders();
+                headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + "statement" + "-collections-report");
+                return ResponseEntity.ok().headers(headers).contentType(MediaType.APPLICATION_PDF).body(data);
+
+            } else {
+                EntityResponse response = new EntityResponse();
+                response.setMessage("No record found");
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setEntity(record);
+                return new ResponseEntity<>(response, HttpStatus.OK);
+            }
+        } catch (Exception exc) {
+            EntityResponse response = new EntityResponse();
+            response.setMessage(exc.getLocalizedMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setEntity(null);
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        }
+    }
+    @GetMapping("collections/pickuplocations/date")
+    public ResponseEntity<?> getCollectionsPerLocationsDate(@RequestParam String date) {
+
+        try {
+
+            List<AnalyticsData> record = reportService.getCollectorperMccandDate(date);
+            if (record.size() > 0) {
+                log.info("Data found");
+
+                Connection connection = DriverManager.getConnection(this.db, this.dbusername, this.dbpassword);
+                JasperReport compileReport = JasperCompileManager.compileReport(new FileInputStream(report_path + "/totalsPermcc.jrxml"));
+
+                Profile profile = profileRepo.getProfile();
+
+                Map<String, Object> parameters = new HashMap<>();
+                parameters.put("date", date);
+                parameters.put("logo", report_icon);
+                parameters.put("location", profile.getLocation());
+                parameters.put("company", profile.getCompanyName());
+                parameters.put("address", profile.getPhysicalAddress());
+
+
+                JasperPrint print = JasperFillManager.fillReport(compileReport, parameters, connection);
+                byte[] data = JasperExportManager.exportReportToPdf(print);
+                HttpHeaders headers = new HttpHeaders();
+                headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + "statement" + "-collections-report");
+                return ResponseEntity.ok().headers(headers).contentType(MediaType.APPLICATION_PDF).body(data);
+
+            } else {
+                EntityResponse response = new EntityResponse();
+                response.setMessage("No record found");
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setEntity(record);
+                return new ResponseEntity<>(response, HttpStatus.OK);
+            }
+        } catch (Exception exc) {
+            EntityResponse response = new EntityResponse();
+            response.setMessage(exc.getLocalizedMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setEntity(null);
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @GetMapping("collections/pickuplocations/month")
+    public ResponseEntity<?> getCollectionsPerLocationsMonth(@RequestParam String month) {
+        log.info("calling function to generate report "+ LocalDateTime.now()+ " for "+ month);
+        try {
+
+            List<AnalyticsData> record = reportService.getCollectorperMccandmonth(month);
+            if (record.size() > 0) {
+                log.info("Data found"+ record.size()) ;
+
+                Connection connection = DriverManager.getConnection(this.db, this.dbusername, this.dbpassword);
+                JasperReport compileReport = JasperCompileManager.compileReport(new FileInputStream(report_path + "/totalsPermccPermonth.jrxml"));
+
+                Profile profile = profileRepo.getProfile();
+
+                Map<String, Object> parameters = new HashMap<>();
+                parameters.put("month", month);
                 parameters.put("logo", report_icon);
                 parameters.put("location", profile.getLocation());
                 parameters.put("company", profile.getCompanyName());
