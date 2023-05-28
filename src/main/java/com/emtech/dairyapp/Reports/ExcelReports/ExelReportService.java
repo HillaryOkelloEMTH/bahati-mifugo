@@ -38,10 +38,10 @@ public class ExelReportService {
             cell.setCellValue(headers[col]);
         }
     }
-    public ByteArrayInputStream generateExcelFile(String date) {
+    public ByteArrayInputStream collecionsPerDate(String date) {
         try (Workbook workbook = new XSSFWorkbook();ByteArrayOutputStream out = new ByteArrayOutputStream();) {
             Sheet sheet = workbook.createSheet(SHEET);
-            String[] headers = { "Farmer","Quantity", "Amount", "DeliveryNumber","Collection Date","Session" ,"Collector","CAN","Route","Pick-Up Location"};
+            String[] headers = { "Farmer","Quantity", "Amount", "DeliveryNumber","Collection Date" ,"Collector","Session","CAN","Route","Pick-Up Location"};
 
             List<CollectionsData> data = collectionRepo.getCollectionsbyDate(date); // Fetch data from the database
 
@@ -74,6 +74,29 @@ public class ExelReportService {
         row.createCell(9).setCellValue(entity.getPickUpLocation());
 
 
+    }
+
+    public ByteArrayInputStream getCollectionsPerLocationsexcel(Long pid,String date) {
+        try (Workbook workbook = new XSSFWorkbook();ByteArrayOutputStream out = new ByteArrayOutputStream();) {
+            Sheet sheet = workbook.createSheet(SHEET);
+            String[] headers = { "Farmer","Quantity", "Amount", "DeliveryNumber","Collection Date","Collector","Session" ,"CAN","Route","Pick-Up Location"};
+
+            List<CollectionsData> data = collectionRepo.getCollectionsbyPickUpLocationAndDate(pid,date); // Fetch data from the database
+
+            int rowNum = 0;
+            Row headerRow = sheet.createRow(rowNum++);
+            createHeaderRow(headerRow,headers); // Create header row
+
+            for (CollectionsData entity : data) {
+                Row row = sheet.createRow(rowNum++);
+                fillDataRow(row, entity); // Fill data rows
+            }
+            workbook.write(out);
+            return new ByteArrayInputStream(out.toByteArray());
+
+        } catch (IOException e) {
+            throw new RuntimeException("fail to import data to Excel file: " + e.getMessage());
+        }
     }
 
 }
