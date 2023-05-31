@@ -201,17 +201,6 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
 
 
 
-//    @Query(value = "SELECT f.farmer_no,f.payment_mode, f.payment_freequency,f.username, \n" +
-//            "\tCOALESCE(SUM(c.amount), 0.0) AS collectionAmount, \n" +
-//            "    COALESCE((SELECT SUM(fa.amount) FROM farmer_product_allocations fa WHERE fa.farmer_no = f.farmer_no AND fa.payment_status ='N' and fa.status='Y' and MONTHNAME(fa.allocatio_date)=:month  ), 0.0) AS allocationAmount,\n" +
-//            "   ((COALESCE(SUM(c.amount), 0.0))-(COALESCE((SELECT SUM(fa.amount) FROM farmer_product_allocations fa WHERE fa.farmer_no = f.farmer_no AND fa.payment_status ='N' and MONTHNAME(fa.allocatio_date)=:month ), 0.0))) AS NetPay\n" +
-//            "    FROM farmer f \n" +
-//            "\tLEFT JOIN collections c ON f.farmer_no = c.farmer_no AND c.payment_status ='N' AND MONTHNAME(c.collection_date)  = :month  \n" +
-//            "\tWHERE f.farmer_no IS NOT NULL AND f.payment_mode=:mode\n" +
-//            "\tGROUP BY f.farmer_no, f.username HAVING NetPay > 0",nativeQuery = true)
-//    List<PaymentFileData> getPaymentFileData(String month, String mode);
-
-
 
     @Query(nativeQuery = true,value = "SELECT f.farmer_no,f.payment_mode, f.payment_freequency,f.username, p.name as CollectionCenter,r.route as route,\n" +
             "COALESCE(SUM(c.amount), 0.0) AS collectionAmount,  \n" +
@@ -225,6 +214,37 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
             "AND MONTHNAME(c.collection_date)  = :month  WHERE f.farmer_no IS NOT NULL AND f.payment_mode=:mode AND p.id =:locationId\n" +
             "GROUP BY f.farmer_no, f.username HAVING NetPay > 0")
     List<PaymentFileData> getPaymentFileData(Long locationId,String month, String mode);
+
+
+//    for mpesa
+    @Query(nativeQuery = true,value = "\tSELECT CONVERT(f.farmer_no, CHAR) AS farmer_no, f.mobile_no, f.username,\n" +
+            "    COALESCE(ROUND(SUM(c.amount),2), 0.0) AS collectionAmount,\n" +
+            "    COALESCE(ROUND(SUM(c.quantity),2), 0.0) AS quantity,\n" +
+            "    COALESCE((SELECT COALESCE(ROUND(SUM(fa.amount),2),0.0) FROM farmer_product_allocations fa WHERE fa.farmer_no = f.farmer_no AND fa.payment_status = 'N' AND fa.status = 'Y' AND DATE(fa.allocatio_date) BETWEEN :from AND :to), 0.0) AS allocationAmount,\n" +
+            "    ((COALESCE(ROUND(SUM(c.amount),2), 0.0)) - (COALESCE((SELECT ROUND(SUM(fa.amount),2) FROM farmer_product_allocations fa WHERE fa.farmer_no = f.farmer_no AND fa.payment_status = 'N' AND fa.status = 'Y' AND DATE(fa.allocatio_date)  BETWEEN :from AND :to), 0.0))) AS NetPay\n" +
+            "\tFROM farmer f\n" +
+            "\tLEFT JOIN collections c ON f.farmer_no = c.farmer_no AND c.payment_status = 'N'\n" +
+            "\tJOIN route r ON f.route_fk = r.id\n" +
+            "\tJOIN pick_up_locations p ON p.id = r.location_id \n" +
+            "\tWHERE f.farmer_no IS NOT NULL and f.payment_mode=:mode  AND DATE(c.collection_date) BETWEEN :from AND :to\n" +
+            "\tGROUP BY f.farmer_no, f.username\n" +
+            "\tHAVING NetPay > 0")
+            List<PaymentFileData> getPaymentFileDataMpesaDateRange(String from,String to, String mode);
+
+//    for bank
+    @Query(nativeQuery = true,value = "SELECT CONVERT(f.farmer_no, CHAR) AS farmer_no, f.mobile_no, f.username,bd.branch,bd.account_number,bd.account_name,\n" +
+            "    COALESCE(ROUND(SUM(c.amount),2), 0.0) AS collectionAmount,\n" +
+            "    COALESCE(ROUND(SUM(c.quantity),2), 0.0) AS quantity,\n" +
+            "    COALESCE((SELECT COALESCE(ROUND(SUM(fa.amount),2),0.0) FROM farmer_product_allocations fa WHERE fa.farmer_no = f.farmer_no AND fa.payment_status = 'N' AND fa.status = 'Y' AND DATE(fa.allocatio_date)  BETWEEN :from AND :to), 0.0) AS allocationAmount,\n" +
+            "    ((COALESCE(ROUND(SUM(c.amount),2), 0.0)) - (COALESCE((SELECT ROUND(SUM(fa.amount),2) FROM farmer_product_allocations fa WHERE fa.farmer_no = f.farmer_no AND fa.payment_status = 'N' AND fa.status = 'Y' AND DATE(fa.allocatio_date)  BETWEEN :from AND :to), 0.0))) AS NetPay\n" +
+            "\tFROM farmer f\n" +
+            "\tLEFT JOIN collections c ON f.farmer_no = c.farmer_no AND c.payment_status = 'N'\n" +
+            "\tJOIN route r ON f.route_fk = r.id\n" +
+            "\tJOIN pick_up_locations p ON p.id = r.location_id join bank_details bd on bd.id =f.bank_details_id \n" +
+            "\tWHERE f.farmer_no IS NOT NULL and f.payment_mode=:mode  AND DATE(c.collection_date) BETWEEN :from AND :to\n" +
+            "\tGROUP BY f.farmer_no, f.username\n" +
+            "\tHAVING NetPay > 0")
+    List<PaymentFileData> getPaymentFileDataModeDateRange(String from,String to, String mode);
 
 //    @Query(value = "SELECT f.farmer_no,f.payment_mode, f.payment_freequency,f.username, \n" +
 //            "\tCOALESCE(SUM(c.amount), 0.0) AS collectionAmount, \n" +
@@ -262,7 +282,7 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
     Totals getTotalUnPaidAmount(Integer farmer_no);
 
     @Query(value = "SELECT f.farmer_no, f.username,ROUND(SUM(c.quantity),2) AS deliveries,ROUND(SUM(c.amount),2)  AS collectionAmount, \n" +
-            "    (SELECT SUM(fa.amount) FROM farmer_product_allocations fa WHERE fa.farmer_no = f.farmer_no AND fa.payment_status ='N'and fa.status='Y') AS allocationAmount\n" +
+            "    (SELECT SUM(fa.amount) FROM farmer_product_allocations fa WHERE fa.farmer_no = f.farmer_no AND fa.payment_status ='N'and fa.status='Y' AND DATE(fa.allocatio_date)  BETWEEN :from AND :to) AS allocationAmount\n" +
             "FROM collections c \n" +
             "JOIN farmer f ON f.farmer_no = c.farmer_no\n" +
             "WHERE f.farmer_no = :farmer_no AND c.payment_status ='N' AND DATE(c.collection_date) BETWEEN :from and :to",nativeQuery = true)
