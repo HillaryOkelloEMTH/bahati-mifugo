@@ -38,7 +38,13 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+
 import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 
 @CrossOrigin
 @RestController
@@ -551,6 +557,7 @@ public class ReportController {
         }
     }
 
+
     @GetMapping("paymentfile/date/range")
     public ResponseEntity<?> getCollectionsPerDaterange(@RequestParam String from, @RequestParam String to,@RequestParam String paymentMode) {
         log.info("Generating payment file for dates from "+ from + " - " + to + " ...");
@@ -617,6 +624,7 @@ public class ReportController {
             return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
         }
     }
+
 
     @GetMapping("collections/per/pickUpLocation")
     public ResponseEntity<?> getCollectionsPerpickUpLocation(@RequestParam Long pickUpLocationId, @RequestParam String date) {

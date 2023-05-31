@@ -20,7 +20,8 @@ public interface Services {
     String getAllocatedBy();
     Character getPaymentStatus();
     Character getRevokeStatus();
-
+    String getMobileNo();
+    String getRoute();
     String getServiceStatus();
     Date getRequestedOn();
     Date getResolvedOn();
