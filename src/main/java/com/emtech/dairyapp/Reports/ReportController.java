@@ -606,7 +606,9 @@ public class ReportController {
                 JasperPrint print = JasperFillManager.fillReport(compileReport, parameters, connection);
                 byte[] data = JasperExportManager.exportReportToPdf(print);
                 HttpHeaders headers = new HttpHeaders();
-                headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + LocalDateTime.now() + "-paymentfile-report");
+                Date date = new Date();
+
+                headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + date.getTime() + "-paymentfile-report");
                 return ResponseEntity.ok().headers(headers).contentType(MediaType.APPLICATION_PDF).body(data);
 
             } else {
