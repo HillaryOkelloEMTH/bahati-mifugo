@@ -38,10 +38,13 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+
+import java.util.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
 
 @CrossOrigin
 @RestController
@@ -502,7 +505,7 @@ public class ReportController {
         }
     }
     @GetMapping("paymentfile")
-    public ResponseEntity<?> getCollectionsPerDate(@RequestParam Long pickupLocationId,@RequestParam String month,@RequestParam String paymentMode) {
+    public ResponseEntity<?> getCollectionsMonthly(@RequestParam Long pickupLocationId,@RequestParam String month,@RequestParam String paymentMode) {
         log.info("Generating payment file...");
         try {
             String mccname="";
@@ -553,6 +556,75 @@ public class ReportController {
             return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
         }
     }
+
+
+    @GetMapping("paymentfile/date/range")
+    public ResponseEntity<?> getCollectionsPerDaterange(@RequestParam String from, @RequestParam String to,@RequestParam String paymentMode) {
+        log.info("Generating payment file for dates from "+ from + " - " + to + " ...");
+        try {
+//            String mccname="";
+//            Optional<PickUpLocations> pickUpLocation= pickUpLocationsRepo.findById(pickupLocationId);
+//            if(pickUpLocation.isPresent()){
+//                mccname=pickUpLocation.get().getName();
+//            }
+
+            String mode = paymentMode;
+            log.info("Payment mode "+ mode);
+            List<PaymentFileData> record=null;
+            JasperReport compileReport=null;
+            Connection connection = DriverManager.getConnection(this.db, this.dbusername, this.dbpassword);
+            if(mode.equalsIgnoreCase("M-Pesa")) {
+
+                record = collectionRepo.getPaymentFileDataMpesaDateRange(from, to, paymentMode);
+                 compileReport = JasperCompileManager.compileReport(new FileInputStream(report_path + "/paymentFileMpesadateRange.jrxml"));
+            }else{
+                 record = collectionRepo.getPaymentFileDataModeDateRange(from, to, paymentMode);
+                 compileReport = JasperCompileManager.compileReport(new FileInputStream(report_path + "/paymentfileBank.jrxml"));
+
+            }
+            if (record.size() > 0) {
+                log.info("Data found ");
+                log.info("Data size "+ record.size());
+
+
+
+
+                Profile profile = profileRepo.getProfile();
+
+                Map<String, Object> parameters = new HashMap<>();
+                parameters.put("from", from);
+                parameters.put("to", to);
+                parameters.put("mode", paymentMode);
+//                parameters.put("mcc", mccname);
+//                parameters.put("location_id", pickupLocationId);
+                parameters.put("logo", report_icon);
+                parameters.put("location", profile.getLocation());
+                parameters.put("company", profile.getCompanyName());
+                parameters.put("address", profile.getPhysicalAddress());
+
+
+                JasperPrint print = JasperFillManager.fillReport(compileReport, parameters, connection);
+                byte[] data = JasperExportManager.exportReportToPdf(print);
+                HttpHeaders headers = new HttpHeaders();
+                headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + LocalDateTime.now() + "-paymentfile-report");
+                return ResponseEntity.ok().headers(headers).contentType(MediaType.APPLICATION_PDF).body(data);
+
+            } else {
+                EntityResponse response = new EntityResponse();
+                response.setMessage("No record found");
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setEntity(record);
+                return new ResponseEntity<>(response, HttpStatus.OK);
+            }
+        } catch (Exception exc) {
+            EntityResponse response = new EntityResponse();
+            response.setMessage(exc.getLocalizedMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setEntity(null);
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        }
+    }
+
 
     @GetMapping("collections/per/pickUpLocation")
     public ResponseEntity<?> getCollectionsPerpickUpLocation(@RequestParam Long pickUpLocationId, @RequestParam String date) {
