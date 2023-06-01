@@ -513,14 +513,22 @@ public class ReportController {
             if(pickUpLocation.isPresent()){
                 mccname=pickUpLocation.get().getName();
             }
+            String mode = paymentMode;
+            List<PaymentFileData> record=null;
+            JasperReport compileReport=null;
+            if(mode.equalsIgnoreCase("M-Pesa")|| mode.equalsIgnoreCase("Cash")) {
+                record = collectionRepo.getPaymentFileData(pickupLocationId,month,paymentMode);
+                 compileReport = JasperCompileManager.compileReport(new FileInputStream(report_path + "/paymentFile.jrxml"));
+            }else {
+                record = collectionRepo.getPaymentFileDataB(pickupLocationId,month,paymentMode);
+                compileReport = JasperCompileManager.compileReport(new FileInputStream(report_path + "/paymentFileB.jrxml"));
+            }
 
-            List<PaymentFileData> record = collectionRepo.getPaymentFileData(pickupLocationId,month,paymentMode);
             if (record.size() > 0) {
                 log.info("Data found ");
                 log.info("Data size "+ record.size());
 
                 Connection connection = DriverManager.getConnection(this.db, this.dbusername, this.dbpassword);
-                JasperReport compileReport = JasperCompileManager.compileReport(new FileInputStream(report_path + "/paymentFile.jrxml"));
 
                 Profile profile = profileRepo.getProfile();
 
@@ -573,7 +581,7 @@ public class ReportController {
             List<PaymentFileData> record=null;
             JasperReport compileReport=null;
             Connection connection = DriverManager.getConnection(this.db, this.dbusername, this.dbpassword);
-            if(mode.equalsIgnoreCase("M-Pesa")) {
+            if(mode.equalsIgnoreCase("M-Pesa")|| mode.equalsIgnoreCase("Cash")) {
 
                 record = collectionRepo.getPaymentFileDataMpesaDateRange(from, to, paymentMode);
                  compileReport = JasperCompileManager.compileReport(new FileInputStream(report_path + "/paymentFileMpesadateRange.jrxml"));
