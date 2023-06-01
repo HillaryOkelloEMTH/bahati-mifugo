@@ -37,4 +37,22 @@ public class ExcellReportsController {
                 .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
                 .body(file);
     }
+    @GetMapping("/collections/paymentfile/dates")
+    public ResponseEntity<Resource> collectinsPerPickuplocations(@RequestParam String from,@RequestParam String to,@RequestParam String mode) {
+        String filename = "paymentFile"+mode+".xlsx";
+        InputStreamResource file =new InputStreamResource(exelReportService.getPaymentFileDr(from, to, mode));
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
+                .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
+                .body(file);
+    }
+    @GetMapping("/collections/paymentfile")
+    public ResponseEntity<Resource> collectinsPerPickuplocations(@RequestParam Long pid,@RequestParam String month,@RequestParam String mode) {
+        String filename = "paymentFile"+mode+".xlsx";
+        InputStreamResource file =new InputStreamResource(exelReportService.getPaymentFile(pid,month, mode));
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
+                .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
+                .body(file);
+    }
 }
