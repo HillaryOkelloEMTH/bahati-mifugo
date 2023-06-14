@@ -44,6 +44,13 @@ public class MilkCollectionController {
         EntityResponse response = collectionService.deleteCollections(id);
         return ResponseEntity.ok().body(response);
     }
+
+    @GetMapping("fetch/collections/today/previousday")
+    public ResponseEntity<?> fetchTodayAndPreviousDayCollectionsCount(@RequestParam  Integer collectorId, @RequestParam String todayDate, @RequestParam String previousDayDate){
+        EntityResponse response = collectionService.fetchTodayAndPreviousDayCollectionsCount(collectorId, todayDate, previousDayDate);
+        return ResponseEntity.ok().body(response);
+    }
+
     @GetMapping("farmer")
     public ResponseEntity<EntityResponse> getMemberCollections(@RequestParam Integer farmerNo){
         EntityResponse response = collectionService.getCollectionsByMember(farmerNo);
