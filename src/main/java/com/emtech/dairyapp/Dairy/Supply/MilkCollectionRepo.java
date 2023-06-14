@@ -142,6 +142,10 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
     @Query(value = "SELECT SUM(c.quantity) as totaldeliveries,SUM(c.amount) as totalIncome ,f.farmer_no,f.username  from collections c join farmer f where DATE(c.collection_date) BETWEEN :from and :to and f.farmer_no =:farmerNo and c.payment_status=:payment_status", nativeQuery = true)
     StatementSummry getFarmerStmntSummary(String from, String to, Integer farmerNo,Character payment_status);
 
+
+    @Query(nativeQuery = true, value = "select count(*) as totalCollections, :collectionDate as collectionDate from collections c where c.collector_id = :collectorId and DATE(c.collection_date)= :collectionDate")
+    CurrentTotalCollections findCurrentTotalCollections(Integer collectorId, String collectionDate);
+
     interface StatementSummry{
         Double getTotaldeliveries();
         Double getTotalIncome();

@@ -21,6 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -990,6 +991,31 @@ public class MilkCollectionService {
             response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
         }
         return response;
+    }
+
+    public EntityResponse fetchTodayAndPreviousDayCollectionsCount(Integer collectorId, String todayDate, String previousDayDate) {
+        EntityResponse response = new EntityResponse();
+        try {
+
+            CurrentTotalCollections currentTotalCollections = milkCollectionRepo.findCurrentTotalCollections(collectorId, todayDate);
+            CurrentTotalCollections previousTotalCollections = milkCollectionRepo.findCurrentTotalCollections(collectorId, previousDayDate);
+
+            List<CurrentTotalCollections> totalCollectionsList = new ArrayList<>();
+            totalCollectionsList.add(currentTotalCollections);
+            totalCollectionsList.add(previousTotalCollections);
+
+            response.setEntity(totalCollectionsList);
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setMessage("Records Found");
+
+            return response;
+
+        }catch (Exception exc){
+            log.error(exc.getMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+            return response;
+        }
     }
 }
 
