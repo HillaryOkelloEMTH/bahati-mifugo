@@ -8,7 +8,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Date;
 import java.util.List;
 
 @CrossOrigin
@@ -45,9 +44,9 @@ public class MilkCollectionController {
         return ResponseEntity.ok().body(response);
     }
 
-    @GetMapping("fetch/collections/today/previousday")
-    public ResponseEntity<?> fetchTodayAndPreviousDayCollectionsCount(@RequestParam  Integer collectorId, @RequestParam String todayDate, @RequestParam String previousDayDate){
-        EntityResponse response = collectionService.fetchTodayAndPreviousDayCollectionsCount(collectorId, todayDate, previousDayDate);
+    @GetMapping("fetch/collections/farmers/current/previous")
+    public ResponseEntity<?> fetchCurrentAndPreviousCollectionsAnFarmersCount(@RequestParam  Integer collectorId, @RequestParam String todayDate, @RequestParam String previousDayDate){
+        EntityResponse response = collectionService.fetchCurrentAndPreviousCollectionsAndFarmersCount(collectorId, todayDate, previousDayDate);
         return ResponseEntity.ok().body(response);
     }
 

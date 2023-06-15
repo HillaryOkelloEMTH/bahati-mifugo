@@ -3,6 +3,7 @@ package com.emtech.dairyapp.Configurations.FarmerManagement;
 import com.emtech.dairyapp.Configurations.Interfaces.FarmerAccruedAmount;
 import com.emtech.dairyapp.Configurations.Interfaces.FarmerInfo;
 import com.emtech.dairyapp.Configurations.Interfaces.FarmersPerWard;
+import com.emtech.dairyapp.Dairy.Interface.CurrentTotalFarmers;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -49,4 +50,6 @@ FarmerAccruedAmount getFarmerAccruedAmount(Long id, Character paymentyStatus);
 
     boolean existsById(Long id);
 
+    @Query(nativeQuery = true, value = "select count(*) as totalFarmers from farmer f join route r on f.route_fk=r.id join collector c on r.location_id=c.location_id join users u on c.username=u.user_name where u.id= :collectorId and MONTH(f.created_at) = :month ")
+    CurrentTotalFarmers fetchCurrentAndPreviousCollectionsAndFarmersCount(Integer collectorId, Integer month);
 }
