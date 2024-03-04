@@ -36,10 +36,15 @@ import org.springframework.web.bind.annotation.*;
 import java.io.FileInputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
+import java.util.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
 
 @CrossOrigin
 @RestController
@@ -328,7 +333,7 @@ public class ReportController {
     }
 
     @GetMapping("perlocations")
-    public ResponseEntity<?> getCollectionsPerLocations(@RequestParam String date) {
+    public ResponseEntity<?> getCollectionsPerLocations(@RequestParam  String date) {
         try {
 
             List<AnalyticsData> record = reportService.getCollectorLocations(date);
@@ -342,6 +347,93 @@ public class ReportController {
 
                 Map<String, Object> parameters = new HashMap<>();
                 parameters.put("date", date);
+                parameters.put("logo", report_icon);
+                parameters.put("location", profile.getLocation());
+                parameters.put("company", profile.getCompanyName());
+                parameters.put("address", profile.getPhysicalAddress());
+
+
+                JasperPrint print = JasperFillManager.fillReport(compileReport, parameters, connection);
+                byte[] data = JasperExportManager.exportReportToPdf(print);
+                HttpHeaders headers = new HttpHeaders();
+                headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + "statement" + "-collections-report");
+                return ResponseEntity.ok().headers(headers).contentType(MediaType.APPLICATION_PDF).body(data);
+
+            } else {
+                EntityResponse response = new EntityResponse();
+                response.setMessage("No record found");
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setEntity(record);
+                return new ResponseEntity<>(response, HttpStatus.OK);
+            }
+        } catch (Exception exc) {
+            EntityResponse response = new EntityResponse();
+            response.setMessage(exc.getLocalizedMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setEntity(null);
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        }
+    }
+    @GetMapping("collections/pickuplocations/date")
+    public ResponseEntity<?> getCollectionsPerLocationsDate(@RequestParam String date) {
+
+        try {
+
+            List<AnalyticsData> record = reportService.getCollectorperMccandDate(date);
+            if (record.size() > 0) {
+                log.info("Data found");
+
+                Connection connection = DriverManager.getConnection(this.db, this.dbusername, this.dbpassword);
+                JasperReport compileReport = JasperCompileManager.compileReport(new FileInputStream(report_path + "/totalsPermcc.jrxml"));
+
+                Profile profile = profileRepo.getProfile();
+
+                Map<String, Object> parameters = new HashMap<>();
+                parameters.put("date", date);
+                parameters.put("logo", report_icon);
+                parameters.put("location", profile.getLocation());
+                parameters.put("company", profile.getCompanyName());
+                parameters.put("address", profile.getPhysicalAddress());
+
+
+                JasperPrint print = JasperFillManager.fillReport(compileReport, parameters, connection);
+                byte[] data = JasperExportManager.exportReportToPdf(print);
+                HttpHeaders headers = new HttpHeaders();
+                headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + "statement" + "-collections-report");
+                return ResponseEntity.ok().headers(headers).contentType(MediaType.APPLICATION_PDF).body(data);
+
+            } else {
+                EntityResponse response = new EntityResponse();
+                response.setMessage("No record found");
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setEntity(record);
+                return new ResponseEntity<>(response, HttpStatus.OK);
+            }
+        } catch (Exception exc) {
+            EntityResponse response = new EntityResponse();
+            response.setMessage(exc.getLocalizedMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setEntity(null);
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @GetMapping("collections/pickuplocations/month")
+    public ResponseEntity<?> getCollectionsPerLocationsMonth(@RequestParam String month) {
+        log.info("calling function to generate report "+ LocalDateTime.now()+ " for "+ month);
+        try {
+
+            List<AnalyticsData> record = reportService.getCollectorperMccandmonth(month);
+            if (record.size() > 0) {
+                log.info("Data found"+ record.size()) ;
+
+                Connection connection = DriverManager.getConnection(this.db, this.dbusername, this.dbpassword);
+                JasperReport compileReport = JasperCompileManager.compileReport(new FileInputStream(report_path + "/totalsPermccPermonth.jrxml"));
+
+                Profile profile = profileRepo.getProfile();
+
+                Map<String, Object> parameters = new HashMap<>();
+                parameters.put("month", month);
                 parameters.put("logo", report_icon);
                 parameters.put("location", profile.getLocation());
                 parameters.put("company", profile.getCompanyName());
@@ -413,7 +505,7 @@ public class ReportController {
         }
     }
     @GetMapping("paymentfile")
-    public ResponseEntity<?> getCollectionsPerDate(@RequestParam Long pickupLocationId,@RequestParam String month,@RequestParam String paymentMode) {
+    public ResponseEntity<?> getCollectionsMonthly(@RequestParam Long pickupLocationId,@RequestParam String month,@RequestParam String paymentMode) {
         log.info("Generating payment file...");
         try {
             String mccname="";
@@ -421,14 +513,22 @@ public class ReportController {
             if(pickUpLocation.isPresent()){
                 mccname=pickUpLocation.get().getName();
             }
+            String mode = paymentMode;
+            List<PaymentFileData> record=null;
+            JasperReport compileReport=null;
+            if(mode.equalsIgnoreCase("M-Pesa")|| mode.equalsIgnoreCase("Cash")) {
+                record = collectionRepo.getPaymentFileData(pickupLocationId,month,paymentMode);
+                 compileReport = JasperCompileManager.compileReport(new FileInputStream(report_path + "/paymentFile.jrxml"));
+            }else {
+                record = collectionRepo.getPaymentFileDataB(pickupLocationId,month,paymentMode);
+                compileReport = JasperCompileManager.compileReport(new FileInputStream(report_path + "/paymentFileB.jrxml"));
+            }
 
-            List<PaymentFileData> record = collectionRepo.getPaymentFileData(pickupLocationId,month,paymentMode);
             if (record.size() > 0) {
                 log.info("Data found ");
                 log.info("Data size "+ record.size());
 
                 Connection connection = DriverManager.getConnection(this.db, this.dbusername, this.dbpassword);
-                JasperReport compileReport = JasperCompileManager.compileReport(new FileInputStream(report_path + "/paymentFile.jrxml"));
 
                 Profile profile = profileRepo.getProfile();
 
@@ -464,55 +564,80 @@ public class ReportController {
             return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
         }
     }
-//    @GetMapping("weekly/paymentfile")
-//    public ResponseEntity<?> getweekLyPayment(@RequestParam String week,@RequestParam String paymentMode) {
-//        log.info("Generating payment file...");
-//        try {
-//
-//            List<PaymentFileData> record = collectionRepo.getPaymentFileData(week,paymentMode);
-//            if (record.size() > 0) {
-//                log.info("Data found ");
-//                log.info("Data size "+ record.size());
-//
-//                Connection connection = DriverManager.getConnection(this.db, this.dbusername, this.dbpassword);
-//                JasperReport compileReport = JasperCompileManager.compileReport(new FileInputStream(report_path + "/paymentFile.jrxml"));
-//
-//                Profile profile = profileRepo.getProfile();
-//
-//                Map<String, Object> parameters = new HashMap<>();
-//                parameters.put("month", month);
-//                parameters.put("mode", paymentMode);
-//                parameters.put("logo", report_icon);
-//                parameters.put("location", profile.getLocation());
-//                parameters.put("company", profile.getCompanyName());
-//                parameters.put("address", profile.getPhysicalAddress());
-//
-//
-//                JasperPrint print = JasperFillManager.fillReport(compileReport, parameters, connection);
-//                byte[] data = JasperExportManager.exportReportToPdf(print);
-//                HttpHeaders headers = new HttpHeaders();
-//                headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + month + "-paymentfile-report");
-//                return ResponseEntity.ok().headers(headers).contentType(MediaType.APPLICATION_PDF).body(data);
-//
-//            } else {
-//                EntityResponse response = new EntityResponse();
-//                response.setMessage("No record found");
-//                response.setStatusCode(HttpStatus.OK.value());
-//                response.setEntity(record);
-//                return new ResponseEntity<>(response, HttpStatus.OK);
+
+
+    @GetMapping("paymentfile/date/range")
+    public ResponseEntity<?> getCollectionsPerDaterange(@RequestParam String from, @RequestParam String to,@RequestParam String paymentMode) {
+        log.info("Generating payment file for dates from "+ from + " - " + to + " ...");
+        try {
+//            String mccname="";
+//            Optional<PickUpLocations> pickUpLocation= pickUpLocationsRepo.findById(pickupLocationId);
+//            if(pickUpLocation.isPresent()){
+//                mccname=pickUpLocation.get().getName();
 //            }
-//        } catch (Exception exc) {
-//            EntityResponse response = new EntityResponse();
-//            response.setMessage(exc.getLocalizedMessage());
-//            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
-//            response.setEntity(null);
-//            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-//        }
-//    }
+
+            String mode = paymentMode;
+            log.info("Payment mode "+ mode);
+            List<PaymentFileData> record=null;
+            JasperReport compileReport=null;
+            Connection connection = DriverManager.getConnection(this.db, this.dbusername, this.dbpassword);
+            if(mode.equalsIgnoreCase("M-Pesa")|| mode.equalsIgnoreCase("Cash")) {
+
+                record = collectionRepo.getPaymentFileDataMpesaDateRange(from, to, paymentMode);
+                 compileReport = JasperCompileManager.compileReport(new FileInputStream(report_path + "/paymentFileMpesadateRange.jrxml"));
+            }else{
+                 record = collectionRepo.getPaymentFileDataModeDateRange(from, to, paymentMode);
+                 compileReport = JasperCompileManager.compileReport(new FileInputStream(report_path + "/paymentfileBank.jrxml"));
+
+            }
+            if (record.size() > 0) {
+                log.info("Data found ");
+                log.info("Data size "+ record.size());
+
+
+
+
+                Profile profile = profileRepo.getProfile();
+
+                Map<String, Object> parameters = new HashMap<>();
+                parameters.put("from", from);
+                parameters.put("to", to);
+                parameters.put("mode", paymentMode);
+//                parameters.put("mcc", mccname);
+//                parameters.put("location_id", pickupLocationId);
+                parameters.put("logo", report_icon);
+                parameters.put("location", profile.getLocation());
+                parameters.put("company", profile.getCompanyName());
+                parameters.put("address", profile.getPhysicalAddress());
+
+
+                JasperPrint print = JasperFillManager.fillReport(compileReport, parameters, connection);
+                byte[] data = JasperExportManager.exportReportToPdf(print);
+                HttpHeaders headers = new HttpHeaders();
+                Date date = new Date();
+
+                headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + date.getTime() + "-paymentfile-report");
+                return ResponseEntity.ok().headers(headers).contentType(MediaType.APPLICATION_PDF).body(data);
+
+            } else {
+                EntityResponse response = new EntityResponse();
+                response.setMessage("No record found");
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setEntity(record);
+                return new ResponseEntity<>(response, HttpStatus.OK);
+            }
+        } catch (Exception exc) {
+            EntityResponse response = new EntityResponse();
+            response.setMessage(exc.getLocalizedMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setEntity(null);
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        }
+    }
 
 
     @GetMapping("collections/per/pickUpLocation")
-    public ResponseEntity<?> getCollectionsPerDate(@RequestParam Long pickUpLocationId, @RequestParam String date) {
+    public ResponseEntity<?> getCollectionsPerpickUpLocation(@RequestParam Long pickUpLocationId, @RequestParam String date) {
         try {
 
             List<CollectionsData> record = reportService.fetchCollectionsPickUpCollectionsAndDate(pickUpLocationId,date);

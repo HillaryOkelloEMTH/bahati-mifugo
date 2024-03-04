@@ -8,7 +8,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Date;
 import java.util.List;
 
 @CrossOrigin
@@ -44,6 +43,13 @@ public class MilkCollectionController {
         EntityResponse response = collectionService.deleteCollections(id);
         return ResponseEntity.ok().body(response);
     }
+
+    @GetMapping("fetch/collections/farmers/current/previous")
+    public ResponseEntity<?> fetchCurrentAndPreviousCollectionsAnFarmersCount(@RequestParam  Integer collectorId, @RequestParam String todayDate, @RequestParam String previousDayDate){
+        EntityResponse response = collectionService.fetchCurrentAndPreviousCollectionsAndFarmersCount(collectorId, todayDate, previousDayDate);
+        return ResponseEntity.ok().body(response);
+    }
+
     @GetMapping("farmer")
     public ResponseEntity<EntityResponse> getMemberCollections(@RequestParam Integer farmerNo){
         EntityResponse response = collectionService.getCollectionsByMember(farmerNo);
