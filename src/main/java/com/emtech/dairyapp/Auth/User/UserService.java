@@ -131,19 +131,18 @@ public class UserService {
                                 log.log(Level.INFO, String.format("User assigned role [ %s ]", user.get()));
                             }
 
-                            try {
-                                SendCredentialToMail sm = new SendCredentialToMail();
-
-                                log.log(Level.INFO, String.format("User Email [ %s ]", user.get().getEmail()));
-
-                                 res= sm.sendMail(user.get().getEmail(), user.get().getUsername(), userPassword);
-
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                            if(res.getStatusCode()==200) {
-                                response.set(RecordCreateResponse.builder().message("User created successfully !").statusCode(HttpStatus.CREATED.value()).build());
-                            }
+//                            try {
+//                                SendCredentialToMail sm = new SendCredentialToMail();
+//
+//                                log.log(Level.INFO, String.format("User Email [ %s ]", user.get().getEmail()));
+//
+//                                 res= sm.sendMail(user.get().getEmail(), user.get().getUsername(), userPassword);
+//
+//                            } catch (Exception e) {
+//                                e.printStackTrace();
+//                            }
+//
+                            response.set(RecordCreateResponse.builder().message("User created successfully !").statusCode(HttpStatus.CREATED.value()).build());
                         }else {
                             log.log(Level.SEVERE, String.format("Selected role with the id %s is not active !", roleId));
 
