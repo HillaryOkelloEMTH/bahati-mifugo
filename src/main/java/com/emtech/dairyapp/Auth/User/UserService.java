@@ -131,19 +131,18 @@ public class UserService {
                                 log.log(Level.INFO, String.format("User assigned role [ %s ]", user.get()));
                             }
 
-                            try {
-                                SendCredentialToMail sm = new SendCredentialToMail();
-
-                                log.log(Level.INFO, String.format("User Email [ %s ]", user.get().getEmail()));
-
-                                 res= sm.sendMail(user.get().getEmail(), user.get().getUsername(), userPassword);
-
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                            if(res.getStatusCode()==200) {
-                                response.set(RecordCreateResponse.builder().message("User created successfully !").statusCode(HttpStatus.CREATED.value()).build());
-                            }
+//                            try {
+//                                SendCredentialToMail sm = new SendCredentialToMail();
+//
+//                                log.log(Level.INFO, String.format("User Email [ %s ]", user.get().getEmail()));
+//
+//                                 res= sm.sendMail(user.get().getEmail(), user.get().getUsername(), userPassword);
+//
+//                            } catch (Exception e) {
+//                                e.printStackTrace();
+//                            }
+//
+                            response.set(RecordCreateResponse.builder().message("User created successfully !").statusCode(HttpStatus.CREATED.value()).build());
                         }else {
                             log.log(Level.SEVERE, String.format("Selected role with the id %s is not active !", roleId));
 
@@ -162,8 +161,8 @@ public class UserService {
         return response.get();
     }
 
-    public AuthResponse authenticateUser(@NonNull String username, @NonNull String password){
-        AtomicReference<AuthResponse> response = new AtomicReference<>();
+    public EntityResponse<AuthResponse> authenticateUser(@NonNull String username, @NonNull String password){
+        EntityResponse<AuthResponse> response = new EntityResponse<>();
 
         userRepository.findByUsername(username.trim()).ifPresentOrElse(user -> {
             if (Objects.equals(user.getStatus(), "Active")){
@@ -185,25 +184,30 @@ public class UserService {
                             .roles(userData.getRoles())
                             .build();
 
-                    response.set(authResponse);
+                    response.setMessage("Login Successful");
+                    response.setStatusCode(HttpStatus.OK.value());
+                    response.setEntity(authResponse);
                 }else{
-
+                    response.setMessage("Check your password");
+                    response.setStatusCode(HttpStatus.BAD_REQUEST.value());
                     log.log(Level.SEVERE, "Passwords do not match");
 
                 }
 
             }else{
-
+                response.setMessage("Account not found");
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
                 log.log(Level.WARNING, String.format("Account for the provided username is not active [ username=%s ]", username));
 
             }
         }, () -> {
-
+            response.setMessage("User not found");
+            response.setStatusCode(HttpStatus.NOT_FOUND.value());
             log.log(Level.WARNING, "User with the username not found");
 
         });
 
-        return response.get();
+        return response;
     }
 
     public RecordCreateResponse updateUser(@NonNull Long userId, @NonNull String firstName, @NonNull String lastName){
