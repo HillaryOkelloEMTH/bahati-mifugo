@@ -6,6 +6,7 @@ import com.emtech.dairyapp.Auth.Data.Http.Request.Auth.ResetPasswordRequest;
 import com.emtech.dairyapp.Auth.Data.Http.Request.Auth.UpdateUserPasswordRequest;
 import com.emtech.dairyapp.Auth.Data.Http.Response.Auth.AuthResponse;
 import com.emtech.dairyapp.Auth.Data.Http.Response.Auth.RecordCreateResponse;
+import com.emtech.dairyapp.Response.EntityResponse;
 import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -34,12 +35,12 @@ public class AuthController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public Mono<ResponseEntity<AuthResponse>> login(@RequestBody AuthRequest body){
+    public Mono<ResponseEntity<EntityResponse<AuthResponse>>> login(@RequestBody AuthRequest body){
         log.log(Level.WARNING, String.format("User Credentials [credentials=%s]", body));
-        AuthResponse authResponse = this.userService.authenticateUser(body.getUsername(), body.getPassword());
+        EntityResponse<AuthResponse> authResponse = this.userService.authenticateUser(body.getUsername(), body.getPassword());
 
         if(authResponse != null){
-            return Mono.just(ResponseEntity.ok().body(authResponse));
+            return Mono.just(ResponseEntity.status(authResponse.getStatusCode()).body(authResponse));
         }else {
             return Mono.just(ResponseEntity.badRequest().build());
         }

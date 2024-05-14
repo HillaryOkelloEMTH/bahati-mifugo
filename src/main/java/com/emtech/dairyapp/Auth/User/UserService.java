@@ -161,8 +161,8 @@ public class UserService {
         return response.get();
     }
 
-    public AuthResponse authenticateUser(@NonNull String username, @NonNull String password){
-        AtomicReference<AuthResponse> response = new AtomicReference<>();
+    public EntityResponse<AuthResponse> authenticateUser(@NonNull String username, @NonNull String password){
+        EntityResponse<AuthResponse> response = new EntityResponse<>();
 
         userRepository.findByUsername(username.trim()).ifPresentOrElse(user -> {
             if (Objects.equals(user.getStatus(), "Active")){
@@ -184,25 +184,30 @@ public class UserService {
                             .roles(userData.getRoles())
                             .build();
 
-                    response.set(authResponse);
+                    response.setMessage("Login Successful");
+                    response.setStatusCode(HttpStatus.OK.value());
+                    response.setEntity(authResponse);
                 }else{
-
+                    response.setMessage("Check your password");
+                    response.setStatusCode(HttpStatus.BAD_REQUEST.value());
                     log.log(Level.SEVERE, "Passwords do not match");
 
                 }
 
             }else{
-
+                response.setMessage("Account not found");
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
                 log.log(Level.WARNING, String.format("Account for the provided username is not active [ username=%s ]", username));
 
             }
         }, () -> {
-
+            response.setMessage("User not found");
+            response.setStatusCode(HttpStatus.NOT_FOUND.value());
             log.log(Level.WARNING, "User with the username not found");
 
         });
 
-        return response.get();
+        return response;
     }
 
     public RecordCreateResponse updateUser(@NonNull Long userId, @NonNull String firstName, @NonNull String lastName){
