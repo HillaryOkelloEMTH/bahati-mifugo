@@ -19,9 +19,7 @@ import java.util.Objects;
 import java.util.logging.Level;
 
 @Log
-
-@CrossOrigin
-
+@CrossOrigin("*")
 @RestController
 @RequestMapping(path = "/api/v1/authentication")
 public class AuthController {

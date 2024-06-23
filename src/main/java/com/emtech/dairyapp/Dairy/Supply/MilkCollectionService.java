@@ -22,10 +22,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -73,11 +70,11 @@ public class MilkCollectionService {
             log.info("Price management fro route found...");
             if (event.equalsIgnoreCase("Buying")) {
                 log.info("buying event");
-                collections.setQuantity(collections.getOriginalQuantity());
-                Double buyingPrice = collections.getCurrentPrice();
-                Double totalAmount = buyingPrice * collections.getQuantity();
-                collections.setAmount(totalAmount);
-                collections.setCurrentPrice(buyingPrice);
+//                collections.setQuantity(collections.getOriginalQuantity());
+//                Double buyingPrice = collections.getCurrentPrice();
+//                Double totalAmount = buyingPrice * collections.getQuantity();
+//                collections.setAmount(totalAmount);
+//                collections.setCurrentPrice(buyingPrice);
                 Optional<FloatManager> manager = floatManagerRepo.findByCollectorId(collections.getCollectorId());
                 if (manager.isPresent()) {
                     log.info("Collector allocation found ..");
@@ -122,12 +119,13 @@ public class MilkCollectionService {
                     Optional<ProductConfig> productConfig = productConfigRepo.findByRouteFk(collections.getRouteFk());
                     if (productConfig.isPresent()) {
                         Optional<Can> cancheck = canRepo.findByCanNo(collections.getCanNo());
-                        if (cancheck.isPresent()) {
+                        if (!cancheck.isPresent()) {
 
                             log.info("----Collection event----");
-                            Can can = cancheck.get();
-                            Double lessWeight = Double.valueOf(can.getDeductionWeight());
-                            Double actual_quantity = collections.getOriginalQuantity() - lessWeight;
+//                            Can can = cancheck.get();
+//                            Double lessWeight = Double.valueOf(can.getDeductionWeight());
+                            Double lessWeight = 0.0;
+                            Double actual_quantity = collections.getQuantity() - lessWeight;
                             collections.setQuantity(actual_quantity);
                             collections.setDeductedWeight(lessWeight);
                             Double buyingPrice = productConfig.get().getBuyingPrice();
@@ -166,20 +164,24 @@ public class MilkCollectionService {
 
                 //send sms
 //                if (sms) {
-                log.info("Sending sms ...");
-                String message = "Dear " + username + ", we have received your " + collections.getQuantity() + " of milk" +
-                        " collections for " + collections.getSession() + " at " + collections.getCollectionDate() + ".";
-                String phoneno = check.get().getMobile_no().trim();
-                if (phoneno.startsWith("0")) {
-                    log.info("Starting with 0");
-                    phoneno = phoneno.replaceFirst("0", "254");
-                } else if (phoneno.startsWith("+")) {
-                    log.info("Starting with +");
-                    phoneno = phoneno.substring(1, phoneno.length());
-                } else if (phoneno.startsWith("7") || phoneno.startsWith("1")) {
-                    phoneno = "254" + phoneno;
+                Double monthTotal = milkCollectionRepo.getMonthyAccumulation(collections.getFarmerNo());
+                String session = Objects.equals(collections.getSession(), "Session 1") ? "Morning" : (Objects.equals(collections.getSession(), "Session 2") ? "Afternoon" : "Evening");
+                if (check.get().getMobile_no() != null) {
+                    log.info("Sending sms ...");
+                    String message = "Dear " + username + ", Farmer No. " + check.get().getFarmer_no() + " we have received " + collections.getQuantity() + "Kgs of milk" +
+                             session + "Session on " + collections.getCollectionDate() + ". Month Total" + monthTotal + "Kgs.";
+                    String phoneno = check.get().getMobile_no().trim();
+                    if (phoneno.startsWith("0")) {
+                        log.info("Starting with 0");
+                        phoneno = phoneno.replaceFirst("0", "254");
+                    } else if (phoneno.startsWith("+")) {
+                        log.info("Starting with +");
+                        phoneno = phoneno.substring(1);
+                    } else if (phoneno.startsWith("7") || phoneno.startsWith("1")) {
+                        phoneno = "254" + phoneno;
+                    }
+                    smsservice.SMSNOtification(message, phoneno);
                 }
-                smsservice.SMSNOtification(message, phoneno);
 //                }
             }
 

@@ -15,6 +15,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -31,6 +32,7 @@ public class PickUpLocationService {
     private PickUpLocationsRepo pickUpLocationsRepo;
 
 
+    @Transactional
     public EntityResponse addPickUpLocations(PickUpLocations pickUpLocations) {
         log.info("saving PickUpLocations...");
         EntityResponse response = new EntityResponse<>();
@@ -51,13 +53,15 @@ public class PickUpLocationService {
                 response.setMessage("The Collectors Contains Duplicates");
                 return  response;
             }
+            System.out.println("Debugger ------1");
             PickUpLocations p =pickUpLocationsRepo.save(pickUpLocations);
 
             for (Collector c:collectors ) {
+                System.out.println("debugger ------2");
                 pickUpLocationsRepo.updateCollectorInformation(p.getName(),c.getUsername());
             }
 
-
+            System.out.println("debugger -------3");
 
             response.setStatusCode(HttpStatus.CREATED.value());
             response.setEntity(pickUpLocations);
