@@ -4,7 +4,7 @@ import com.emtech.dairyapp.Configurations.FarmerManagement.Farmer;
 
 public interface FarmerInfo {
 
-    String getNo_of_cows();
+    Integer getNo_of_cows();
     Long getId();
     Integer getFarmer_no();
     String getSubcounty();

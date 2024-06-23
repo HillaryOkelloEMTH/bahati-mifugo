@@ -73,8 +73,6 @@ public class ExelReportService {
         row.createCell(7).setCellValue(entity.getCanNo());
         row.createCell(8).setCellValue(entity.getRoute());
         row.createCell(9).setCellValue(entity.getPickUpLocation());
-
-
     }
     private void fillDataRowPaymentFile(Row row, PaymentFileData entity) {
         row.createCell(0).setCellValue(entity.getFarmer_no());
@@ -87,8 +85,6 @@ public class ExelReportService {
         row.createCell(7).setCellValue(entity.getAccount_name());
         row.createCell(8).setCellValue(entity.getAccount_number());
         row.createCell(9).setCellValue(entity.getBranch());
-
-
     }
 
     public ByteArrayInputStream getCollectionsPerLocationsexcel(Long pid,String date) {
