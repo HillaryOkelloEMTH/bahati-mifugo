@@ -1,5 +1,6 @@
 package com.emtech.dairyapp.Dairy.ProductAllocations;
 
+import com.emtech.dairyapp.Auth.Utilities.RequestStatus;
 import com.emtech.dairyapp.Configurations.FarmerManagement.Farmer;
 import com.emtech.dairyapp.Configurations.FarmerManagement.FarmerRepo;
 import com.emtech.dairyapp.Configurations.Interfaces.FarmerInfo;
@@ -32,9 +33,8 @@ public class FarmerProductAllocationService {
     @Autowired
     private FarmerRepo farmerRepo;
 
-
     public EntityResponse addFarmerProductAllocations(FarmerProductAllocations allocation) {
-        log.info("Adding new FarmerProductAllocations ...");
+        log.info("Adding new farmer product request ...");
         EntityResponse response = new EntityResponse();
         Double amount = 0.0;
         Double salesPrice = 0.0;
@@ -65,7 +65,7 @@ public class FarmerProductAllocationService {
                     }
                     allocation.setProductPrice(salesPrice);
                     allocation.setAmount(amount);
-                    allocation.setAllocatioDate(new Date());
+                    allocation.setAllocationDate(new Date());
                     allocation.setRequestedOn(new Date());
                    farmerProdAllocattionsRepo.save(allocation);
                     log.info("Saving Farmer Product Allocations ...");
@@ -134,9 +134,9 @@ public class FarmerProductAllocationService {
 
                 FarmerProductAllocations f= FarmerProductAllocationss.get();
                 if(status.equalsIgnoreCase("Approved")){
-                    f.setStatus(CONSTANTS.YES);
+                    f.setStatus(RequestStatus.APPROVED);
                 }else if (status.equalsIgnoreCase("Rejected")){
-                    f.setStatus(CONSTANTS.Reject);
+                    f.setStatus(RequestStatus.REJECTED);
                 }
                 farmerProdAllocattionsRepo.save(f);
                 response.setEntity(FarmerProductAllocationss);
@@ -268,7 +268,7 @@ public class FarmerProductAllocationService {
                 response.setStatusCode(HttpStatus.OK.value());
                 response.setMessage(HttpStatus.FOUND.getReasonPhrase());
             } else {
-                log.info("FarmerProductAllocationss Not Found " + "(" + FarmerProductAllocationss.size() + ")");
+                log.info("FarmerProductAllocations Not Found " + "(" + FarmerProductAllocationss.size() + ")");
                 response.setEntity(FarmerProductAllocationss);
                 response.setStatusCode(HttpStatus.OK.value());
                 response.setMessage(HttpStatus.NO_CONTENT.getReasonPhrase());
@@ -304,7 +304,7 @@ public class FarmerProductAllocationService {
     public EntityResponse updateFarmerProductAllocations(FarmerProductAllocations allocations) {
         EntityResponse response = new EntityResponse();
         try {
-            allocations.setAllocatioDate(new Date());
+            allocations.setAllocationDate(new Date());
             FarmerProductAllocations al = farmerProdAllocattionsRepo.save(allocations);
             response.setEntity(al);
             response.setStatusCode(HttpStatus.OK.value());
