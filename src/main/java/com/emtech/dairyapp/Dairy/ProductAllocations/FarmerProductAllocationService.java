@@ -101,13 +101,13 @@ public class FarmerProductAllocationService {
         }
     }
 
-    public EntityResponse fetchFarmerProductAllocations() {
+    public EntityResponse<?> fetchFarmerProductAllocations() {
         log.info("Fetching FarmerProductAllocationss ...");
         EntityResponse response = new EntityResponse();
         try {
             List<Allocations> FarmerProductAllocationss = farmerProdAllocattionsRepo.getAllocations(CONSTANTS.NO);
             if (FarmerProductAllocationss.size() > 0) {
-                log.info("FarmerProductAllocationss Found " + "(" + FarmerProductAllocationss.size() + ")");
+                log.info("FarmerProductAllocations Found " + "(" + FarmerProductAllocationss.size() + ")");
                 response.setEntity(FarmerProductAllocationss);
                 response.setStatusCode(HttpStatus.OK.value());
                 response.setMessage(HttpStatus.FOUND.getReasonPhrase());
@@ -126,7 +126,7 @@ public class FarmerProductAllocationService {
         }
     }
     public EntityResponse updateStatus(Long id,String status) {
-        log.info("verify  FarmerProductAllocationss ...");
+        log.info("verify  product allocations ...");
         EntityResponse response = new EntityResponse();
         try {
             Optional<FarmerProductAllocations> FarmerProductAllocationss = farmerProdAllocattionsRepo.findById(id);
