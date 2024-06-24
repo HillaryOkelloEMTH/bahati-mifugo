@@ -15,6 +15,8 @@ public class ProductsResponse implements Serializable {
     @Builder.Default
     private Integer statusCode = HttpStatus.NOT_FOUND.value();
 
+    private String message;
+
     @Builder.Default
     private List<ProductData> productData = null;
 

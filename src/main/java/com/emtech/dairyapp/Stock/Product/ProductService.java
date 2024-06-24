@@ -215,28 +215,30 @@ public class ProductService {
         List<ProductData> productsData = new ArrayList<>();
 
         if(!products.isEmpty()){
-            products.forEach(product -> {
-                ProductData productData = ProductData.builder()
-                        .id(product.getId())
-                        .name(product.getName())
-                        .description(product.getDescription())
-                        .price(product.getPrice())
-                        .salePrice(product.getSalePrice())
-                        .profit(product.getProfit())
-                        .discount(product.getDiscount())
-                        .type(product.getType())
-                        .discounted(product.getDiscounted())
-                        .deleted(product.getDeleted())
-                        .stock(product.getStock())
-                        .creationDate(product.getCreationDate())
-                        .updateDate(product.getUpdateDate())
-                        .build();
+            products.stream()
+                    .filter(product -> product.getStock() >=1 )
+                    .forEach(product -> {
+                               ProductData productData = ProductData.builder()
+                                    .id(product.getId())
+                                    .name(product.getName())
+                                    .description(product.getDescription())
+                                    .price(product.getPrice())
+                                    .salePrice(product.getSalePrice())
+                                    .profit(product.getProfit())
+                                    .discount(product.getDiscount())
+                                    .type(product.getType())
+                                    .discounted(product.getDiscounted())
+                                    .deleted(product.getDeleted())
+                                    .stock(product.getStock())
+                                    .creationDate(product.getCreationDate())
+                                    .updateDate(product.getUpdateDate())
+                                    .build();
+                            productsData.add(productData);
+        });
 
-                productsData.add(productData);
-            });
-
-            response.set(ProductsResponse.builder().productData(productsData).statusCode(HttpStatus.OK.value()).build());
+            response.set(ProductsResponse.builder().productData(productsData).message("Found "+productsData.size()+" products").statusCode(HttpStatus.OK.value()).build());
         }else {
+            response.set(ProductsResponse.builder().productData(productsData).message("No products found").statusCode(HttpStatus.NOT_FOUND.value()).build());
             log.log(Level.INFO, "Products not found ");
         }
 
