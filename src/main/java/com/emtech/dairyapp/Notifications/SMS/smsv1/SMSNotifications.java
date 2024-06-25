@@ -1,4 +1,4 @@
-package com.emtech.dairyapp.Notifications.SMS;
+package com.emtech.dairyapp.Notifications.SMS.smsv1;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

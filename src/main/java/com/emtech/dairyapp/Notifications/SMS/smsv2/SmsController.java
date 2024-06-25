@@ -1,0 +1,71 @@
+package com.emtech.dairyapp.Notifications.SMS.smsv2;
+
+
+import com.emtech.dairyapp.Notifications.SMS.smsv1.SMSNOtificaionRepo;
+import com.emtech.dairyapp.Notifications.SMS.smsv1.SMSNotifications;
+import com.emtech.dairyapp.Response.EntityResponse;
+import com.google.gson.Gson;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
+
+import java.util.Optional;
+
+@RestController
+@Slf4j
+@RequestMapping("api/v1/sms-notifications")
+public class SmsController {
+
+    @Autowired
+    private SmsServiceV2 smsServiceV2;
+    @Autowired
+    private SMSNOtificaionRepo smsnOtificaionRepo;
+
+    @PostMapping("send/notification")
+    public Mono<ResponseEntity<?>> sendSmsNotification(@RequestParam String message, @RequestParam String mobile){
+        EntityResponse response = new EntityResponse();
+
+        return smsServiceV2.sendSMSNotification(message, mobile)
+                .doOnSuccess(smsResponse -> {
+                    response.setMessage("Sent Successfully");
+                    response.setEntity(smsResponse);
+                    response.setStatusCode(HttpStatus.OK.value());
+                }
+                )
+                .doOnError(error -> {
+                    response.setMessage("Failed to send SMS");
+                    response.setEntity(null);
+                    response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+                    log.error("Error sending SMS: {}", error.getMessage());
+                })
+                .thenReturn(ResponseEntity.ok().body(response));
+    }
+
+    @RequestMapping("sms-not/callback")
+    public void  receiveCallback(@RequestBody SMSCallback details){
+        Gson gs = new Gson();
+        log.info("Tilil SMS Callback Received { " + gs.toJson(details) + " }");
+        String status = details.getDlrStatus();
+        String origin = details.getOrigin();
+        String statusdesc = details.getDlrDesc();
+        String messageId = details.getMessageId();
+
+        //Update and status description in SMS Notifications Table
+        Optional<SMSNotifications> sms = smsnOtificaionRepo.findByMessageId(messageId);
+        if (sms.isPresent()) {
+            log.info("SMS found");
+            log.info("Updating SMS...");
+            SMSNotifications sn = sms.get();
+            sn.setStatus(status);
+            sn.setOrigin(origin);
+            sn.setStatusDescription(statusdesc);
+            sn.setDeliveryTime(details.getDlrTime());
+            smsnOtificaionRepo.save(sn);
+        }
+        log.info("Done");
+    }
+
+}

@@ -14,6 +14,7 @@ import com.emtech.dairyapp.Dairy.FloatTracking.FloatManager;
 import com.emtech.dairyapp.Dairy.FloatTracking.FloatManagerRepo;
 import com.emtech.dairyapp.Dairy.Interface.*;
 import com.emtech.dairyapp.Notifications.SMS.SMSService;
+import com.emtech.dairyapp.Notifications.SMS.smsv2.SmsServiceV2;
 import com.emtech.dairyapp.Response.EntityResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,6 +35,8 @@ public class MilkCollectionService {
     private final FloatManagerRepo floatManagerRepo;
     private final Codenerator codenerator;
     private final SMSService smsservice;
+    private final SmsServiceV2 smsServiceV2;
+
     private final FarmerRepo farmerRepo;
     private final CanRepo canRepo;
     private final RouteRepo routeRepo;
@@ -42,12 +45,13 @@ public class MilkCollectionService {
     private boolean sms;
 
 
-    public MilkCollectionService(MilkCollectionRepo milkCollectionRepo, ProductConfigRepo productConfigRepo, FloatManagerRepo floatManagerRepo, Codenerator codenerator, SMSService smsservice, FarmerRepo farmerRepo, CanRepo canRepo, RouteRepo routeRepo) {
+    public MilkCollectionService(MilkCollectionRepo milkCollectionRepo, ProductConfigRepo productConfigRepo, FloatManagerRepo floatManagerRepo, Codenerator codenerator, SMSService smsservice, SmsServiceV2 smsServiceV2, FarmerRepo farmerRepo, CanRepo canRepo, RouteRepo routeRepo) {
         this.milkCollectionRepo = milkCollectionRepo;
         this.productConfigRepo = productConfigRepo;
         this.floatManagerRepo = floatManagerRepo;
         this.codenerator = codenerator;
         this.smsservice = smsservice;
+        this.smsServiceV2 = smsServiceV2;
         this.farmerRepo = farmerRepo;
         this.canRepo = canRepo;
         this.routeRepo = routeRepo;
@@ -180,7 +184,7 @@ public class MilkCollectionService {
                     } else if (phoneno.startsWith("7") || phoneno.startsWith("1")) {
                         phoneno = "254" + phoneno;
                     }
-                    smsservice.SMSNOtification(message, phoneno);
+                    smsServiceV2.SMSNotification(message, phoneno);
                 }
 //                }
             }
