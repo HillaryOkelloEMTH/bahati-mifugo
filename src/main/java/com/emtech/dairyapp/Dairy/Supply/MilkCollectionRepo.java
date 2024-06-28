@@ -308,7 +308,7 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
             "JOIN farmer f ON f.farmer_no = c.farmer_no\n" +
             "WHERE f.farmer_no = :farmer_no AND c.payment_status ='Y' AND DATE(c.collection_date) BETWEEN :from and :to",nativeQuery = true)
     Totals getPaidAmount(Integer farmer_no,String from,String to);
-
+    
     @Query(value = "select round(sum(quantity), 2) as quantity from collections where farmer_no= :farmer_no and month(collection_date)=month(now()) and year\n" +
             "(collection_date)=year(now())", nativeQuery = true)
     Double getMonthyAccumulation(Integer farmer_no);

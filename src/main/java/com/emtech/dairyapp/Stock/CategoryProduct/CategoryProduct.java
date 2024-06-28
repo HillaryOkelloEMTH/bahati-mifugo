@@ -28,7 +28,6 @@ public class CategoryProduct {
     @JoinColumn(name = "category",
             referencedColumnName = "id",
             nullable = false,
-            updatable = false,
             foreignKey = @ForeignKey(name = "category_product_category"))
     private Category category;
 
@@ -36,7 +35,6 @@ public class CategoryProduct {
     @JoinColumn(name = "product",
             referencedColumnName = "id",
             nullable = false,
-            updatable = false,
             foreignKey = @ForeignKey(name = "category_product_product"))
     private Product product;
 

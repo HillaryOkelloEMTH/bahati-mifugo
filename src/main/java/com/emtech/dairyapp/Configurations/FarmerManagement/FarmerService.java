@@ -5,7 +5,7 @@ import com.emtech.dairyapp.Configurations.Interfaces.FarmerAccruedAmount;
 import com.emtech.dairyapp.Configurations.Interfaces.FarmerInfo;
 import com.emtech.dairyapp.Configurations.Interfaces.FarmersPerWard;
 import com.emtech.dairyapp.Configurations.Utils.CONSTANTS;
-import com.emtech.dairyapp.Notifications.SMS.SMSService;
+import com.emtech.dairyapp.Notifications.SMS.smsv1.SMSService;
 import com.emtech.dairyapp.Response.EntityResponse;
 import io.swagger.models.auth.In;
 import lombok.extern.slf4j.Slf4j;

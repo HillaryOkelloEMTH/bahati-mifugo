@@ -1,6 +1,8 @@
 package com.emtech.dairyapp.Stock.Product;
 
 
+import com.emtech.dairyapp.Stock.Category.Category;
+import com.emtech.dairyapp.Stock.CategoryProduct.CategoryProduct;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -12,6 +14,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.util.List;
+
 
 @ToString
 @Data
@@ -66,5 +70,4 @@ public class Product implements Serializable {
     @JsonFormat(pattern = "dd-MMM-yyyy HH:mm:ss")
     @Column(name = "Creation_date")
     private Timestamp creationDate;
-
 }

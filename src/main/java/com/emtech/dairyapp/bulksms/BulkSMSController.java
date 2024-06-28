@@ -1,8 +1,8 @@
 package com.emtech.dairyapp.bulksms;
 
-import com.emtech.dairyapp.Notifications.SMS.SMSNOtificaionRepo;
-import com.emtech.dairyapp.Notifications.SMS.SMSNotifications;
-import com.emtech.dairyapp.Notifications.SMS.SMSService;
+import com.emtech.dairyapp.Notifications.SMS.smsv1.SMSNOtificaionRepo;
+import com.emtech.dairyapp.Notifications.SMS.smsv1.SMSNotifications;
+import com.emtech.dairyapp.Notifications.SMS.smsv1.SMSService;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
