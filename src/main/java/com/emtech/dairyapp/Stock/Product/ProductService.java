@@ -47,6 +47,7 @@ public class ProductService {
             product.get().setDeleted(0);
             product.get().setType(type);
             product.get().setSalePrice(salePrice);
+            product.get().setCategory(category.getName());
 
             if (salePrice > price){
                 product.get().setDiscounted(0);
@@ -223,6 +224,7 @@ public class ProductService {
                                ProductData productData = ProductData.builder()
                                     .id(product.getId())
                                     .name(product.getName())
+                                       .category(product.getCategory())
                                     .description(product.getDescription())
                                     .price(product.getPrice())
                                     .salePrice(product.getSalePrice())

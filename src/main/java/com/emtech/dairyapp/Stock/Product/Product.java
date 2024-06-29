@@ -37,6 +37,8 @@ public class Product implements Serializable {
     @Column(name = "description")
     private String description;
 
+    private String category;
+
     @Column(name = "price")
     private Double price;
 
@@ -70,4 +72,7 @@ public class Product implements Serializable {
     @JsonFormat(pattern = "dd-MMM-yyyy HH:mm:ss")
     @Column(name = "Creation_date")
     private Timestamp creationDate;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.REMOVE)
+    private List<CategoryProduct> categoryProducts;
 }

@@ -23,7 +23,7 @@ public class Farmer {
     private String username;
     private String firstName;
     private String lastName;
-    @Column(unique = true)
+    private String middleName;
     private String idNumber;
     @Column(unique = true,updatable = false)
     private Integer farmerNo;

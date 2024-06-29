@@ -54,7 +54,7 @@ public class PickUpLocationService {
                 return  response;
             }
             System.out.println("Debugger ------1");
-            PickUpLocations p =pickUpLocationsRepo.save(pickUpLocations);
+            PickUpLocations p = pickUpLocationsRepo.save(pickUpLocations);
 
             for (Collector c:collectors ) {
                 System.out.println("debugger ------2");

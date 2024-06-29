@@ -122,6 +122,7 @@ public class FarmerService {
         EntityResponse response = new EntityResponse();
         try {
             List<Farmer> Farmers = farmerRepo.findByDeletedFlag(CONSTANTS.NO);
+//            List<Farmer> Farmers = farmerRepo.findAll();
             if(Farmers.size()>0) {
                 log.info("Farmers Found "+ "("+Farmers.size()+")");
                 response.setEntity(Farmers);
@@ -214,7 +215,7 @@ public class FarmerService {
         }
     }
     public EntityResponse fetchFarmerByMemberNO(Integer memberNO) {
-        log.info("Fetching Farmer with Farmer No."+ memberNO );
+        log.info("Fetching Farmer with Farmer No. "+ memberNO );
         EntityResponse response = new EntityResponse();
         try {
             Optional<FarmerInfo> farmer = farmerRepo.findByFarmerNo(memberNO);

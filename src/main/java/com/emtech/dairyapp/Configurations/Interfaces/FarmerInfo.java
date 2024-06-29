@@ -8,6 +8,8 @@ public interface FarmerInfo {
     Long getId();
     Integer getFarmer_no();
     String getSubcounty();
+
+    String getName();
     String getCounty();
     String getMember_type();
     String getMobile_no();
