@@ -15,6 +15,7 @@ import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,6 +47,7 @@ public class ProductService {
             product.get().setDeleted(0);
             product.get().setType(type);
             product.get().setSalePrice(salePrice);
+            product.get().setCategory(category.getName());
 
             if (salePrice > price){
                 product.get().setDiscounted(0);
@@ -64,6 +66,7 @@ public class ProductService {
                 product.get().setDiscount(discount);
                 product.get().setProfit(0.0);
             }
+
 
             product.set(this.productRepository.save(product.get()));
 
@@ -221,6 +224,7 @@ public class ProductService {
                                ProductData productData = ProductData.builder()
                                     .id(product.getId())
                                     .name(product.getName())
+                                       .category(product.getCategory())
                                     .description(product.getDescription())
                                     .price(product.getPrice())
                                     .salePrice(product.getSalePrice())
@@ -315,11 +319,12 @@ public class ProductService {
         return response.get();
     }
 
+    @Transactional
     public StockEntitiesResponse deleteProduct(@NonNull Long productId){
         AtomicReference<StockEntitiesResponse> response = new AtomicReference<>();
 
         this.productRepository.findById(productId).ifPresentOrElse(product -> {
-           this.productRepository.deleteById(productId);
+           this.productRepository.delete(product);
 
             response.set(StockEntitiesResponse.builder().message("Product deleted successfully ").statusCode(HttpStatus.OK.value()).build());
         }, () -> {

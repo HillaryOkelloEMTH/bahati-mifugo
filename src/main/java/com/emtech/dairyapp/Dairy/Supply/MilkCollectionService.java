@@ -13,7 +13,6 @@ import com.emtech.dairyapp.Configurations.Utils.CONSTANTS;
 import com.emtech.dairyapp.Dairy.FloatTracking.FloatManager;
 import com.emtech.dairyapp.Dairy.FloatTracking.FloatManagerRepo;
 import com.emtech.dairyapp.Dairy.Interface.*;
-import com.emtech.dairyapp.Notifications.SMS.SMSService;
 import com.emtech.dairyapp.Notifications.SMS.smsv2.SmsServiceV2;
 import com.emtech.dairyapp.Response.EntityResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +33,6 @@ public class MilkCollectionService {
     private final ProductConfigRepo productConfigRepo;
     private final FloatManagerRepo floatManagerRepo;
     private final Codenerator codenerator;
-    private final SMSService smsservice;
     private final SmsServiceV2 smsServiceV2;
 
     private final FarmerRepo farmerRepo;
@@ -45,12 +43,11 @@ public class MilkCollectionService {
     private boolean sms;
 
 
-    public MilkCollectionService(MilkCollectionRepo milkCollectionRepo, ProductConfigRepo productConfigRepo, FloatManagerRepo floatManagerRepo, Codenerator codenerator, SMSService smsservice, SmsServiceV2 smsServiceV2, FarmerRepo farmerRepo, CanRepo canRepo, RouteRepo routeRepo) {
+    public MilkCollectionService(MilkCollectionRepo milkCollectionRepo, ProductConfigRepo productConfigRepo, FloatManagerRepo floatManagerRepo, Codenerator codenerator, SmsServiceV2 smsServiceV2, FarmerRepo farmerRepo, CanRepo canRepo, RouteRepo routeRepo) {
         this.milkCollectionRepo = milkCollectionRepo;
         this.productConfigRepo = productConfigRepo;
         this.floatManagerRepo = floatManagerRepo;
         this.codenerator = codenerator;
-        this.smsservice = smsservice;
         this.smsServiceV2 = smsServiceV2;
         this.farmerRepo = farmerRepo;
         this.canRepo = canRepo;

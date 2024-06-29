@@ -19,7 +19,7 @@ import javax.persistence.Id;
 public class Collector {
 
     @Id
-    @GeneratedValue(strategy =  GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String username;
 

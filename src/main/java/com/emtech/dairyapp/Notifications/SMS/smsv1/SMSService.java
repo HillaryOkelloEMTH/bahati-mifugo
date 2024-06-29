@@ -1,6 +1,7 @@
 package com.emtech.dairyapp.Notifications.SMS.smsv1;
 
 
+import com.emtech.dairyapp.Notifications.SMS.smsv2.SmsServiceV2;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.json.JSONArray;
@@ -44,6 +45,9 @@ public class SMSService {
 
     @Autowired
     private SMSNOtificaionRepo smsNotificationsRepository;
+
+    @Autowired
+    SmsServiceV2 smsServiceV2;
 
     public static String generatecSystemCode(int len) {
         String chars = "JUFREDDAIRYFARM1234567890";
@@ -173,23 +177,24 @@ public class SMSService {
     }
 
     public void BulkSMSNotification(String message, String phoneNumber,String bulkCode,String smsTemplate) {
+        smsServiceV2.SMSNotification(message, phoneNumber);
         //Create Message and Save In DB
-//        SMSResponse sr = sendSMS(message, phoneNumber);
-        SMSNotifications sms = new SMSNotifications();
-//      sms.setResponseCode(sr.getResponseCode());
-        sms.setResponseCode(200);
-        sms.setEventType("-");
-        sms.setDeliveryTime("-");
-        sms.setMessageRef(generatecSystemCode(10));
-//      sms.setMessageId(sr.getMessageId());
-        sms.setMessageId("-");
-        sms.setMessage(message);
-        sms.setCategory("Bulk");
-        sms.setSentDate(new Date());
-        sms.setPhoneNumber(phoneNumber);
-        sms.setBulkCode(bulkCode);
-        sms.setSmsTemplate(smsTemplate);
-        smsNotificationsRepository.save(sms);
+////        SMSResponse sr = sendSMS(message, phoneNumber);
+//        SMSNotifications sms = new SMSNotifications();
+////      sms.setResponseCode(sr.getResponseCode());
+//        sms.setResponseCode(200);
+//        sms.setEventType("-");
+//        sms.setDeliveryTime("-");
+//        sms.setMessageRef(generatecSystemCode(10));
+////      sms.setMessageId(sr.getMessageId());
+//        sms.setMessageId("-");
+//        sms.setMessage(message);
+//        sms.setCategory("Bulk");
+//        sms.setSentDate(new Date());
+//        sms.setPhoneNumber(phoneNumber);
+//        sms.setBulkCode(bulkCode);
+//        sms.setSmsTemplate(smsTemplate);
+//        smsNotificationsRepository.save(sms);
     }
 
 

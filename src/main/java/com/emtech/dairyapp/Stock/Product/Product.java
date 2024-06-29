@@ -1,6 +1,8 @@
 package com.emtech.dairyapp.Stock.Product;
 
 
+import com.emtech.dairyapp.Stock.Category.Category;
+import com.emtech.dairyapp.Stock.CategoryProduct.CategoryProduct;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -12,6 +14,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.util.List;
+
 
 @ToString
 @Data
@@ -32,6 +36,8 @@ public class Product implements Serializable {
 
     @Column(name = "description")
     private String description;
+
+    private String category;
 
     @Column(name = "price")
     private Double price;
@@ -67,4 +73,6 @@ public class Product implements Serializable {
     @Column(name = "Creation_date")
     private Timestamp creationDate;
 
+    @OneToMany(mappedBy = "product", cascade = CascadeType.REMOVE)
+    private List<CategoryProduct> categoryProducts;
 }
