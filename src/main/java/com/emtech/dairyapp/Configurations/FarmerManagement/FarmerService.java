@@ -6,9 +6,11 @@ import com.emtech.dairyapp.Configurations.Interfaces.FarmerInfo;
 import com.emtech.dairyapp.Configurations.Interfaces.FarmersPerWard;
 import com.emtech.dairyapp.Configurations.Utils.CONSTANTS;
 import com.emtech.dairyapp.Notifications.SMS.smsv1.SMSService;
+import com.emtech.dairyapp.Notifications.SMS.smsv2.SmsServiceV2;
 import com.emtech.dairyapp.Response.EntityResponse;
 import io.swagger.models.auth.In;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -25,7 +27,8 @@ public class FarmerService {
 
 
     private final FarmerRepo farmerRepo;
-    private final SMSService smsService;
+
+    private final SmsServiceV2 smsServiceV2;
 
 
 //    public static String generatecSystemCode(int len) {
@@ -38,9 +41,9 @@ public class FarmerService {
 //        return S + sb;
 //    }
 
-    public FarmerService(FarmerRepo farmerRepo, SMSService smsService) {
+    public FarmerService(FarmerRepo farmerRepo, SmsServiceV2 smsServiceV2) {
         this.farmerRepo = farmerRepo;
-        this.smsService = smsService;
+        this.smsServiceV2 = smsServiceV2;
     }
 
     public EntityResponse addFarmer(Farmer farmer){
@@ -101,7 +104,7 @@ public class FarmerService {
                 } else if (phoneno.startsWith("7") || phoneno.startsWith("1")) {
                     phoneno = "254" + phoneno;
                 }
-                smsService.SMSNOtification(message, phoneno);
+                smsServiceV2.SMSNotification(message, phoneno);
 //            }
             log.info("Farmer Added");
             return response;

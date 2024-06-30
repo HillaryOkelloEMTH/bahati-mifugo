@@ -14,9 +14,10 @@ public interface RouteRepo extends JpaRepository<Route,Long> {
     @Query(value = "select * from route",nativeQuery = true)
     List<Route> getRoutes();
 
-    @Query(nativeQuery = true,value = "SELECT r.route,p.name as pickUpLocation,w.name as ward,p.land_mark as landmark from route r join pick_up_locations p on p.id =r.location_id join ward w on w.id =p.ward_fk  join collector c  on p.id =c.location_id  join users u on u.user_name =c.username where u.id =:collectorId")
+    @Query(nativeQuery = true,value = "SELECT r.route, r.id, p.name as pickUpLocation,w.name as ward,p.land_mark as landmark from route r join pick_up_locations p on p.id =r.location_id join ward w on w.id =p.ward_fk  join collector c  on p.id =c.location_id  join users u on u.user_name =c.username where u.id =:collectorId")
     List<CollectorRoutes> getRouteByCollector(Long collectorId);
     interface CollectorRoutes{
+        Long getId();
         String getRoute();
         String getPickUpLocation();
         String getWard();

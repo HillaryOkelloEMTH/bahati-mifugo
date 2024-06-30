@@ -116,7 +116,7 @@ public class MilkCollectionService {
                 String username = "";
                 if (check.isPresent()) {
                     log.info("Farmer exist ...");
-                    username = check.get().getUsername();
+                    username = check.get().getName();
                     Optional<ProductConfig> productConfig = productConfigRepo.findByRouteFk(collections.getRouteFk());
                     if (productConfig.isPresent()) {
                         Optional<Can> cancheck = canRepo.findByCanNo(collections.getCanNo());
@@ -170,7 +170,7 @@ public class MilkCollectionService {
                 if (check.get().getMobile_no() != null) {
                     log.info("Sending sms ...");
                     String message = "Dear " + username + ", Farmer No. " + check.get().getFarmer_no() + " we have received " + collections.getQuantity() + "Kgs of milk" +
-                             session + "Session on " + collections.getCollectionDate() + ". Month Total" + monthTotal + "Kgs.";
+                             session + "Session on " + collections.getCollectionDate() + ". Month Total" + monthTotal + "Kgs. Helpline: 0726777884";
                     String phoneno = check.get().getMobile_no().trim();
                     if (phoneno.startsWith("0")) {
                         log.info("Starting with 0");
@@ -183,7 +183,6 @@ public class MilkCollectionService {
                     }
                     smsServiceV2.SMSNotification(message, phoneno);
                 }
-//                }
             }
 
 
