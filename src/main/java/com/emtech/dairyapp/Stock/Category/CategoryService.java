@@ -125,7 +125,7 @@ public class CategoryService {
                     products.add(product);
                 });
 
-                categoryData.setProducts(products);
+//                categoryData.setProducts(products);
             }
 
             response.set(CategoryResponse.builder().categoryData(categoryData).statusCode(HttpStatus.OK.value()).build());
@@ -173,7 +173,7 @@ public class CategoryService {
                     products.add(product);
                 });
 
-                categoryData.setProducts(products);
+//                categoryData.setProducts(products);
             }
 
             response.set(CategoryResponse.builder().categoryData(categoryData).statusCode(HttpStatus.OK.value()).build());
@@ -188,7 +188,6 @@ public class CategoryService {
         AtomicReference<CategoriesResponse> response = new AtomicReference<>();
 
         List<Category> categories = this.categoryRepo.findAll();
-
         List<CategoryData> categoriesResponse = new ArrayList<>();
 
         if(!categories.isEmpty()){
@@ -202,9 +201,12 @@ public class CategoryService {
                         .creationDate(category.getCreationDate())
                         .build();
 
+                System.out.println("catwegiriesss one "+categories);
+
                 List<ProductData> products = new ArrayList<>();
 
                 List<CategoryProduct> categoryProducts = this.categoryProductRepository.findAllByCategory(category);
+                System.out.println("catwegiriesss one "+categoryProducts);
 
                 if(categoryProducts != null && !categoryProducts.isEmpty()){
                     categoryProducts.forEach(categoryProduct -> {
@@ -224,9 +226,10 @@ public class CategoryService {
 
                         products.add(product);
                     });
-
-                    categoryData.setProducts(products);
+                    System.out.println("category"+category);
+//                    categoryData.setProducts(products);
                 }
+                System.out.println("this is the category data "+categoriesResponse);
 
 
                 categoriesResponse.add(categoryData);
@@ -279,7 +282,7 @@ public class CategoryService {
                         products.add(product);
                     });
 
-                    categoryData.setProducts(products);
+//                    categoryData.setProducts(products);
                 }
 
 
