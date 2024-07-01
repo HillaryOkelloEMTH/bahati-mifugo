@@ -37,6 +37,8 @@ public class Product implements Serializable {
     @Column(name = "description")
     private String description;
 
+    private Long productCategoryId;
+
     private String category;
 
     @Column(name = "price")
@@ -73,6 +75,10 @@ public class Product implements Serializable {
     @Column(name = "Creation_date")
     private Timestamp creationDate;
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.REMOVE)
-    private List<CategoryProduct> categoryProducts;
+    @ManyToOne
+    @JoinColumn(name="category_id")
+    private Category productCategory;
+
+//    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+//    private List<CategoryProduct> categoryProducts;
 }

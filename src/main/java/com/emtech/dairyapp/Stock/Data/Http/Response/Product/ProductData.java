@@ -40,6 +40,8 @@ public class ProductData implements Serializable {
     @Builder.Default
     private Integer stock=null;
 
+    private  Long categoryId;
+
     private String category;
 
     @Builder.Default

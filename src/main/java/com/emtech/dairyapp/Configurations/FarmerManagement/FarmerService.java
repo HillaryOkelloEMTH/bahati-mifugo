@@ -78,7 +78,7 @@ public class FarmerService {
                 }
 
             } else {
-                memberNO=0+1;
+                memberNO=1;
                 farmer.setFarmerNo(memberNO);
 
             }

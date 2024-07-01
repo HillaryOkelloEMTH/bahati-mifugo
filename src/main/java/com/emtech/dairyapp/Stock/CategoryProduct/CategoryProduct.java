@@ -24,19 +24,27 @@ public class CategoryProduct {
     @Column(nullable = false, updatable = false)
     private Long id;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "category",
-            referencedColumnName = "id",
-            nullable = false,
-            foreignKey = @ForeignKey(name = "category_product_category"))
+    @ManyToOne
+    @JoinColumn(name="category_id")
     private Category category;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "product",
-            referencedColumnName = "id",
-            nullable = false,
-            foreignKey = @ForeignKey(name = "category_product_product"))
+    @ManyToOne
+    @JoinColumn(name = "product_id")
     private Product product;
+
+//    @ManyToOne(optional = false)
+//    @JoinColumn(name = "category",
+//            referencedColumnName = "id",
+//            nullable = false,
+//            foreignKey = @ForeignKey(name = "category_product_category"))
+//    private Category category;
+//
+//    @ManyToOne(optional = false)
+//    @JoinColumn(name = "product",
+//            referencedColumnName = "id",
+//            nullable = false,
+//            foreignKey = @ForeignKey(name = "category_product_product"))
+//    private Product product;
 
 
     @CreationTimestamp

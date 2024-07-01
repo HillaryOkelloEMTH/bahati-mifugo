@@ -84,7 +84,7 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
     @Query(value = "SELECT f.first_name ,f.last_name ,f.farmer_no ,c.updated_status as updateStatus,c.can_no as canNo,c.original_quantity as originalQuantity,c.session, c.id, c.collection_number as collectionCode ,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer,c.amount,c.quantity,c.collection_date,f.mobile_no, c.can_no, c.session, c.latitude, c.longitude, c.route_fk, r.route as route,p.name as pickUpLocation from collections c join users u on c.collector_id =u.id join farmer f on f.farmer_no=c.farmer_no join route r on r.id=c.route_fk join pick_up_locations p on p.id =r.location_id where c.id= :id", nativeQuery = true)
     CollectionItemData getCollectionDetailsByCollectionId(Long id);
 
-    @Query(value = "SELECT f.first_name ,f.last_name ,f.farmer_no,c.updated_status as updateStatus,c.can_no as canNo,c.original_quantity as originalQuantity,c.session, c.id, c.collection_number as collectionCode,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer,c.amount,c.quantity,c.collection_date,r.route as route,p.name as pickUpLocation  from collections c join users u on c.collector_id =u.id join farmer f on f.farmer_no=c.farmer_no join route r on r.id=c.route_fk join pick_up_locations p on p.id =r.location_id where f.id =:farmerId order by c.collection_date", nativeQuery = true)
+    @Query(value = "SELECT f.first_name ,f.last_name ,f.farmer_no,c.updated_status as updateStatus,c.can_no as canNo,c.original_quantity as originalQuantity,c.session, c.id, c.collection_number as collectionCode,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer,c.amount,c.quantity,c.collection_date,r.route as route,p.name as pickUpLocation  from collections c join users u on c.collector_id =u.id join farmer f on f.farmer_no=c.farmer_no join route r on r.id=c.route_fk join pick_up_locations p on p.id =r.location_id where f.farmer_no =:farmerId order by c.collection_date", nativeQuery = true)
     List<CollectionsData> getCollectionsbyFarmer(Long farmerId);
     @Query(value = "SELECT f.first_name ,f.last_name ,f.farmer_no,c.can_no as canNo,c.original_quantity as originalQuantity,c.session, c.id, c.collection_number as collectionCode,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer,c.amount,c.quantity,c.collection_date,r.route as route,p.name as pickUpLocation  from collections c join users u on c.collector_id =u.id join farmer f on f.farmer_no=c.farmer_no join route r on r.id=c.route_fk join pick_up_locations p on p.id =r.location_id where DATE(c.collection_date)=:date and p.id =:locationid order by c.collection_date",nativeQuery = true)
     List<CollectionsData> getCollectionsbyPickUpLocationAndDate(Long locationid,String date);
@@ -194,7 +194,7 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
         String getRole();
     }
 
-    boolean existsByFarmerNoAndQuantityAndSessionAndCollectorId(Integer farmerdId, Double quantity, String session, Long collectorId);
+    boolean existsByFarmerNoAndSessionAndCollectorId(Integer farmerdId, String session, Long collectorId);
 
 
     @Query(value = "SELECT ROUND(sum(c.amount),2)  as amount from collections c join farmer f  on f.id =c.farmer_no  where c.payment_status =:payment_status  and c.farmer_no=:farmerNo", nativeQuery = true)
@@ -210,10 +210,10 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
             "COALESCE(SUM(c.amount), 0.0) AS collectionAmount,  \n" +
             "COALESCE((SELECT SUM(fa.amount) FROM farmer_product_allocations fa\n" +
             "WHERE fa.farmer_no = f.farmer_no AND fa.payment_status ='N' and fa.status='Y' \n" +
-            "and MONTHNAME(fa.allocatio_date)=:month  ), 0.0) AS allocationAmount,  \n" +
+            "and MONTHNAME(fa.allocation_date)=:month  ), 0.0) AS allocationAmount,  \n" +
             "((COALESCE(SUM(c.amount), 0.0))-(COALESCE((SELECT SUM(fa.amount) \n" +
             "FROM farmer_product_allocations fa WHERE fa.farmer_no = f.farmer_no AND fa.payment_status ='N' \n" +
-            "and MONTHNAME(fa.allocatio_date)=:month ), 0.0))) AS NetPay   FROM farmer f \n" +
+            "and MONTHNAME(fa.allocation_date)=:month ), 0.0))) AS NetPay   FROM farmer f \n" +
             "LEFT JOIN collections c ON f.farmer_no = c.farmer_no AND c.payment_status ='N'JOIN route r on f.route_fk =r.id join pick_up_locations p on p.id=r.location_id \n" +
             "AND MONTHNAME(c.collection_date)  = :month  WHERE f.farmer_no IS NOT NULL AND f.payment_mode=:mode AND p.id =:locationId\n" +
             "GROUP BY f.farmer_no, f.username HAVING NetPay > 0")
@@ -223,10 +223,10 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
             "COALESCE(SUM(c.amount), 0.0) AS collectionAmount,  \n" +
             "COALESCE((SELECT SUM(fa.amount) FROM farmer_product_allocations fa\n" +
             "WHERE fa.farmer_no = f.farmer_no AND fa.payment_status ='N' and fa.status='Y' \n" +
-            "and MONTHNAME(fa.allocatio_date)=:month  ), 0.0) AS allocationAmount,  \n" +
+            "and MONTHNAME(fa.allocation_date)=:month  ), 0.0) AS allocationAmount,  \n" +
             "((COALESCE(SUM(c.amount), 0.0))-(COALESCE((SELECT SUM(fa.amount) \n" +
             "FROM farmer_product_allocations fa WHERE fa.farmer_no = f.farmer_no AND fa.payment_status ='N' \n" +
-            "and MONTHNAME(fa.allocatio_date)=:month ), 0.0))) AS NetPay   FROM farmer f \n" +
+            "and MONTHNAME(fa.allocation_date)=:month ), 0.0))) AS NetPay   FROM farmer f \n" +
             "LEFT JOIN collections c ON f.farmer_no = c.farmer_no AND c.payment_status ='N'JOIN route r on f.route_fk =r.id join pick_up_locations p on p.id=r.location_id join bank_details bd on bd.id =f.bank_details_id\n" +
             "AND MONTHNAME(c.collection_date)  = :month  WHERE f.farmer_no IS NOT NULL AND f.payment_mode=:mode AND p.id =:locationId\n" +
             "GROUP BY f.farmer_no, f.username HAVING NetPay > 0")
@@ -235,8 +235,8 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
     @Query(nativeQuery = true,value = "\tSELECT CONVERT(f.farmer_no, CHAR) AS farmer_no, f.mobile_no, f.username,f.payment_mode,\n" +
             "    COALESCE(ROUND(SUM(c.amount),2), 0.0) AS collectionAmount,\n" +
             "    COALESCE(ROUND(SUM(c.quantity),2), 0.0) AS quantity,\n" +
-            "    COALESCE((SELECT COALESCE(ROUND(SUM(fa.amount),2),0.0) FROM farmer_product_allocations fa WHERE fa.farmer_no = f.farmer_no AND fa.payment_status = 'N' AND fa.status = 'Y' AND DATE(fa.allocatio_date) BETWEEN :from AND :to), 0.0) AS allocationAmount,\n" +
-            "    ((COALESCE(ROUND(SUM(c.amount),2), 0.0)) - (COALESCE((SELECT ROUND(SUM(fa.amount),2) FROM farmer_product_allocations fa WHERE fa.farmer_no = f.farmer_no AND fa.payment_status = 'N' AND fa.status = 'Y' AND DATE(fa.allocatio_date)  BETWEEN :from AND :to), 0.0))) AS NetPay\n" +
+            "    COALESCE((SELECT COALESCE(ROUND(SUM(fa.amount),2),0.0) FROM farmer_product_allocations fa WHERE fa.farmer_no = f.farmer_no AND fa.payment_status = 'N' AND fa.status = 'Y' AND DATE(fa.allocation_date) BETWEEN :from AND :to), 0.0) AS allocationAmount,\n" +
+            "    ((COALESCE(ROUND(SUM(c.amount),2), 0.0)) - (COALESCE((SELECT ROUND(SUM(fa.amount),2) FROM farmer_product_allocations fa WHERE fa.farmer_no = f.farmer_no AND fa.payment_status = 'N' AND fa.status = 'Y' AND DATE(fa.allocation_date)  BETWEEN :from AND :to), 0.0))) AS NetPay\n" +
             "\tFROM farmer f\n" +
             "\tLEFT JOIN collections c ON f.farmer_no = c.farmer_no AND c.payment_status = 'N'\n" +
             "\tJOIN route r ON f.route_fk = r.id\n" +
@@ -250,8 +250,8 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
     @Query(nativeQuery = true,value = "SELECT CONVERT(f.farmer_no, CHAR) AS farmer_no, f.mobile_no, f.username,bd.branch,bd.account_number,bd.account_name,f.payment_mode,\n" +
             "    COALESCE(ROUND(SUM(c.amount),2), 0.0) AS collectionAmount,\n" +
             "    COALESCE(ROUND(SUM(c.quantity),2), 0.0) AS quantity,\n" +
-            "    COALESCE((SELECT COALESCE(ROUND(SUM(fa.amount),2),0.0) FROM farmer_product_allocations fa WHERE fa.farmer_no = f.farmer_no AND fa.payment_status = 'N' AND fa.status = 'Y' AND DATE(fa.allocatio_date)  BETWEEN :from AND :to), 0.0) AS allocationAmount,\n" +
-            "    ((COALESCE(ROUND(SUM(c.amount),2), 0.0)) - (COALESCE((SELECT ROUND(SUM(fa.amount),2) FROM farmer_product_allocations fa WHERE fa.farmer_no = f.farmer_no AND fa.payment_status = 'N' AND fa.status = 'Y' AND DATE(fa.allocatio_date)  BETWEEN :from AND :to), 0.0))) AS NetPay\n" +
+            "    COALESCE((SELECT COALESCE(ROUND(SUM(fa.amount),2),0.0) FROM farmer_product_allocations fa WHERE fa.farmer_no = f.farmer_no AND fa.payment_status = 'N' AND fa.status = 'Y' AND DATE(fa.allocation_date)  BETWEEN :from AND :to), 0.0) AS allocationAmount,\n" +
+            "    ((COALESCE(ROUND(SUM(c.amount),2), 0.0)) - (COALESCE((SELECT ROUND(SUM(fa.amount),2) FROM farmer_product_allocations fa WHERE fa.farmer_no = f.farmer_no AND fa.payment_status = 'N' AND fa.status = 'Y' AND DATE(fa.allocation_date)  BETWEEN :from AND :to), 0.0))) AS NetPay\n" +
             "\tFROM farmer f\n" +
             "\tLEFT JOIN collections c ON f.farmer_no = c.farmer_no AND c.payment_status = 'N'\n" +
             "\tJOIN route r ON f.route_fk = r.id\n" +
@@ -283,8 +283,8 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
     List<PaymentFileData> getFarmersPaymentRecords();
     @Query(value = "SELECT CONVERT(f.farmer_no,char) as farmer_no,f.payment_mode as payment_mode,f.payment_freequency as freequency , f.username as username, \n" +
             "\tROUND(SUM(c.amount),2) AS collectionAmount, \n" +
-            "    ROUND((SELECT SUM(fa.amount) FROM farmer_product_allocations fa WHERE fa.farmer_no = f.farmer_no AND fa.payment_status =:paymentStatus and fa.status='Y' and MONTHNAME(fa.allocatio_date)=:month  ),2) AS allocationAmount,\n" +
-            "   ((ROUND(SUM(c.amount), 2))-(ROUND((SELECT SUM(fa.amount) FROM farmer_product_allocations fa WHERE fa.farmer_no = f.farmer_no AND fa.payment_status =:paymentStatus and MONTHNAME(fa.allocatio_date)=:month  ), 2))) AS NetPay\n" +
+            "    ROUND((SELECT SUM(fa.amount) FROM farmer_product_allocations fa WHERE fa.farmer_no = f.farmer_no AND fa.payment_status =:paymentStatus and fa.status='Y' and MONTHNAME(fa.allocation_date)=:month  ),2) AS allocationAmount,\n" +
+            "   ((ROUND(SUM(c.amount), 2))-(ROUND((SELECT SUM(fa.amount) FROM farmer_product_allocations fa WHERE fa.farmer_no = f.farmer_no AND fa.payment_status =:paymentStatus and MONTHNAME(fa.allocation_date)=:month  ), 2))) AS NetPay\n" +
             "    FROM farmer f \n" +
             "\tLEFT JOIN collections c ON f.farmer_no = c.farmer_no AND c.payment_status =:paymentStatus AND MONTHNAME(c.collection_date)  = :month \n" +
             "\tWHERE f.farmer_no IS NOT NULL AND f.payment_mode = :mode\n" +
@@ -297,7 +297,7 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
     Totals getTotalUnPaidAmount(Integer farmer_no);
 
     @Query(value = "SELECT f.farmer_no, f.username,ROUND(SUM(c.quantity),2) AS deliveries,ROUND(SUM(c.amount),2)  AS collectionAmount, \n" +
-            "    (SELECT SUM(fa.amount) FROM farmer_product_allocations fa WHERE fa.farmer_no = f.farmer_no AND fa.payment_status ='N'and fa.status='Y' AND DATE(fa.allocatio_date)  BETWEEN :from AND :to) AS allocationAmount\n" +
+            "    (SELECT SUM(fa.amount) FROM farmer_product_allocations fa WHERE fa.farmer_no = f.farmer_no AND fa.payment_status ='N'and fa.status='Y' AND DATE(fa.allocation_date)  BETWEEN :from AND :to) AS allocationAmount\n" +
             "FROM collections c \n" +
             "JOIN farmer f ON f.farmer_no = c.farmer_no\n" +
             "WHERE f.farmer_no = :farmer_no AND c.payment_status ='N' AND DATE(c.collection_date) BETWEEN :from and :to",nativeQuery = true)

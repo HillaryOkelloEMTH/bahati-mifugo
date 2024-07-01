@@ -14,7 +14,7 @@ public class Codenerator {
         this.repo = repo;
     }
 
-    public String codeGenerator() {
+    public String codeGenerator(Integer farmerNo) {
 
         StringBuilder sb = new StringBuilder();
         LocalDate date = LocalDate.now();
@@ -24,7 +24,7 @@ public class Codenerator {
         String year = String.valueOf(date.getYear());
         String month = String.valueOf(date.getMonthValue());
         String day = String.valueOf(date.getDayOfMonth());
-        String code = sb.append(month).append(day).append("-").append(val).toString();
+        String code = sb.append(farmerNo).append(month).append(day).append("-").append(val).toString();
         return code;
 
 

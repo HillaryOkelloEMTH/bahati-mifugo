@@ -35,6 +35,7 @@ public class ProductService {
     @Autowired
     private CategoryRepo categoryRepo;
 
+    @Transactional
     public StockEntitiesResponse createProduct(@NonNull String name, @NonNull String description, @NonNull Double price, @NonNull String type, @NonNull Double salePrice,Integer stock, @NonNull Long categoryId){
         AtomicReference<StockEntitiesResponse> response = new AtomicReference<>();
 
@@ -48,6 +49,8 @@ public class ProductService {
             product.get().setType(type);
             product.get().setSalePrice(salePrice);
             product.get().setCategory(category.getName());
+            product.get().setProductCategoryId(category.getId());
+            product.get().setProductCategory(category);
 
             if (salePrice > price){
                 product.get().setDiscounted(0);
@@ -67,8 +70,16 @@ public class ProductService {
                 product.get().setProfit(0.0);
             }
 
+            //saving the product and its category
+            Product savedProduct = productRepository.save(product.get());
+            CategoryProduct categoryProduct = new CategoryProduct();
+            categoryProduct.setProduct(savedProduct);
+            categoryProduct.setCategory(category);
+            categoryProductRepository.save(categoryProduct);
 
-            product.set(this.productRepository.save(product.get()));
+
+
+            product.set(product.get());
 
             if(this.assignCategory(category, product.get())){
                 response.set(StockEntitiesResponse.builder().message("Product added successfully ").statusCode(HttpStatus.OK.value()).build());
@@ -224,6 +235,7 @@ public class ProductService {
                                ProductData productData = ProductData.builder()
                                     .id(product.getId())
                                     .name(product.getName())
+                                       .categoryId(product.getProductCategoryId())
                                        .category(product.getCategory())
                                     .description(product.getDescription())
                                     .price(product.getPrice())

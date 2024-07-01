@@ -32,7 +32,7 @@ public interface FarmerRepo extends JpaRepository<Farmer,Long> {
             "join users u on u.user_name =c2.username where u.id =:collectorId group by f.id",nativeQuery = true)
     List<Farmer> getfarmersPerCollector(Long collectorId);
 
-    @Query(value = "select  max(id) from farmer",nativeQuery = true)
+    @Query(value = "select  max(farmer_no) from farmer",nativeQuery = true)
     Integer getMaxVaue();
      boolean existsByFarmerNo(Integer memberNo);
     @Query(value = "select count(*) as farmers,w.name as ward  from farmer f join ward w on w.id =f.ward_fk  GROUP by w.name",nativeQuery = true)
