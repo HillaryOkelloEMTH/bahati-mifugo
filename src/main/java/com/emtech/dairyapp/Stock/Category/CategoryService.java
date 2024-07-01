@@ -201,12 +201,10 @@ public class CategoryService {
                         .creationDate(category.getCreationDate())
                         .build();
 
-                System.out.println("catwegiriesss one "+categories);
 
                 List<ProductData> products = new ArrayList<>();
 
                 List<CategoryProduct> categoryProducts = this.categoryProductRepository.findAllByCategory(category);
-                System.out.println("catwegiriesss one "+categoryProducts);
 
                 if(categoryProducts != null && !categoryProducts.isEmpty()){
                     categoryProducts.forEach(categoryProduct -> {

@@ -25,7 +25,7 @@ public class Farmer {
     private String lastName;
     private String middleName;
     private String idNumber;
-    @Column(unique = true,updatable = false)
+    @Column(unique = true)
     private Integer farmerNo;
     private String mobileNo;
     private String alternativeMobileNo;

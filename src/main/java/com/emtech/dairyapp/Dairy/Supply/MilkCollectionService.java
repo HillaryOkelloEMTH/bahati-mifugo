@@ -24,6 +24,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;
 
+import static com.emtech.dairyapp.Configurations.Utils.FormatPhoneNumber.formatPhone;
+
 @Service
 @Slf4j
 public class MilkCollectionService {
@@ -61,7 +63,7 @@ public class MilkCollectionService {
         try {
 
 
-            String collectionNumber = codenerator.codeGenerator();
+            String collectionNumber = codenerator.codeGenerator(collections.getFarmerNo());
             collections.setCollectionNumber(collectionNumber);
 
 
@@ -101,8 +103,8 @@ public class MilkCollectionService {
                 }
 
             } else if (event.equalsIgnoreCase("Collection")) {
-                boolean checkDuplicate = milkCollectionRepo.existsByFarmerNoAndQuantityAndSessionAndCollectorId(collections.getFarmerNo(),
-                        collections.getQuantity(), collections.getSession(), collections.getCollectorId());
+                boolean checkDuplicate = milkCollectionRepo.existsByFarmerNoAndSessionAndCollectorId(collections.getFarmerNo(),
+                        collections.getSession(), collections.getCollectorId());
                 log.info("Checking duplicate record...");
 
                 if (checkDuplicate) {
@@ -132,6 +134,7 @@ public class MilkCollectionService {
                             Double buyingPrice = productConfig.get().getBuyingPrice();
                             log.info("buying price ", buyingPrice);
                             Double totalAmount = buyingPrice * collections.getQuantity();
+                            collections.setOriginalQuantity(actual_quantity);
                             log.info("total amount " + totalAmount);
                             collections.setAmount(totalAmount);
                             collections.setCurrentPrice(buyingPrice);
@@ -170,7 +173,7 @@ public class MilkCollectionService {
                 if (check.get().getMobile_no() != null) {
                     log.info("Sending sms ...");
                     String message = "Dear " + username + ", Farmer No. " + check.get().getFarmer_no() + " we have received " + collections.getQuantity() + "Kgs of milk" +
-                             session + "Session on " + collections.getCollectionDate() + ". Month Total" + monthTotal + "Kgs. Helpline: 0726777884";
+                             session + "Session on " + collections.getCollectionDate() + ". Month Total: " + monthTotal + " Kgs. Helpline: 0726777884";
                     String phoneno = check.get().getMobile_no().trim();
                     if (phoneno.startsWith("0")) {
                         log.info("Starting with 0");
@@ -224,12 +227,20 @@ public class MilkCollectionService {
                 MilkCollections collections= collectionCheck.get();
                 Optional<ProductConfig> productConfig = productConfigRepo.findByRouteFk(collections.getRouteFk());
                 if (productConfig.isPresent()) {
+                    Optional<FarmerInfo> farmerInfo = farmerRepo.findByFarmerNo(collections.getFarmerNo());
                     Optional<Can> cancheck = canRepo.findByCanNo(col.getCanNo());
-                    if (cancheck.isPresent()) {
+
+                    if (farmerInfo.isEmpty()) {
+                        response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                      response.setMessage("Farmer with member number "+collections.getFarmerNo()+" not found");
+                      return response;
+                    }
+                    if (!cancheck.isPresent()) {
 
                         log.info("----Collection event----");
-                        Can can = cancheck.get();
-                        Double lessWeight = Double.valueOf(can.getDeductionWeight());
+//                        Can can = cancheck.get();
+//                        Double lessWeight = Double.valueOf(can.getDeductionWeight());
+                        double lessWeight = 0.0;
                         Double actual_quantity = col.getOriginalQuantity() - lessWeight;
                         collections.setQuantity(actual_quantity);
                         collections.setDeductedWeight(lessWeight);
@@ -248,6 +259,21 @@ public class MilkCollectionService {
                         response.setStatusCode(HttpStatus.OK.value());
                         response.setEntity(cdata);
                         response.setMessage(HttpStatus.OK.getReasonPhrase());
+
+
+                        log.info("Collection for " + collections.getCollectionDate() + " was updated at: " + collections.getUpdatedDate());
+
+                        if (farmerInfo.get().getMobile_no() != null){
+                            String message = "Dear "+farmerInfo.get().getUsername()+", M.No. "+farmerInfo.get().getFarmer_no()+"."+
+                                    "\nCollection for "+collections.getCollectionDate()+" has been updated from "+collections.getOriginalQuantity()+" ltr to "+
+                                    collections.getQuantity()+" ltr at "+new Date()+".";
+                            smsServiceV2.SMSNotification(message,formatPhone(farmerInfo.get().getMobile_no().trim()));
+                            response.setMessage("Collection updated and sent notification to farmer.");
+                            log.info("Collection updated and sent notification to farmer.");
+                        }else {
+                            log.info("Collection updated but failed to send notification to farmer due to unavailable phone number.");
+                            response.setMessage("Collection updated but failed to send notification to farmer due to unavailable phone number.");
+                        }
                     } else {
                         response.setStatusCode(HttpStatus.NOT_FOUND.value());
                         response.setMessage("Can Not Found");
