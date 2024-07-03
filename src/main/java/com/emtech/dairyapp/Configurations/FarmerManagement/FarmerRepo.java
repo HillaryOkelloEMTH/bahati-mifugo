@@ -20,6 +20,9 @@ public interface FarmerRepo extends JpaRepository<Farmer,Long> {
     List<Farmer> findByWardFk(Long wardId);
     Optional<Farmer> findById(Long id);
 
+    @Query(value = "select * from farmer where farmer_no = :farmer_no limit 1", nativeQuery = true)
+    Optional<Farmer> getByFarmerNo(Integer farmer_no);
+
     @Query(value = "select count(*) from farmer",nativeQuery = true)
     Integer getCount();
     @Query(value = "SELECT f.id,f.username,f.payment_freequency,r.route as route ,r.id as routeId,f.first_name,b.account_name ,b.account_number  ,f.alternative_mobile_no   ,f.id_number ,f.created_at ,f.payment_mode ,f.deleted_flag,f.mobile_no ,f.member_type ,f.no_of_cows ,f.farmer_no ,s.name as subcounty,c.name as county,p.name as pickUpLocation from farmer f join ward w  on f.ward_fk =w.id join subcounty s on s.id =f.subcounty_fk join county c on c.id =s.county_fk join route r on r.id=f.route_fk join pick_up_locations p on p.id =r.location_id join bank_details b on b.id =f.bank_details_id where f.id=:farmerId",nativeQuery = true)

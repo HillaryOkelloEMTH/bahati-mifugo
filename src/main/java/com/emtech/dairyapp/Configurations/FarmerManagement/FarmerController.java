@@ -47,6 +47,12 @@ public class FarmerController {
         EntityResponse response = farmerService.updateFarmer(farmer);
         return ResponseEntity.ok().body(response);
     }
+
+    @PutMapping("update/route/{farmerNo}/{routeId}")
+    public ResponseEntity<?> updateFarmerRoute(@PathVariable Integer farmerNo, @PathVariable Long routeId) {
+        var response = farmerService.updateFarmerRoute(farmerNo, routeId);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
+    }
     @DeleteMapping("delete/{id}")
     public ResponseEntity<EntityResponse> deletefarmer(@PathVariable Long id){
         EntityResponse response = farmerService.deleteFarmer(id);

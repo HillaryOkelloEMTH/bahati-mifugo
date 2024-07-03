@@ -103,11 +103,11 @@ public class MilkCollectionService {
                 }
 
             } else if (event.equalsIgnoreCase("Collection")) {
-                boolean checkDuplicate = milkCollectionRepo.existsByFarmerNoAndSessionAndCollectorId(collections.getFarmerNo(),
-                        collections.getSession(), collections.getCollectorId());
+                Integer checkDuplicate = milkCollectionRepo.checkDuplicateEntry(collections.getFarmerNo(),
+                        collections.getSession());
                 log.info("Checking duplicate record...");
 
-                if (checkDuplicate) {
+                if (checkDuplicate > 0) {
                     log.info("..Duplicate entry detected ... ");
                     response.setStatusCode(HttpStatus.NOT_ACCEPTABLE.value());
                     response.setMessage("Duplicate entry detected");
@@ -1063,6 +1063,16 @@ public class MilkCollectionService {
             response.setStatusCode(HttpStatus.BAD_REQUEST.value());
             response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
             return response;
+        }
+    }
+
+//    data for route per center broken into sessions
+    public List<AnalyticsData> getRouteSummaryForCenter(String date, Long centerId) {
+        try {
+            return milkCollectionRepo.getRouteSummaryForCenter(date, centerId);
+        }catch (Exception exc){
+            log.info(exc.getLocalizedMessage());
+            return null;
         }
     }
 }

@@ -269,16 +269,16 @@ public class UserService {
 
                 user.set(this.userRepository.save(user.get()));
 
-                try {
-                    SendCredentialToMail sm = new SendCredentialToMail();
-
-                    log.log(Level.INFO, String.format("User Email [ %s ]", user.get().getEmail()));
-
-                    sm.sendMail(user.get().getEmail(), user.get().getUsername(), password);
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+//                try {
+//                    SendCredentialToMail sm = new SendCredentialToMail();
+//
+//                    log.log(Level.INFO, String.format("User Email [ %s ]", user.get().getEmail()));
+//
+//                    sm.sendMail(user.get().getEmail(), user.get().getUsername(), password);
+//
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
 
                 response.set(RecordCreateResponse.builder().message("User password updated successfully !").statusCode(HttpStatus.OK.value()).build());
 //                res.set(true);

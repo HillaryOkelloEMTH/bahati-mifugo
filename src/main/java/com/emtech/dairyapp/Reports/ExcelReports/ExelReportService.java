@@ -1,8 +1,10 @@
 package com.emtech.dairyapp.Reports.ExcelReports;
 
+import com.emtech.dairyapp.Analytics.AnalyticsData;
 import com.emtech.dairyapp.Dairy.Interface.CollectionsData;
 import com.emtech.dairyapp.Dairy.PaymentComponent.PaymentFileData;
 import com.emtech.dairyapp.Dairy.Supply.MilkCollectionRepo;
+import com.emtech.dairyapp.Dairy.Supply.MilkCollectionService;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -14,7 +16,9 @@ import org.springframework.util.StreamUtils;
 
 
 import java.io.*;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class ExelReportService {
@@ -23,8 +27,11 @@ public class ExelReportService {
 
     private final MilkCollectionRepo collectionRepo;
 
-    public ExelReportService(MilkCollectionRepo collectionRepo) {
+    private final MilkCollectionService milkCollectionService;
+
+    public ExelReportService(MilkCollectionRepo collectionRepo, MilkCollectionService milkCollectionService) {
         this.collectionRepo = collectionRepo;
+        this.milkCollectionService = milkCollectionService;
     }
 
     public static String TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
@@ -42,7 +49,7 @@ public class ExelReportService {
     public ByteArrayInputStream collecionsPerDate(String date) {
         try (Workbook workbook = new XSSFWorkbook();ByteArrayOutputStream out = new ByteArrayOutputStream();) {
             Sheet sheet = workbook.createSheet(SHEET);
-            String[] headers = { "Farmer","Quantity", "Amount", "DeliveryNumber","Collection Date" ,"Collector","Session","CAN","Route","Pick-Up Location"};
+            String[] headers = { "Farmer","Quantity", "FarmerNo","Collection Date" ,"Collector","Session","Route","Pick-Up Location"};
 
             List<CollectionsData> data = collectionRepo.getCollectionsbyDate(date); // Fetch data from the database
 
@@ -62,17 +69,69 @@ public class ExelReportService {
         }
     }
 
+    public ByteArrayInputStream routeSummaryForCenter(String date, Long centerId) {
+        try (Workbook workbook = new XSSFWorkbook();ByteArrayOutputStream out = new ByteArrayOutputStream();) {
+            Sheet sheet = workbook.createSheet(SHEET);
+            String[] headers = { "Route","Quantity", "Session 1","Session 2" ,"Session 3"};
+
+            List<AnalyticsData> data = milkCollectionService.getRouteSummaryForCenter(date, centerId); // Fetch data from the database
+            int rowNum = 0;
+            Row headerRow = sheet.createRow(rowNum++);
+            createHeaderRow(headerRow,headers); // Create header row
+
+            Map<String, Map<String, Double>> sessionData = new HashMap<>();
+            Map<String, AnalyticsData> routeSummary = new HashMap<>();
+            Map<String, String> collectors = new HashMap<>();
+
+
+            for (AnalyticsData entity: data) {
+                String route = entity.getRoute();
+                String session = entity.getSession();
+                Double quantity = entity.getQuantity();
+
+                sessionData.putIfAbsent(route, new HashMap<>());
+                sessionData.get(route).put(session, quantity);
+
+                if (!sessionData.containsKey(route)) {
+                    routeSummary.put(route, entity);
+                }
+                // Collect the first encountered collector for each route
+                if (!collectors.containsKey(route)) {
+                    collectors.put(route, entity.getCollector());
+                }
+            }
+
+            for (String route : sessionData.keySet()) {
+                Row row = sheet.createRow(rowNum++);
+                Map<String, Double> quantities = sessionData.get(route);
+                AnalyticsData entity = routeSummary.get(route);
+                String collector = collectors.get(route);
+
+                row.createCell(0).setCellValue(route);
+                row.createCell(1).setCellValue(quantities.values().stream().mapToDouble(Double::doubleValue).sum());
+                row.createCell(2).setCellValue(quantities.getOrDefault("Session 1", 0.0));
+                row.createCell(3).setCellValue(quantities.getOrDefault("Session 2", 0.0));
+                row.createCell(4).setCellValue(quantities.getOrDefault("Session 3", 0.0));
+            }
+
+            workbook.write(out);
+            return new ByteArrayInputStream(out.toByteArray());
+
+        } catch (IOException e) {
+            throw new RuntimeException("fail to import data to Excel file: " + e.getMessage());
+        }
+
+    }
+
     private void fillDataRow(Row row, CollectionsData entity) {
         row.createCell(0).setCellValue(entity.getFarmer());
         row.createCell(1).setCellValue(entity.getQuantity());
-        row.createCell(2).setCellValue(entity.getAmount());
-        row.createCell(3).setCellValue(entity.getCollectionCode());
-        row.createCell(4).setCellValue(entity.getCollection_date().toString());
-        row.createCell(5).setCellValue(entity.getCollector());
-        row.createCell(6).setCellValue(entity.getSession());
-        row.createCell(7).setCellValue(entity.getCanNo());
-        row.createCell(8).setCellValue(entity.getRoute());
-        row.createCell(9).setCellValue(entity.getPickUpLocation());
+        row.createCell(2).setCellValue(entity.getFarmer_no());
+        row.createCell(3).setCellValue(entity.getCollection_date().toString());
+        row.createCell(4).setCellValue(entity.getCollector());
+        row.createCell(5).setCellValue(entity.getSession());
+        row.createCell(6).setCellValue(entity.getRoute());
+        row.createCell(7).setCellValue(entity.getPickUpLocation());
     }
     private void fillDataRowPaymentFile(Row row, PaymentFileData entity) {
         row.createCell(0).setCellValue(entity.getFarmer_no());

@@ -8,6 +8,7 @@ import com.emtech.dairyapp.Reports.FarmerStmtDetails;
 import com.emtech.dairyapp.Reports.ReportData;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
@@ -173,6 +174,9 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
 
     @Query(value = "SELECT ROUND(SUM(c.quantity),2) as quantity,ROUND(SUM(c.amount),2) as amount,r.route as route from collections c join route r on r.id=c.route_fk  join pick_up_locations p on p.id=r.location_id  where DATE(c.collection_date)=:date  GROUP BY r.id", nativeQuery = true)
     List<AnalyticsData> getCollectorsPerLocation(String date);
+
+    @Query(value = "SELECT ROUND(SUM(c.quantity),2) as quantity,ROUND(SUM(c.amount),2) as amount,r.route as route, c.session from collections c join route r on r.id=c.route_fk  join pick_up_locations p on p.id=r.location_id  where DATE(c.collection_date)=:date and p.id= :centerId  GROUP BY r.id, c.session", nativeQuery = true)
+    List<AnalyticsData> getRouteSummaryForCenter(String date, Long centerId);
     @Query(value = "SELECT ROUND(SUM(c.quantity),2) as quantity,ROUND(SUM(c.amount),2) as amount,r.route as route,p.name as location from collections c join route r on r.id=c.route_fk join pick_up_locations p on p.id=r.location_id  where DATE(c.collection_date)=:date GROUP BY p.id", nativeQuery = true)
     List<AnalyticsData> getCollectorsPerMCCandDate(String date);
     @Query(value = "SELECT ROUND(SUM(c.quantity),2) as quantity,ROUND(SUM(c.amount),2) as amount,r.route as route,p.name as location from collections c join route r on r.id=c.route_fk join pick_up_locations p on p.id=r.location_id  where MONTHNAME(c.collection_date)=:month  GROUP BY p.id", nativeQuery = true)
@@ -195,6 +199,12 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
     }
 
     boolean existsByFarmerNoAndSessionAndCollectorId(Integer farmerdId, String session, Long collectorId);
+
+
+    @Query(value="SELECT CASE WHEN COUNT(*) > 0 THEN TRUE ELSE FALSE END FROM collections c  WHERE c.farmer_no= :farmerNo AND c.session = :session and date(c.collection_date)=date(curdate())", nativeQuery = true)
+    Integer checkDuplicateEntry(
+            @Param("farmerNo") Integer farmerNo,
+            @Param("session") String session);
 
 
     @Query(value = "SELECT ROUND(sum(c.amount),2)  as amount from collections c join farmer f  on f.id =c.farmer_no  where c.payment_status =:payment_status  and c.farmer_no=:farmerNo", nativeQuery = true)

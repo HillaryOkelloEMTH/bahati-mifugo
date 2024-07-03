@@ -21,8 +21,18 @@ public class ExcellReportsController {
 
     @GetMapping("/collectionsPerDate")
     public ResponseEntity<Resource> downloadExcel(@RequestParam String date) {
-        String filename = "collectionsPerDateReport.xlsx";
+        String filename = "collections_"+date+".xlsx";
         InputStreamResource file =new InputStreamResource(exelReportService.collecionsPerDate(date));
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
+                .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
+                .body(file);
+    }
+
+    @GetMapping("/route-summary-center/{date}/{centerId}")
+    public ResponseEntity<Resource> routeSummaryForCenter(@PathVariable String date, @PathVariable Long centerId) {
+        String filename = "route_summary_"+date+".xlsx";
+        InputStreamResource file =new InputStreamResource(exelReportService.routeSummaryForCenter(date, centerId));
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
                 .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
