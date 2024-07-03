@@ -5,9 +5,9 @@ server:
 
 spring:
   datasource:
-    url: jdbc:mariadb://localhost:3306/bahati_prod
-    username: jufred
-    password: Jufred@20
+    url: jdbc:mariadb://localhost:3307/bahatiTest
+    username: root
+    password:
     driver-class-name: org.mariadb.jdbc.Driver
   jpa:
     properties:
@@ -25,10 +25,10 @@ spring:
     location: classpath:static/banner.txt
 
 dairy:
-  company_logo_path: /home/ubuntu/prod/bahati/resources/dairy_logo.jpg
-  report-path: /home/ubuntu/prod/bahati/resources/reports
-#  company_logo_path: /home/ibrahim/Downloads/dairy_logo.png
-#  report-path: /home/ibrahim/JaspersoftWorkspace/MyReports
+#  company_logo_path: /home/ubuntu/prod/bahati/resources/dairy_logo.jpg
+#  report-path: /home/ubuntu/prod/bahati/resources/reports
+  company_logo_path: C:\\Users\\michael\\Documents\\springboot projects\\DAIRY_APP_BE\\src\\main\\resources\\dairy_logo.jpg
+  report-path: C:\\Users\\michael\\Documents\\springboot projects\\DAIRY_APP_BE\\src\\main\\resources\\reports
 
 
 pagination:

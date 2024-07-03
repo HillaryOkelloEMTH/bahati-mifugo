@@ -4,6 +4,8 @@ import com.emtech.dairyapp.Analytics.LinkedStringInteger;
 import com.emtech.dairyapp.Configurations.Interfaces.FarmerAccruedAmount;
 import com.emtech.dairyapp.Configurations.Interfaces.FarmerInfo;
 import com.emtech.dairyapp.Configurations.Interfaces.FarmersPerWard;
+import com.emtech.dairyapp.Configurations.Routes.Route;
+import com.emtech.dairyapp.Configurations.Routes.RouteRepo;
 import com.emtech.dairyapp.Configurations.Utils.CONSTANTS;
 import com.emtech.dairyapp.Notifications.SMS.smsv1.SMSService;
 import com.emtech.dairyapp.Notifications.SMS.smsv2.SmsServiceV2;
@@ -28,6 +30,8 @@ public class FarmerService {
 
     private final FarmerRepo farmerRepo;
 
+    private final RouteRepo routeRepo;
+
     private final SmsServiceV2 smsServiceV2;
 
 
@@ -41,9 +45,10 @@ public class FarmerService {
 //        return S + sb;
 //    }
 
-    public FarmerService(FarmerRepo farmerRepo, SmsServiceV2 smsServiceV2) {
+    public FarmerService(FarmerRepo farmerRepo, SmsServiceV2 smsServiceV2, RouteRepo routeRepo) {
         this.farmerRepo = farmerRepo;
         this.smsServiceV2 = smsServiceV2;
+        this.routeRepo = routeRepo;
     }
 
     public EntityResponse addFarmer(Farmer farmer){
@@ -308,6 +313,45 @@ public class FarmerService {
             response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
             return response;
         }
+    }
+
+    public EntityResponse<?> updateFarmerRoute(Integer farmerNo, Long routeId) {
+        EntityResponse<String> response = new EntityResponse<>();
+
+        try {
+            log.info("checking farmer existence .......");
+            Optional<Farmer> optionalFarmer = farmerRepo.getByFarmerNo(farmerNo);
+
+            if (optionalFarmer.isEmpty()) {
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                response.setMessage(HttpStatus.NOT_FOUND.getReasonPhrase());
+                response.setEntity("farmer with farmer no "+farmerNo+" not found");
+                return response;
+            }
+
+            Optional<Route> optionalRoute = routeRepo.findById(routeId);
+
+            if (optionalRoute.isEmpty()) {
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                response.setMessage(HttpStatus.NOT_FOUND.getReasonPhrase());
+                response.setEntity("Route with id "+routeId+" not found");
+                return response;
+            }
+
+            Route route = optionalRoute.get();
+            Farmer farmer = optionalFarmer.get();
+            farmer.setRouteFk(routeId);
+            farmerRepo.save(farmer);
+
+            response.setMessage("ok");
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity("Farmer route updated to "+route.getRoute());
+        } catch (Exception e) {
+            log.error(e.toString());
+            response.setMessage("Bad Request");
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        }
+        return response;
     }
 
     public EntityResponse updateFarmer(Farmer farmer) {
