@@ -7,17 +7,14 @@ import com.emtech.dairyapp.Configurations.Interfaces.FarmersPerWard;
 import com.emtech.dairyapp.Configurations.Routes.Route;
 import com.emtech.dairyapp.Configurations.Routes.RouteRepo;
 import com.emtech.dairyapp.Configurations.Utils.CONSTANTS;
-import com.emtech.dairyapp.Notifications.SMS.smsv1.SMSService;
+import com.emtech.dairyapp.Configurations.Utils.Formatter;
 import com.emtech.dairyapp.Notifications.SMS.smsv2.SmsServiceV2;
 import com.emtech.dairyapp.Response.EntityResponse;
-import io.swagger.models.auth.In;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.util.*;
 
 @Service
@@ -342,6 +339,15 @@ public class FarmerService {
             Farmer farmer = optionalFarmer.get();
             farmer.setRouteFk(routeId);
             farmerRepo.save(farmer);
+
+            if (farmer.getMobileNo() != null) {
+                String phoneNo = Formatter.formatPhone(farmer.getMobileNo());
+
+                String message = "Dear "+farmer.getFirstName()+", member no "+farmer.getFarmerNo()+" your route has been updated to "+route.getRoute();
+
+                smsServiceV2.SMSNotification(message, phoneNo);
+            }
+
 
             response.setMessage("ok");
             response.setStatusCode(HttpStatus.OK.value());

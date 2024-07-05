@@ -24,6 +24,7 @@ public class Farmer {
     private String firstName;
     private String lastName;
     private String middleName;
+    @Column(unique = true)
     private String idNumber;
     @Column(unique = true)
     private Integer farmerNo;

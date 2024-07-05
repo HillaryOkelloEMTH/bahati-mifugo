@@ -24,7 +24,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;
 
-import static com.emtech.dairyapp.Configurations.Utils.FormatPhoneNumber.formatPhone;
+import static com.emtech.dairyapp.Configurations.Utils.Formatter.formatDate;
+import static com.emtech.dairyapp.Configurations.Utils.Formatter.formatPhone;
 
 @Service
 @Slf4j
@@ -173,7 +174,7 @@ public class MilkCollectionService {
                 if (check.get().getMobile_no() != null) {
                     log.info("Sending sms ...");
                     String message = "Dear " + username + ", Farmer No. " + check.get().getFarmer_no() + " we have received " + collections.getQuantity() + "Kgs of milk" +
-                             session + "Session on " + collections.getCollectionDate() + ". Month Total: " + monthTotal + " Kgs. Helpline: 0726777884";
+                             session + "Session on " + formatDate(collections.getCollectionDate()) + ". Month Total: " + monthTotal + " Kgs. Helpline: 0726777884";
                     String phoneno = check.get().getMobile_no().trim();
                     if (phoneno.startsWith("0")) {
                         log.info("Starting with 0");
@@ -264,9 +265,9 @@ public class MilkCollectionService {
                         log.info("Collection for " + collections.getCollectionDate() + " was updated at: " + collections.getUpdatedDate());
 
                         if (farmerInfo.get().getMobile_no() != null){
-                            String message = "Dear "+farmerInfo.get().getUsername()+", M.No. "+farmerInfo.get().getFarmer_no()+"."+
-                                    "\nCollection for "+collections.getCollectionDate()+" has been updated from "+collections.getOriginalQuantity()+" ltr to "+
-                                    collections.getQuantity()+" ltr at "+new Date()+".";
+                            String message = "Dear "+farmerInfo.get().getName()+", M.No. "+farmerInfo.get().getFarmer_no()+"."+
+                                    "\nDelivery for "+formatDate(collections.getCollectionDate())+" has been updated from "+collections.getOriginalQuantity()+" kgs to "+
+                                    collections.getQuantity()+" kgs on "+formatDate(new Date())+".";
                             smsServiceV2.SMSNotification(message,formatPhone(farmerInfo.get().getMobile_no().trim()));
                             response.setMessage("Collection updated and sent notification to farmer.");
                             log.info("Collection updated and sent notification to farmer.");
