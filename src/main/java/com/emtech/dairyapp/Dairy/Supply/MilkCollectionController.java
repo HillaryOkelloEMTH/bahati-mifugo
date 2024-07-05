@@ -2,13 +2,22 @@ package com.emtech.dairyapp.Dairy.Supply;
 
 
 import com.emtech.dairyapp.Dairy.Interface.CollectionsData;
+import com.emtech.dairyapp.Dairy.Supply.bulkuploads.BulkSupplyService;
+import com.emtech.dairyapp.Dairy.Supply.returns.MilkReturnService;
 import com.emtech.dairyapp.Response.EntityResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Mono;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @CrossOrigin
 @RestController
@@ -18,10 +27,41 @@ public class MilkCollectionController {
     @Autowired
     private MilkCollectionService collectionService;
 
+    @Autowired
+    private BulkSupplyService bulkSupplyService;
+
+    @Autowired
+    private MilkReturnService milkReturnService;
+
     @PostMapping("add")
     public ResponseEntity<EntityResponse> addNewRecord(@RequestBody MilkCollections collections){
         EntityResponse response = collectionService.newcollection(collections);
         return ResponseEntity.ok().body(response);
+    }
+
+
+    @PostMapping("/add/bulk")
+    public Mono<ResponseEntity<?>> uploadBulkDeliveries(ServerWebExchange exchange) {
+        return exchange.getMultipartData()
+                .flatMap(multipart -> {
+                    FilePart filePart = (FilePart) multipart.getFirst("file");
+                    if (filePart == null) {
+                        Map<String, Object> errBody = new HashMap<>();
+                        errBody.put("message", "File is empty");
+                        errBody.put("status", "400");
+                        return Mono.just(ResponseEntity.badRequest().body(errBody));
+                    }
+                    System.out.println("hereeeeeeeee ttttttttttttt");
+                    return bulkSupplyService.uploadBulkDeliveries(filePart)
+                            .map(response -> ResponseEntity.status(response.getStatusCode()).body(response));
+                });
+    }
+
+
+    @PostMapping("return/{id}")
+    public ResponseEntity<?> returnDelivery(@PathVariable Long id) {
+        var response = milkReturnService.returnDelivery(id);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
     @GetMapping("get")
     public ResponseEntity<EntityResponse> getColllections(){

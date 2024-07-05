@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Jaspersoft Studio version 6.20.5.final using JasperReports Library version 6.20.5-3efcf2e67f959db3888d79f73dde2dbd7acb4f8e  -->
+<!-- Created with Jaspersoft Studio version 6.20.6.final using JasperReports Library version 6.20.6-5c96b6aa8a39ac1dc6b6bea4b81168e16dd39231  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="farmerStatement" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="99c9f335-bd21-414a-9322-ce6c374a18c7">
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w1" value="255"/>
 	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w2" value="734"/>
 	<property name="com.jaspersoft.studio.property.dataset.dialog.DatasetDialog.sash.w1" value="521"/>
 	<property name="com.jaspersoft.studio.property.dataset.dialog.DatasetDialog.sash.w2" value="465"/>
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Jufred Database.jrdax"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="bahati"/>
 	<parameter name="company" class="java.lang.String"/>
 	<parameter name="location" class="java.lang.String"/>
 	<parameter name="address" class="java.lang.String"/>
@@ -18,10 +18,12 @@
 	<parameter name="pickuplocation" class="java.lang.String"/>
 	<parameter name="farmername" class="java.lang.String"/>
 	<parameter name="expenses" class="java.lang.Double"/>
+	<parameter name="from" class="java.lang.String"/>
 	<parameter name="month" class="java.lang.String"/>
+	<parameter name="to" class="java.lang.String"/>
 	<parameter name="advanceAmount" class="java.lang.Double"/>
 	<queryString>
-		<![CDATA[SELECT c.collection_number, c.amount, c.quantity, DATE_FORMAT(c.collection_date, '%Y-%m-%d %T') AS collection_date, c.session from collections c join farmer f on f.farmer_no=c.farmer_no WHERE MONTHNAME(c.collection_date)=$P{month} AND f.farmer_no=$P{farmerNo} AND c.payment_status='N']]>
+		<![CDATA[SELECT c.collection_number, c.amount, c.quantity, DATE_FORMAT(c.collection_date, '%Y-%m-%d %T') AS collection_date, c.session from collections c join farmer f on f.farmer_no=c.farmer_no WHERE date(c.collection_date) between date($P{from}) AND date($P{to}) and f.farmer_no=$P{farmerNo} AND c.payment_status='N']]>
 	</queryString>
 	<field name="collection_number" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.name" value="collection_number"/>
@@ -47,6 +49,9 @@
 		<property name="com.jaspersoft.studio.field.label" value="session"/>
 		<property name="com.jaspersoft.studio.field.tree.path" value="collections"/>
 	</field>
+	<field name="from" class="java.lang.String"/>
+	<field name="to" class="java.lang.String"/>
+	<field name="mn" class="java.lang.String"/>
 	<background>
 		<band splitType="Stretch"/>
 	</background>

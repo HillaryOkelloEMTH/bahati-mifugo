@@ -2,6 +2,8 @@ package com.emtech.dairyapp.Reports;
 
 
 import com.emtech.dairyapp.Analytics.AnalyticsData;
+import com.emtech.dairyapp.Auth.User.User;
+import com.emtech.dairyapp.Auth.User.UserRepository;
 import com.emtech.dairyapp.Configurations.FarmerManagement.FarmerRepo;
 import com.emtech.dairyapp.Configurations.Interfaces.FarmerInfo;
 import com.emtech.dairyapp.Configurations.PickUpLocations.PickUpLocations;
@@ -36,9 +38,11 @@ import org.springframework.web.bind.annotation.*;
 import java.io.FileInputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import java.time.Month;
 import java.util.*;
 import java.util.HashMap;
 import java.util.List;
@@ -63,6 +67,8 @@ public class ReportController {
 //    private final ExcelExporterService excelExporterService;
     private final ExelReportService exelReportService;
 
+    private final UserRepository userRepository;
+
 
 
     @Value("${dairy.company_logo_path}")
@@ -78,7 +84,7 @@ public class ReportController {
     @Value("${spring.datasource.password}")
     private String dbpassword;
 
-    public ReportController(ReportService reportService, ProfileRepo profileRepo, MilkCollectionRepo collectionRepo, FarmerProdAllocattionsRepo allocattionsRepo, PickUpLocationsRepo pickUpLocationsRepo, FarmerProdAllocattionsRepo farmerProdAllocattionsRepo, FarmerRepo farmerRepo, ExelReportService exelReportService) {
+    public ReportController(ReportService reportService, ProfileRepo profileRepo, MilkCollectionRepo collectionRepo, FarmerProdAllocattionsRepo allocattionsRepo, PickUpLocationsRepo pickUpLocationsRepo, FarmerProdAllocattionsRepo farmerProdAllocattionsRepo, FarmerRepo farmerRepo, ExelReportService exelReportService, UserRepository userRepository) {
         this.reportService = reportService;
         this.profileRepo = profileRepo;
         this.collectionRepo = collectionRepo;
@@ -89,6 +95,7 @@ public class ReportController {
 //        this.exelReportService = exelReportService;
 
         this.exelReportService = exelReportService;
+        this.userRepository = userRepository;
     }
 
 
@@ -136,16 +143,15 @@ public class ReportController {
     }
 
     @GetMapping("farmer/collections")
-    public ResponseEntity<?> getFarmerCollections(@RequestParam Integer farmerNo) {
+    public ResponseEntity<?> getFarmerCollections(@RequestParam Integer farmerNo, @RequestParam String from, @RequestParam String to) {
         try {
 
             List<FarmerCollections> record = reportService.getFarmerCollections(farmerNo);
-            if (record.size() > 0) {
+            if (!record.isEmpty()) {
                 log.info("Data found");
 
                 Connection connection = DriverManager.getConnection(this.db, this.dbusername, this.dbpassword);
                 JasperReport compileReport = JasperCompileManager.compileReport(new FileInputStream(report_path + "/farmerStatement.jrxml"));
-
                 Profile profile = profileRepo.getProfile();
 
                 Map<String, Object> parameters = new HashMap<>();
@@ -154,12 +160,14 @@ public class ReportController {
                 parameters.put("location", profile.getLocation());
                 parameters.put("company", profile.getCompanyName());
                 parameters.put("address", profile.getPhysicalAddress());
+                parameters.put("from", from);
+                parameters.put("to", to);
 
 
                 JasperPrint print = JasperFillManager.fillReport(compileReport, parameters, connection);
                 byte[] data = JasperExportManager.exportReportToPdf(print);
                 HttpHeaders headers = new HttpHeaders();
-                headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + "statement" + "-collections-report");
+                headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + "farmer" + "-deliveries");
                 return ResponseEntity.ok().headers(headers).contentType(MediaType.APPLICATION_PDF).body(data);
 
             } else {
@@ -239,6 +247,7 @@ public class ReportController {
                     JasperReport compileReport = JasperCompileManager.compileReport(new FileInputStream(report_path + "/statement.jrxml"));
 
                     Profile profile = profileRepo.getProfile();
+
 
                     Map<String, Object> parameters = new HashMap<>();
                     parameters.put("farmerNo", farmerNo);
