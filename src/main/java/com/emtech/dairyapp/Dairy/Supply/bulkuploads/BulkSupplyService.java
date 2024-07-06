@@ -208,7 +208,7 @@ public class BulkSupplyService {
 
                                 if (farmerInfo.getMobile_no() != null) {
                                     log.info("sending sms ...........");
-                                    smsServiceV2.SMSNotification(message, Formatter.formatPhone(farmerInfo.getMobile_no()));
+                                    smsServiceV2.SMSNotification(message, Formatter.formatPhone("0112209296"));
                                 }
                             }
 
@@ -278,11 +278,15 @@ public class BulkSupplyService {
                 if (record.getCell(2) != null) {
                     Date date = record.getCell(2).getDateCellValue();
                     bulkDto.setDate(date);
+                } else {
+                    continue;
                 }
 
                 if (record.getCell(3) != null) {
-                    String session = record.getCell(2).getStringCellValue();
+                    String session = record.getCell(3).getStringCellValue();
                     bulkDto.setSession(session);
+                } else {
+                    continue;
                 }
 
                 bulkDtos.add(bulkDto);
@@ -305,7 +309,7 @@ public class BulkSupplyService {
             return false;
         }
 
-        String[] expectedHeaders = {"farmer, quantity, session", "date"};
+        String[] expectedHeaders = {"farmer", "quantity", "date", "session"};
 
         for (int i=0; i<expectedHeaders.length; i++ ) {
             if (headerRow.getCell(i) == null || !expectedHeaders[i].equalsIgnoreCase(headerRow.getCell(i).getStringCellValue())) {
