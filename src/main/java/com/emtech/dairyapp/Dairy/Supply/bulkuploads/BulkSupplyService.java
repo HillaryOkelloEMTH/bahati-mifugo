@@ -7,11 +7,11 @@ import com.emtech.dairyapp.Configurations.Interfaces.FarmerInfo;
 import com.emtech.dairyapp.Configurations.ProductPriceConfiguration.ProductConfig;
 import com.emtech.dairyapp.Configurations.ProductPriceConfiguration.ProductConfigRepo;
 import com.emtech.dairyapp.Configurations.Routes.RouteRepo;
-import com.emtech.dairyapp.Dairy.Interface.RouteData;
+import com.emtech.dairyapp.Configurations.Utils.Formatter;
 import com.emtech.dairyapp.Dairy.Supply.Codenerator;
 import com.emtech.dairyapp.Dairy.Supply.MilkCollectionRepo;
 import com.emtech.dairyapp.Dairy.Supply.MilkCollections;
-import com.emtech.dairyapp.Dairy.Supply.MilkSupply;
+import com.emtech.dairyapp.Notifications.SMS.smsv2.SmsServiceV2;
 import com.emtech.dairyapp.Response.EntityResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,13 +23,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 import reactor.core.publisher.Mono;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Service
@@ -55,10 +55,13 @@ public class BulkSupplyService {
     @Autowired
     private final Codenerator codenerator;
 
+    @Autowired
+    private final SmsServiceV2 smsServiceV2;
+
 
     public Mono<EntityResponse<?>> uploadBulkDeliveries(FilePart filePart) {
-        EntityResponse<?> response = new EntityResponse<>();
-        List<MilkCollections> milkCollections = new LinkedList<>();
+        EntityResponse<List<Object>> response = new EntityResponse<>();
+        List<Object> failed = new ArrayList<>();
 
         return filePart.content()
                 .collectList()
@@ -80,74 +83,138 @@ public class BulkSupplyService {
                                 return Mono.just(response);
                             }
 
-                            System.out.println("received data"+bulkDtos);
+                            for (BulkDto row : bulkDtos) {
+                                MilkCollections milkSupply = new MilkCollections();
+                                Optional<FarmerInfo> optionalFarmer = farmerRepo.findByFarmerNo(row.getFarmerNo());
 
-//                            for (BulkDto row : bulkDtos) {
-//                                MilkCollections milkSupply = new MilkCollections();
-//                                Optional<FarmerInfo> optionalFarmer = farmerRepo.findByFarmerNo(row.getFarmerNo());
-//
-//                                log.info("checking farmer existence ----------");
-//                                if (optionalFarmer.isEmpty()) {
-//                                    log.info("farmer with member number {} not found", row.getFarmerNo());
-//                                    response.setMessage("Farmer with number " + row.getFarmerNo() + " not found");
-//                                    response.setStatusCode(HttpStatus.NOT_FOUND.value());
-//                                    continue;
-//                                }
-//                                FarmerInfo farmerInfo = optionalFarmer.get();
-//
-//                                log.info("checking milk buying price for route ------");
-//                                Optional<ProductConfig> configOptional = productConfigRepo.findByRouteFk(farmerInfo.getRouteId());
-//                                if (configOptional.isEmpty()) {
-//                                    log.info("Product config for route with id {} not found", farmerInfo.getRouteId());
-//                                    response.setMessage("Product config for route not found");
-//                                    response.setStatusCode(HttpStatus.NOT_FOUND.value());
-//                                    continue;
-//                                }
-//
-//                                log.info("getting route collector ------");
-//                                String collector = routeRepo.getFarmerCollector(farmerInfo.getRouteId());
-//
-//                                if (collector.isEmpty()) {
-//                                    log.info("Collector not found for route {}", farmerInfo.getRouteId());
-//                                    response.setMessage("Collector not found for route");
-//                                    response.setStatusCode(HttpStatus.NOT_FOUND.value());
-//                                    continue;
-//                                }
-//
-//                                Optional<User> optional = userRepository.findByUsername(collector);
-//
-//                                if (optional.isEmpty()) {
-//                                    log.info("Collector userdata not found for route {}", farmerInfo.getRouteId());
-//                                    response.setMessage("Collector userdata not found for route");
-//                                    response.setStatusCode(HttpStatus.NOT_FOUND.value());
-//                                    continue;
-//                                }
-//
-//                                User user = optional.get();
-//
-//                                milkSupply.setFarmerNo(farmerInfo.getFarmer_no());
-//                                milkSupply.setOriginalQuantity(row.getQuantity());
-//                                milkSupply.setQuantity(row.getQuantity());
-//                                milkSupply.setCollectionDate(row.getDate());
-//                                milkSupply.setCollectionNumber(codenerator.codeGenerator(farmerInfo.getFarmer_no()));
-//                                milkSupply.setCollectorId(user.getId());
-//                                milkSupply.setCurrentPrice(configOptional.get().getBuyingPrice());
-//                                milkSupply.setDeductedWeight(0.0);
-//                                milkSupply.setEvent("Collection");
-//                                milkSupply.setPaymentStatus('N');
-//                                milkSupply.setSession("Session 1");
-//                                milkSupply.setUpdatedStatus('N');
-//                                milkSupply.setRouteFk(farmerInfo.getRouteId());
-//                                milkSupply.setReturned('N');
-//                                milkSupply.setAmount(row.getQuantity() * configOptional.get().getBuyingPrice());
-//
-//                                milkCollections.add(milkSupply);
-//                            }
-//
-//                            milkCollectionRepo.saveAll(milkCollections);
+                                //check if the record already exists before proceeding
+                                log.info("checking if record was already saved.......");
+                                SimpleDateFormat formatter = new SimpleDateFormat();
+                                String formatted = formatter.format(row.getDate());
 
-                            response.setMessage("Collection uploaded successfully");
+                                Integer duplicate = milkCollectionRepo.checkDuplicateEntry(row.getFarmerNo(), row.getSession(), formatted);
+
+                                if (duplicate > 0) {
+                                    //create a response for failed step
+                                    Map<String, Object> record = new LinkedHashMap<>();
+                                    record.put("farmer no", row.getFarmerNo());
+                                    record.put("quantity", row.getQuantity());
+                                    record.put("date", row.getDate());
+                                    record.put("session", row.getSession());
+                                    record.put("reason", "Duplicate detected");
+
+                                    failed.add(record);
+
+                                    log.info("duplicate entry detected .........");
+                                    continue;
+                                }
+
+                                log.info("checking farmer existence ----------");
+                                if (optionalFarmer.isEmpty()) {
+                                    //create a response for failed step
+                                    Map<String, Object> record = new LinkedHashMap<>();
+                                    record.put("farmer no", row.getFarmerNo());
+                                    record.put("quantity", row.getQuantity());
+                                    record.put("date", row.getDate());
+                                    record.put("session", row.getSession());
+                                    record.put("reason", "farmer not found");
+
+                                    failed.add(record);
+
+                                    log.info("farmer with member number {} not found", row.getFarmerNo());
+                                    continue;
+                                }
+                                FarmerInfo farmerInfo = optionalFarmer.get();
+
+                                log.info("checking milk buying price for route ------");
+                                Optional<ProductConfig> configOptional = productConfigRepo.findByRouteFk(farmerInfo.getRouteId());
+                                if (configOptional.isEmpty()) {
+                                    //create a response for failed step
+                                    Map<String, Object> record = new LinkedHashMap<>();
+                                    record.put("farmer no", row.getFarmerNo());
+                                    record.put("quantity", row.getQuantity());
+                                    record.put("date", row.getDate());
+                                    record.put("session", row.getSession());
+                                    record.put("reason", "price config not found");
+
+                                    failed.add(record);
+                                    log.info("Product config for route with id {} not found", farmerInfo.getRouteId());
+                                    continue;
+                                }
+
+                                log.info("getting route collector ------");
+                                String collector = routeRepo.getFarmerCollector(farmerInfo.getRouteId());
+
+                                if (collector.isEmpty()) {
+                                    //create a response for failed step
+                                    Map<String, Object> record = new LinkedHashMap<>();
+                                    record.put("farmer no", row.getFarmerNo());
+                                    record.put("quantity", row.getQuantity());
+                                    record.put("date", row.getDate());
+                                    record.put("session", row.getSession());
+                                    record.put("reason", "collector not found");
+
+                                    failed.add(record);
+                                    log.info("Collector not found for route {}", farmerInfo.getRouteId());
+                                    continue;
+                                }
+
+                                Optional<User> optional = userRepository.findByUsername(collector);
+
+                                if (optional.isEmpty()) {
+                                    //create a response for failed step
+                                    Map<String, Object> record = new LinkedHashMap<>();
+                                    record.put("farmer no", row.getFarmerNo());
+                                    record.put("quantity", row.getQuantity());
+                                    record.put("date", row.getDate());
+                                    record.put("session", row.getSession());
+                                    record.put("reason", "collector data not found");
+
+                                    failed.add(record);
+
+                                    log.info("Collector userdata not found for route {}", farmerInfo.getRouteId());
+                                    continue;
+                                }
+
+                                User user = optional.get();
+
+                                //set milk collection parameters
+                                milkSupply.setFarmerNo(farmerInfo.getFarmer_no());
+                                milkSupply.setOriginalQuantity(row.getQuantity());
+                                milkSupply.setQuantity(row.getQuantity());
+                                milkSupply.setCollectionDate(row.getDate());
+                                milkSupply.setCollectionNumber(codenerator.codeGenerator(farmerInfo.getFarmer_no()));
+                                milkSupply.setCollectorId(user.getId());
+                                milkSupply.setProductType("Fresh Milk");
+                                milkSupply.setCurrentPrice(configOptional.get().getBuyingPrice());
+                                milkSupply.setDeductedWeight(0.0);
+                                milkSupply.setEvent("Collection");
+                                milkSupply.setPaymentStatus('N');
+                                milkSupply.setSession("Session 1");
+                                milkSupply.setUpdatedStatus('N');
+                                milkSupply.setRouteFk(farmerInfo.getRouteId());
+                                milkSupply.setReturned('N');
+                                milkSupply.setAmount(row.getQuantity() * configOptional.get().getBuyingPrice());
+
+                                milkCollectionRepo.save(milkSupply);
+
+                                //retrieve updated monthly total
+                                Double monthTotal = milkCollectionRepo.getMonthyAccumulation(farmerInfo.getFarmer_no());
+
+                                //send sms if farmer no exists
+                                String message = "Dear "+farmerInfo.getName()+", farmer no "+farmerInfo.getFarmer_no()+", delivery of \n" +
+                                        row.getQuantity()+" kgs, Session "+row.getSession()+" for "+ Formatter.formatDate(row.getDate())+ "\n" +
+                                        " received"+" Monthly Total"+monthTotal;
+
+                                if (farmerInfo.getMobile_no() != null) {
+                                    log.info("sending sms ...........");
+                                    smsServiceV2.SMSNotification(message, Formatter.formatPhone(farmerInfo.getMobile_no()));
+                                }
+                            }
+
+                            response.setMessage("Bulk Collections uploaded successfully");
                             response.setStatusCode(HttpStatus.OK.value());
+                            response.setEntity(failed);
                         } catch (Exception e) {
                             log.error(e.toString());
                             response.setMessage("Bad Request");
@@ -177,6 +244,15 @@ public class BulkSupplyService {
             }
 
             Sheet sheet = workbook.getSheetAt(0);
+            Row headerRow = sheet.getRow(0);
+
+            //check that the correct header rows are being passed
+            if (!validHeaders(headerRow)) {
+                response.setMessage("Wrong header rows passed");
+                response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+                return response;
+            }
+
 
             for (Row record : sheet) {
                 if (record.getRowNum() == 0) {
@@ -204,6 +280,11 @@ public class BulkSupplyService {
                     bulkDto.setDate(date);
                 }
 
+                if (record.getCell(3) != null) {
+                    String session = record.getCell(2).getStringCellValue();
+                    bulkDto.setSession(session);
+                }
+
                 bulkDtos.add(bulkDto);
             }
 
@@ -216,5 +297,21 @@ public class BulkSupplyService {
             response.setStatusCode(HttpStatus.BAD_REQUEST.value());
         }
         return response;
+    }
+
+
+    private boolean validHeaders(Row headerRow) {
+        if (headerRow == null) {
+            return false;
+        }
+
+        String[] expectedHeaders = {"farmer, quantity, session", "date"};
+
+        for (int i=0; i<expectedHeaders.length; i++ ) {
+            if (headerRow.getCell(i) == null || !expectedHeaders[i].equalsIgnoreCase(headerRow.getCell(i).getStringCellValue())) {
+                return false;
+            }
+        }
+        return true;
     }
 }
