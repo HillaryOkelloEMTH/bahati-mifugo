@@ -49,7 +49,7 @@ public class ExelReportService {
     public ByteArrayInputStream collecionsPerDate(String date) {
         try (Workbook workbook = new XSSFWorkbook();ByteArrayOutputStream out = new ByteArrayOutputStream();) {
             Sheet sheet = workbook.createSheet(SHEET);
-            String[] headers = { "Farmer","Quantity", "FarmerNo","Collection Date" ,"Collector","Session","Route","Pick-Up Location"};
+            String[] headers = { "Farmer No", "Farmer", "Quantity", "Collection Date" , "Session", "Route", "Pickup Location"};
 
             List<CollectionsData> data = collectionRepo.getCollectionsbyDate(date); // Fetch data from the database
 
@@ -124,14 +124,13 @@ public class ExelReportService {
     }
 
     private void fillDataRow(Row row, CollectionsData entity) {
-        row.createCell(0).setCellValue(entity.getFarmer());
-        row.createCell(1).setCellValue(entity.getQuantity());
-        row.createCell(2).setCellValue(entity.getFarmer_no());
+        row.createCell(0).setCellValue(entity.getFarmer_no());
+        row.createCell(1).setCellValue(entity.getFarmer());
+        row.createCell(2).setCellValue(entity.getQuantity());
         row.createCell(3).setCellValue(entity.getCollection_date().toString());
-        row.createCell(4).setCellValue(entity.getCollector());
-        row.createCell(5).setCellValue(entity.getSession());
-        row.createCell(6).setCellValue(entity.getRoute());
-        row.createCell(7).setCellValue(entity.getPickUpLocation());
+        row.createCell(4).setCellValue(entity.getSession());
+        row.createCell(5).setCellValue(entity.getRoute());
+        row.createCell(6).setCellValue(entity.getPickUpLocation());
     }
     private void fillDataRowPaymentFile(Row row, PaymentFileData entity) {
         row.createCell(0).setCellValue(entity.getFarmer_no());
@@ -149,7 +148,7 @@ public class ExelReportService {
     public ByteArrayInputStream getCollectionsPerLocationsexcel(Long pid,String date) {
         try (Workbook workbook = new XSSFWorkbook();ByteArrayOutputStream out = new ByteArrayOutputStream();) {
             Sheet sheet = workbook.createSheet(SHEET);
-            String[] headers = { "Farmer","Quantity", "Amount", "DeliveryNumber","Collection Date","Collector","Session" ,"CAN","Route","Pick-Up Location"};
+            String[] headers = { "Farmer No", "Farmer","Quantity", "Collection Date", "Session" ,"Route", "Pickup Location"};
 
             List<CollectionsData> data = collectionRepo.getCollectionsbyPickUpLocationAndDate(pid,date); // Fetch data from the database
 

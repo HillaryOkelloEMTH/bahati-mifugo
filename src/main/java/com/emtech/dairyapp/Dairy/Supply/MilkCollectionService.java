@@ -21,6 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -104,8 +105,10 @@ public class MilkCollectionService {
                 }
 
             } else if (event.equalsIgnoreCase("Collection")) {
+                SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+                String formattedDate = formatter.format(collections.getCollectionDate());
                 Integer checkDuplicate = milkCollectionRepo.checkDuplicateEntry(collections.getFarmerNo(),
-                        collections.getSession());
+                        collections.getSession(), formattedDate);
                 log.info("Checking duplicate record...");
 
                 if (checkDuplicate > 0) {
@@ -263,11 +266,12 @@ public class MilkCollectionService {
 
 
                         log.info("Collection for " + collections.getCollectionDate() + " was updated at: " + collections.getUpdatedDate());
+                        Double monthTotal = milkCollectionRepo.getMonthyAccumulation(collections.getFarmerNo());
 
                         if (farmerInfo.get().getMobile_no() != null){
                             String message = "Dear "+farmerInfo.get().getName()+", M.No. "+farmerInfo.get().getFarmer_no()+"."+
                                     "\nDelivery for "+formatDate(collections.getCollectionDate())+" has been updated from "+collections.getOriginalQuantity()+" kgs to "+
-                                    collections.getQuantity()+" kgs on "+formatDate(new Date())+".";
+                                    collections.getQuantity()+" kgs on "+formatDate(new Date())+". Monthly Total: "+monthTotal;
                             smsServiceV2.SMSNotification(message,formatPhone(farmerInfo.get().getMobile_no().trim()));
                             response.setMessage("Collection updated and sent notification to farmer.");
                             log.info("Collection updated and sent notification to farmer.");

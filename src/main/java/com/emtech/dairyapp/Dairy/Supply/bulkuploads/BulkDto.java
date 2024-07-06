@@ -9,4 +9,5 @@ public class BulkDto {
     private Integer farmerNo;
     private Double quantity;
     private Date date;
+    private String session;
 }
