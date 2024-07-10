@@ -200,15 +200,15 @@ public class BulkSupplyService {
 
                                 //retrieve updated monthly total
                                 Double monthTotal = milkCollectionRepo.getMonthyAccumulation(farmerInfo.getFarmer_no());
-
-                                //send sms if farmer no exists
-                                String message = "Dear "+farmerInfo.getName()+", farmer no "+farmerInfo.getFarmer_no()+", delivery of \n" +
-                                        row.getQuantity()+" kgs, Session "+row.getSession()+" for "+ Formatter.formatDate(row.getDate())+ "\n" +
-                                        " received"+" Monthly Total"+monthTotal;
+                                String session = row.getSession().equalsIgnoreCase("Session 1") ? "Morning" : (row.getSession().equalsIgnoreCase("Session 2") ? "Afternoon" : "Evening");
+                                //send sms if farmer phone no exists
+                                String message = "Dear "+farmerInfo.getName()+", farmer no "+farmerInfo.getFarmer_no()+", delivery of " +
+                                        row.getQuantity()+" kgs, "+session+" Session for "+ Formatter.formatDate(row.getDate()) +
+                                        " received"+" Monthly Total: "+monthTotal+" kgs";
 
                                 if (farmerInfo.getMobile_no() != null) {
-                                    log.info("sending sms ...........");
-                                    smsServiceV2.SMSNotification(message, Formatter.formatPhone("0112209296"));
+                                    log.info("sending sms .......to {} .....farmer number {}", farmerInfo.getName(), farmerInfo.getFarmer_no());
+                                    smsServiceV2.SMSNotification(message, Formatter.formatPhone(farmerInfo.getMobile_no()));
                                 }
                             }
 
@@ -290,6 +290,12 @@ public class BulkSupplyService {
                 }
 
                 bulkDtos.add(bulkDto);
+            }
+
+            if (bulkDtos.isEmpty()) {
+                response.setMessage("Data not found");
+                response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+                return response;
             }
 
             response.setMessage("success");

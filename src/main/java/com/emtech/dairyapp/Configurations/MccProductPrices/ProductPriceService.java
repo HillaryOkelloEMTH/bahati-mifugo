@@ -1,0 +1,80 @@
+package com.emtech.dairyapp.Configurations.MccProductPrices;
+
+import com.emtech.dairyapp.Configurations.Interfaces.PickUpLocation;
+import com.emtech.dairyapp.Configurations.PickUpLocations.PickUpLocations;
+import com.emtech.dairyapp.Configurations.PickUpLocations.PickUpLocationsRepo;
+import com.emtech.dairyapp.Response.EntityResponse;
+import com.emtech.dairyapp.Stock.Product.Product;
+import com.emtech.dairyapp.Stock.Product.ProductRepository;
+import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+
+import java.util.Date;
+import java.util.Optional;
+
+@Service
+@Slf4j
+@RequiredArgsConstructor
+public class ProductPriceService {
+    @Autowired
+    private ProductPriceRepository productPriceRepo;
+
+    @Autowired
+    private PickUpLocationsRepo pickUpLocationsRepo;
+
+    @Autowired
+    private ProductRepository productRepository;
+
+    public EntityResponse<?> createProductPrice(Long productId, Long locationId, Double sellingPrice, Date effectiveFrom) {
+        EntityResponse<ProductPrice> response = new EntityResponse<>();
+
+        try {
+            boolean configExists = productPriceRepo.existsByProductIdAndLocationId(productId, locationId);
+
+            if (configExists) {
+                response.setMessage("Price for product already exists");
+                response.setStatusCode(HttpStatus.NOT_ACCEPTABLE.value());
+                return response;
+            }
+
+            Optional<Product> optionalProduct = productRepository.findById(productId);
+            Optional<PickUpLocations> locationOptional = pickUpLocationsRepo.findById(locationId);
+
+            if (optionalProduct.isEmpty() || locationOptional.isEmpty()) {
+                response.setMessage("both center and product are required");
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                return  response;
+            }
+
+            Product product = optionalProduct.get();
+            PickUpLocations pickUpLocations = locationOptional.get();
+
+
+            //create new product price object, set parameters
+            ProductPrice productPrice = new ProductPrice();
+            productPrice.setBuyingPrice(product.getPrice());
+            productPrice.setSellingPrice(sellingPrice);
+            productPrice.setEffectiveFrom(effectiveFrom);
+            productPrice.setCreatedOn(new Date());
+            productPrice.setProductId(productId);
+            productPrice.setLocationId(locationId);
+
+            productPriceRepo.save(productPrice);
+
+            response.setMessage("Price for "+product.getName()+" , "+pickUpLocations.getName()+"added successfully");
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(productPrice);
+        } catch (Exception e) {
+            log.error(e.toString());
+            response.setMessage("An error occurred");
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        }
+        return response;
+    }
+
+
+}
