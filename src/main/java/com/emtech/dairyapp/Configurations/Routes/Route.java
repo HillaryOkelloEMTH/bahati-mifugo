@@ -25,4 +25,5 @@ public class Route {
     private Date createdOn;
     private Character deletedFlag= CONSTANTS.NO;
     private Date deletedOn;
+    private Character activeFlag = CONSTANTS.YES;
 }

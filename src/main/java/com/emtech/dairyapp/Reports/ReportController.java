@@ -43,6 +43,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import java.time.Month;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.HashMap;
 import java.util.List;
@@ -248,8 +249,13 @@ public class ReportController {
 
                     Profile profile = profileRepo.getProfile();
 
+                    LocalDate fromDate = LocalDate.parse(from);
+                    LocalDate toDate = LocalDate.parse(to);
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMMM d, yyyy"); // July 1, 2024
+                    String month = fromDate.format(formatter) + " - " + toDate.format(formatter);
 
-                    Map<String, Object> parameters = new HashMap<>();
+
+                Map<String, Object> parameters = new HashMap<>();
                     parameters.put("farmerNo", farmerNo);
                     parameters.put("logo", report_icon);
                     parameters.put("location", profile.getLocation());
@@ -258,20 +264,19 @@ public class ReportController {
 
                     parameters.put("from", from);
                     parameters.put("to", to);
+                    parameters.put("month", month);
 
                     parameters.put("farmername", record.getFarmerName());
                     parameters.put("route", record.getRoute());
                     parameters.put("pickuplocation", record.getPickUpLocation());
 
-
                     parameters.put("income", income);
                     parameters.put("deliveries", deliveries);
                     parameters.put("expenses", expenses);
 
-
-
                     JasperPrint print = JasperFillManager.fillReport(compileReport, parameters, connection);
-                    byte[] data = JasperExportManager.exportReportToPdf(print);
+
+                byte[] data = JasperExportManager.exportReportToPdf(print);
                     HttpHeaders headers = new HttpHeaders();
                     headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + "statement" + "-collections-report");
                     return ResponseEntity.ok().headers(headers).contentType(MediaType.APPLICATION_PDF).body(data);

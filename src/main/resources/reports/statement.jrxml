@@ -49,9 +49,6 @@
 		<property name="com.jaspersoft.studio.field.label" value="session"/>
 		<property name="com.jaspersoft.studio.field.tree.path" value="collections"/>
 	</field>
-	<field name="from" class="java.lang.String"/>
-	<field name="to" class="java.lang.String"/>
-	<field name="mn" class="java.lang.String"/>
 	<background>
 		<band splitType="Stretch"/>
 	</background>
@@ -293,14 +290,14 @@
 				</graphicElement>
 			</line>
 			<textField>
-				<reportElement x="220" y="135" width="100" height="20" forecolor="#0DB52E" uuid="4a7fd3e4-92ad-42e4-be08-45edae52a64f"/>
+				<reportElement x="220" y="135" width="230" height="20" forecolor="#0DB52E" uuid="4a7fd3e4-92ad-42e4-be08-45edae52a64f"/>
 				<box topPadding="0" leftPadding="0" bottomPadding="2" rightPadding="0">
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
+				<textElement textAlignment="Left" verticalAlignment="Middle">
 					<font isBold="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{month}]]></textFieldExpression>

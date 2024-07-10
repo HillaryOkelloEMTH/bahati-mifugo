@@ -51,7 +51,6 @@ public class MilkCollectionController {
                         errBody.put("status", "400");
                         return Mono.just(ResponseEntity.badRequest().body(errBody));
                     }
-                    System.out.println("hereeeeeeeee ttttttttttttt");
                     return bulkSupplyService.uploadBulkDeliveries(filePart)
                             .map(response -> ResponseEntity.status(response.getStatusCode()).body(response));
                 });
