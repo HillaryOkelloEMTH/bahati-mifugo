@@ -23,7 +23,7 @@
 	<parameter name="to" class="java.lang.String"/>
 	<parameter name="advanceAmount" class="java.lang.Double"/>
 	<queryString>
-		<![CDATA[SELECT c.collection_number, c.amount, c.quantity, DATE_FORMAT(c.collection_date, '%Y-%m-%d %T') AS collection_date, c.session from collections c join farmer f on f.farmer_no=c.farmer_no WHERE date(c.collection_date) between date($P{from}) AND date($P{to}) and f.farmer_no=$P{farmerNo} AND c.payment_status='N']]>
+		<![CDATA[SELECT c.collection_number, c.amount, c.quantity, DATE_FORMAT(c.collection_date, '%Y-%m-%d') AS collection_date, c.session from collections c join farmer f on f.farmer_no=c.farmer_no WHERE date(c.collection_date) between date($P{from}) AND date($P{to}) and f.farmer_no=$P{farmerNo} AND c.payment_status='N']]>
 	</queryString>
 	<field name="collection_number" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.name" value="collection_number"/>
@@ -86,6 +86,7 @@
 	</title>
 	<pageHeader>
 		<band height="264" splitType="Stretch">
+			<printWhenExpression><![CDATA[$V{PAGE_NUMBER} == 1]]></printWhenExpression>
 			<staticText>
 				<reportElement x="77" y="7" width="400" height="20" uuid="e6df04b0-65fa-41ed-9f22-33a66957f6ae"/>
 				<textElement textAlignment="Center">
@@ -390,7 +391,7 @@
 		<band height="21" splitType="Stretch">
 			<textField pattern="#,##0.00##;(#,##0.00##-)">
 				<reportElement x="140" y="0" width="81" height="21" uuid="a5a207e5-afa1-4d5e-89ce-aa781e5e4aa1"/>
-				<box padding="0">
+				<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="2">
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
@@ -434,7 +435,7 @@
 			</textField>
 			<textField pattern="#,##0.00##;(#,##0.00##-)">
 				<reportElement x="221" y="0" width="88" height="21" uuid="a4809523-96eb-4669-9d00-c4ee95d2489f"/>
-				<box padding="0">
+				<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="2">
 					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>

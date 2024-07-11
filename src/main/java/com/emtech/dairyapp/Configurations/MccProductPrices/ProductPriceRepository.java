@@ -11,19 +11,19 @@ import java.util.List;
 public interface ProductPriceRepository extends JpaRepository<ProductPrice, Long> {
 
 
-    @Query(value = "select pp.id, pp.buying_price, pp.selling_price, pp.effective_from, c.name, p.name, p.category from product_price pp join pick_up_lications c on pp.location_id=c.id join product p on pp.product_id=p.id", nativeQuery = true)
+    @Query(value = "select pp.id as priceId, pp.buying_price, pp.selling_price, pp.effective_from, c.name as mcc, p.name as productName, p.category from product_price pp join pick_up_locations c on pp.location_id=c.id join product p on pp.product_id=p.id", nativeQuery = true)
     List<ProductPriceInterface> getMccProductPrices();
 
 
     boolean existsByProductIdAndLocationId(Long productId, Long locationId);
 
     public interface ProductPriceInterface {
-        Long getId();
+        Long getPriceId();
         String getMcc();
         double getBuying_price();
         double getSelling_price();
         Date getEffective_from();
-        String getName();
+        String getProductName();
         String getCategory();
     }
 }

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Jaspersoft Studio version 6.20.0.final using JasperReports Library version 6.20.0-2bc7ab61c56f459e8176eb05c7705e145cd400ad  -->
+<!-- Created with Jaspersoft Studio version 6.20.6.final using JasperReports Library version 6.20.6-5c96b6aa8a39ac1dc6b6bea4b81168e16dd39231  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="CollectionsPerLocation" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="99c9f335-bd21-414a-9322-ce6c374a18c7">
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="BahatiTest"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
@@ -20,8 +20,8 @@
 		<![CDATA[SELECT CONVERT(f.farmer_no, CHAR) AS farmer_no, f.mobile_no, f.username,bd.branch,bd.account_number,bd.account_name,
     COALESCE(ROUND(SUM(c.amount),2), 0.0) AS collectionAmount,
     COALESCE(ROUND(SUM(c.quantity),2), 0.0) AS quantity,
-    COALESCE((SELECT COALESCE(ROUND(SUM(fa.amount),2),0.0) FROM farmer_product_allocations fa WHERE fa.farmer_no = f.farmer_no AND fa.payment_status = 'N' AND fa.status = 'Y' AND DATE(fa.allocatio_date)  BETWEEN $P{from} AND $P{to}), 0.0) AS allocationAmount,
-    ((COALESCE(ROUND(SUM(c.amount),2), 0.0)) - (COALESCE((SELECT ROUND(SUM(fa.amount),2) FROM farmer_product_allocations fa WHERE fa.farmer_no = f.farmer_no AND fa.payment_status = 'N' AND fa.status = 'Y' AND DATE(fa.allocatio_date)  BETWEEN $P{from} AND $P{to}), 0.0))) AS NetPay
+    COALESCE((SELECT COALESCE(ROUND(SUM(fa.amount),2),0.0) FROM farmer_product_allocations fa WHERE fa.farmer_no = f.farmer_no AND fa.payment_status = 'N' AND fa.status = 'Y' AND DATE(fa.allocation_date)  BETWEEN $P{from} AND $P{to}), 0.0) AS allocationAmount,
+    ((COALESCE(ROUND(SUM(c.amount),2), 0.0)) - (COALESCE((SELECT ROUND(SUM(fa.amount),2) FROM farmer_product_allocations fa WHERE fa.farmer_no = f.farmer_no AND fa.payment_status = 'N' AND fa.status = 'Y' AND DATE(fa.allocation_date)  BETWEEN $P{from} AND $P{to}), 0.0))) AS NetPay
 	FROM farmer f
 	LEFT JOIN collections c ON f.farmer_no = c.farmer_no AND c.payment_status = 'N'
 	JOIN route r ON f.route_fk = r.id
