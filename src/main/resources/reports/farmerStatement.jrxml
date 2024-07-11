@@ -107,6 +107,7 @@
 	</title>
 	<pageHeader>
 		<band height="81" splitType="Stretch">
+			<printWhenExpression><![CDATA[$V{PAGE_NUMBER} == 1]]></printWhenExpression>
 			<staticText>
 				<reportElement x="80" y="0" width="400" height="20" uuid="e6df04b0-65fa-41ed-9f22-33a66957f6ae"/>
 				<textElement textAlignment="Center">
@@ -184,7 +185,7 @@
 				<textElement textAlignment="Left" verticalAlignment="Middle">
 					<font isBold="true"/>
 				</textElement>
-				<text><![CDATA[Farmer No.:]]></text>
+				<text><![CDATA[Farmer No:]]></text>
 			</staticText>
 			<line>
 				<reportElement x="60" y="80" width="80" height="1" uuid="e77af174-ccfb-4571-a8ff-207d95e77f16"/>

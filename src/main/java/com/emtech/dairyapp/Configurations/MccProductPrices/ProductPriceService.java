@@ -13,7 +13,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -29,7 +33,7 @@ public class ProductPriceService {
     @Autowired
     private ProductRepository productRepository;
 
-    public EntityResponse<?> createProductPrice(Long productId, Long locationId, Double sellingPrice, Date effectiveFrom) {
+    public EntityResponse<?> createProductPrice(Long productId, Long locationId, Double sellingPrice, String effectiveFrom) {
         EntityResponse<ProductPrice> response = new EntityResponse<>();
 
         try {
@@ -53,12 +57,16 @@ public class ProductPriceService {
             Product product = optionalProduct.get();
             PickUpLocations pickUpLocations = locationOptional.get();
 
+            LocalDate localDate = LocalDate.parse(effectiveFrom);
+            Instant instant = localDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
+            Date date = Date.from(instant);
+
 
             //create new product price object, set parameters
             ProductPrice productPrice = new ProductPrice();
             productPrice.setBuyingPrice(product.getPrice());
             productPrice.setSellingPrice(sellingPrice);
-            productPrice.setEffectiveFrom(effectiveFrom);
+            productPrice.setEffectiveFrom(date);
             productPrice.setCreatedOn(new Date());
             productPrice.setProductId(productId);
             productPrice.setLocationId(locationId);
@@ -71,6 +79,29 @@ public class ProductPriceService {
         } catch (Exception e) {
             log.error(e.toString());
             response.setMessage("An error occurred");
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        }
+        return response;
+    }
+
+    public EntityResponse<?> getAllProductPrices() {
+        EntityResponse<List<ProductPriceRepository.ProductPriceInterface>> response = new EntityResponse<>();
+
+        try {
+            List<ProductPriceRepository.ProductPriceInterface> productPrices = productPriceRepo.getMccProductPrices();
+
+            if (productPrices.isEmpty()) {
+                response.setMessage("No product prices found");
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                response.setEntity(productPrices);
+            }
+
+            response.setMessage("Prices retrieved successfully");
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(productPrices);
+        } catch (Exception e) {
+            log.error(e.toString());
+            response.setMessage("Bad request");
             response.setStatusCode(HttpStatus.BAD_REQUEST.value());
         }
         return response;
