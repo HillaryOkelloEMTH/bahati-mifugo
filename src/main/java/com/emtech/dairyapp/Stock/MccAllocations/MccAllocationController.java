@@ -29,4 +29,11 @@ public class MccAllocationController {
 
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
+
+    @GetMapping("all")
+    ResponseEntity<?> getAllMccAllocations() {
+        var response = mccAllocationService.getAllMccProducts();
+
+        return ResponseEntity.status(response.getStatusCode()).body(response);
+    }
 }

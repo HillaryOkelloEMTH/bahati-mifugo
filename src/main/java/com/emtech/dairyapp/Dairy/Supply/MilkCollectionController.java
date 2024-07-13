@@ -251,13 +251,13 @@ public class MilkCollectionController {
         return ResponseEntity.ok().body(response);
     }
     @GetMapping("pickupLocations")
-    public ResponseEntity<?> getCollectorbyPickUpLocations(@RequestParam Long pickUpLocation){
-        EntityResponse response = collectionService.getCollectionByPickUpLocation(pickUpLocation);
+    public ResponseEntity<?> getCollectorbyPickUpLocations(@RequestParam Long pickUpLocation, @RequestParam String from, @RequestParam String to){
+        EntityResponse response = collectionService.getCollectionByPickUpLocation(pickUpLocation, from, to);
         return ResponseEntity.ok().body(response);
     }
     @GetMapping("record/pickupLocations")
-    public ResponseEntity<?> getRecordsbyPickUpLocations(@RequestParam Long pickUpLocation){
-        EntityResponse response = collectionService.getPickUpLocationRecords(pickUpLocation);
+    public ResponseEntity<?> getRecordsbyPickUpLocations(@RequestParam Long pickUpLocation, @RequestParam String from, @RequestParam String to){
+        EntityResponse response = collectionService.getPickUpLocationRecords(pickUpLocation, from, to);
         return ResponseEntity.ok().body(response);
     }
     @GetMapping("route")

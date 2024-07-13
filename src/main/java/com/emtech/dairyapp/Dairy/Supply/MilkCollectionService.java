@@ -655,12 +655,12 @@ public class MilkCollectionService {
         }
         return response;
     }
-    public EntityResponse getPickUpLocationRecords(Long pickUpLocation) {
+    public EntityResponse getPickUpLocationRecords(Long pickUpLocation, String from, String to) {
 
         EntityResponse response = new EntityResponse();
         try {
 
-            List<DailyRecords> todaysCollections = milkCollectionRepo.getPickUpLocationRecord(pickUpLocation);
+            List<DailyRecords> todaysCollections = milkCollectionRepo.getPickUpLocationRecord(pickUpLocation, from, to);
             if (todaysCollections.size() > 0) {
                 response.setStatusCode(HttpStatus.OK.value());
                 response.setEntity(todaysCollections);
@@ -794,12 +794,12 @@ public class MilkCollectionService {
         return response;
     }
 
-    public EntityResponse getCollectionByPickUpLocation(Long pickuplocation) {
+    public EntityResponse getCollectionByPickUpLocation(Long pickuplocation, String from, String to) {
 
         EntityResponse response = new EntityResponse();
         try {
 
-            List<CollectionsData> collections = milkCollectionRepo.getCollectionsbyPickUpLocation(pickuplocation);
+            List<CollectionsData> collections = milkCollectionRepo.getCollectionsbyPickUpLocation(pickuplocation, from, to);
             if (collections.size() > 0) {
                 response.setStatusCode(HttpStatus.OK.value());
                 response.setEntity(collections);
