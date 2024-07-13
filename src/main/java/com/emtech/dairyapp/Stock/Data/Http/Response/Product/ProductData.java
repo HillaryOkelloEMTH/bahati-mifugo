@@ -58,4 +58,7 @@ public class ProductData implements Serializable {
 
     @Builder.Default
     private Timestamp creationDate = null;
+
+    @Builder.Default
+    private String mcc = null;
 }

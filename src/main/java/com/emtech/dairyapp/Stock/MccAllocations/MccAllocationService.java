@@ -92,11 +92,12 @@ public class MccAllocationService {
         AtomicReference<ProductsResponse> response = new AtomicReference<>();
 
         try {
-            List<MccAllocationRepo.MccProducts> mccProductsList = mccAllocationRepo.getMcProducts(locationId);
+            List<MccAllocationRepo.MccProducts> mccProductsList = mccAllocationRepo.getMccProducts(locationId);
             List<ProductData> productData = new ArrayList<>();
 
             if (mccProductsList.isEmpty()) {
-                response.set(ProductsResponse.builder().message("No products found").statusCode(HttpStatus.NOT_FOUND.value()).productData(productData).build());
+                response.set(ProductsResponse.builder().message("No product allocations found").statusCode(HttpStatus.NOT_FOUND.value()).productData(productData).build());
+                return response.get();
             }
 
             mccProductsList.stream().filter(mccProduct -> mccProduct.getStock() >= 1).forEach(mccProduct -> {
@@ -111,7 +112,40 @@ public class MccAllocationService {
                 productData.add(product);
             } );
 
-            response.set(ProductsResponse.builder().message("Products found").statusCode(HttpStatus.OK.value()).productData(productData).build());
+            response.set(ProductsResponse.builder().message("Product allocations found").statusCode(HttpStatus.OK.value()).productData(productData).build());
+        } catch (Exception e) {
+            log.error(e.toString());
+            response.set(ProductsResponse.builder().message("Bad Request").statusCode(HttpStatus.BAD_REQUEST.value()).build());
+        }
+        return response.get();
+    }
+
+    public ProductsResponse getAllMccProducts() {
+        AtomicReference<ProductsResponse> response = new AtomicReference<>();
+
+        try {
+            List<MccAllocationRepo.MccProducts> mccProductsList = mccAllocationRepo.getAllMccProducts();
+            List<ProductData> productData = new ArrayList<>();
+
+            if (mccProductsList.isEmpty()) {
+                response.set(ProductsResponse.builder().message("No product allocations found").statusCode(HttpStatus.NOT_FOUND.value()).productData(productData).build());
+                return response.get();
+            }
+
+            mccProductsList.stream().filter(mccProduct -> mccProduct.getStock() >= 1).forEach(mccProduct -> {
+                ProductData product = ProductData.builder()
+                        .id(mccProduct.getProduct_id())
+                        .stock(mccProduct.getStock())
+                        .name(mccProduct.getName())
+                        .category(mccProduct.getCategory())
+                        .salePrice(mccProduct.getSelling_price())
+                        .description(mccProduct.getDescription())
+                        .mcc(mccProduct.getMcc())
+                        .build();
+                productData.add(product);
+            } );
+
+            response.set(ProductsResponse.builder().message("Product allocations found").statusCode(HttpStatus.OK.value()).productData(productData).build());
         } catch (Exception e) {
             log.error(e.toString());
             response.set(ProductsResponse.builder().message("Bad Request").statusCode(HttpStatus.BAD_REQUEST.value()).build());
