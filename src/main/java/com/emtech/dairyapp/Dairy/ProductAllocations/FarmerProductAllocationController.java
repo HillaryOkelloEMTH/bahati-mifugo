@@ -1,5 +1,6 @@
 package com.emtech.dairyapp.Dairy.ProductAllocations;
 
+import com.emtech.dairyapp.Dairy.ProductAllocations.dto.ProductRequestDto;
 import com.emtech.dairyapp.Response.EntityResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -15,13 +16,19 @@ public class FarmerProductAllocationController {
 
 
     @PostMapping("add")
-    public ResponseEntity<EntityResponse> addAllocations(@RequestBody FarmerProductAllocations allocations){
-        EntityResponse response = service.addFarmerProductAllocations(allocations);
+    public ResponseEntity<?> addAllocations(@RequestBody ProductRequestDto productRequest){
+        EntityResponse<?> response = service.addFarmerProductAllocations(productRequest);
         return ResponseEntity.ok().body(response);
     }
     @GetMapping("get")
     public ResponseEntity<EntityResponse> getFarmerProductAllocations(){
         EntityResponse response = service.fetchFarmerProductAllocations();
+        return ResponseEntity.ok().body(response);
+    }
+
+    @GetMapping("get/{locationId}")
+    public ResponseEntity<EntityResponse> getMccFarmerProductAllocations(@PathVariable Long locationId){
+        EntityResponse response = service.fetchMccFarmerProductAllocations(locationId);
         return ResponseEntity.ok().body(response);
     }
     @GetMapping("farmer")

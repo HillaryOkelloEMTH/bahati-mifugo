@@ -4,13 +4,20 @@ import com.emtech.dairyapp.Auth.Utilities.RequestStatus;
 import com.emtech.dairyapp.Configurations.FarmerManagement.Farmer;
 import com.emtech.dairyapp.Configurations.FarmerManagement.FarmerRepo;
 import com.emtech.dairyapp.Configurations.Interfaces.FarmerInfo;
+import com.emtech.dairyapp.Configurations.Interfaces.PickUpLocation;
+import com.emtech.dairyapp.Configurations.PickUpLocations.PickUpLocations;
+import com.emtech.dairyapp.Configurations.PickUpLocations.PickUpLocationsRepo;
 import com.emtech.dairyapp.Configurations.Utils.CONSTANTS;
 import com.emtech.dairyapp.Dairy.Interface.Allocations;
+import com.emtech.dairyapp.Dairy.ProductAllocations.dto.ProductRequestDto;
 import com.emtech.dairyapp.Dairy.Supply.MilkCollectionRepo;
 import com.emtech.dairyapp.Response.EntityResponse;
+import com.emtech.dairyapp.Stock.MccAllocations.MccAllocation;
+import com.emtech.dairyapp.Stock.MccAllocations.MccAllocationRepo;
 import com.emtech.dairyapp.Stock.Product.Product;
 import com.emtech.dairyapp.Stock.Product.ProductRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -33,65 +40,43 @@ public class FarmerProductAllocationService {
     @Autowired
     private FarmerRepo farmerRepo;
 
-    public EntityResponse addFarmerProductAllocations(FarmerProductAllocations allocation) {
+    @Autowired
+    private PickUpLocationsRepo pickUpLocationsRepo;
+
+    @Autowired
+    private MccAllocationRepo mccAllocationRepo;
+
+    public EntityResponse<?> addFarmerProductAllocations(ProductRequestDto productRequest) {
         log.info("Adding new farmer product request ...");
-        EntityResponse response = new EntityResponse();
-        Double amount = 0.0;
-        Double salesPrice = 0.0;
+        EntityResponse<?> response = new EntityResponse<>();
+
         try {
-            Optional<FarmerInfo> f = farmerRepo.findByFarmerNo(allocation.getFarmerNo());
-            if (f.isPresent()) {
-                Integer p_quantity=0;
-                Optional<Product> p = productRepository.findById(allocation.getProductId());
-                if (p.isPresent()) {
-                    Product product = p.get();
+            Optional<FarmerInfo> f = farmerRepo.findByFarmerNo(productRequest.getFarmerNo());
+            FarmerProdAllocattionsRepo.FarmerAllocationData farmerIncome = farmerProdAllocattionsRepo.getMonthlyAmount(productRequest.getFarmerNo());
 
-                    p_quantity=product.getStock();
-                    MilkCollectionRepo.Totals ut = milkCollectionRepo.getTotalUnPaidAmount(f.get().getFarmer_no());
-                    Double unpaid= ut.getCollectionAmount();
-                    salesPrice = product.getSalePrice();
-                    if(product.getType().equalsIgnoreCase("Good")){
-                        amount = product.getSalePrice() * allocation.getQuantity();
-                    }else if(product.getType().equalsIgnoreCase("Service")){
-                        amount = product.getSalePrice()*allocation.getNoOfCows();
-                    }
-
-
-                    if(amount>unpaid){
-
-                        response.setStatusCode(HttpStatus.NOT_ACCEPTABLE.value());
-                        response.setMessage("Milk Collection income amount is too low");
-                        return response;
-                    }
-                    allocation.setProductPrice(salesPrice);
-                    allocation.setAmount(amount);
-                    allocation.setAllocationDate(new Date());
-                    allocation.setRequestedOn(new Date());
-                   farmerProdAllocattionsRepo.save(allocation);
-                    log.info("Saving Farmer Product Allocations ...");
-                    if(product.getType().equalsIgnoreCase("Good")) {
-                        p_quantity = (int) (p_quantity - allocation.getQuantity());
-                        product.setStock(p_quantity);
-                        productRepository.save(product);
-
-                    }
-                    response.setEntity(allocation);
-                    response.setStatusCode(HttpStatus.CREATED.value());
-                    response.setMessage(HttpStatus.CREATED.getReasonPhrase());
-                    return response;
-                }else {
-                    response.setEntity(allocation);
-                    response.setStatusCode(HttpStatus.NOT_FOUND.value());
-                    response.setMessage("Product Not Found");
-                    return response;
-                }
-
-            }else {
-
+            log.info("checking farmer existence for farmer no {} ........ ", productRequest.getFarmerNo());
+            if (f.isEmpty()) {
                 response.setStatusCode(HttpStatus.NOT_FOUND.value());
                 response.setMessage("Farmer not found!");
                 return response;
             }
+
+            MilkCollectionRepo.Totals ut = milkCollectionRepo.getTotalUnPaidAmount(f.get().getFarmer_no());
+
+            if (farmerIncome.getAccruedamount() > ut.getCollectionAmount()) {
+                response.setStatusCode(HttpStatus.NOT_ACCEPTABLE.value());
+                response.setMessage("Product price is higher than monthly income");
+                return response;
+            }
+
+            FarmerProductAllocations request = getFarmerProductAllocations(productRequest);
+
+            farmerProdAllocattionsRepo.save(request);
+
+            log.info("Saving Farmer Product Allocations ...");
+            response.setStatusCode(HttpStatus.CREATED.value());
+            response.setMessage(HttpStatus.CREATED.getReasonPhrase());
+            return response;
 
         } catch (Exception e) {
             log.error("Error: " + e.getLocalizedMessage());
@@ -100,6 +85,7 @@ public class FarmerProductAllocationService {
             return response;
         }
     }
+
 
     public EntityResponse<?> fetchFarmerProductAllocations() {
         log.info("Fetching FarmerProductAllocationss ...");
@@ -125,26 +111,75 @@ public class FarmerProductAllocationService {
             return response;
         }
     }
-    public EntityResponse updateStatus(Long id,String status) {
-        log.info("verify  product allocations ...");
-        EntityResponse response = new EntityResponse();
-        try {
-            Optional<FarmerProductAllocations> FarmerProductAllocationss = farmerProdAllocattionsRepo.findById(id);
-            if (FarmerProductAllocationss.isPresent()) {
 
-                FarmerProductAllocations f= FarmerProductAllocationss.get();
+    public EntityResponse<?> fetchMccFarmerProductAllocations(Long locationId) {
+        log.info("Fetching Mcc Farmer Product Allocations ........");
+        EntityResponse<List<Allocations>> response = new EntityResponse<>();
+        try {
+            Optional<PickUpLocations> pickUpLocation = pickUpLocationsRepo.findById(locationId);
+            List<Allocations> mccAllocations = farmerProdAllocattionsRepo.getMccAllocations(locationId,CONSTANTS.NO);
+
+            if (pickUpLocation.isEmpty()) {
+                log.info("Pick Up Location Not Found for id " + locationId);
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                response.setMessage("Pick Up Location Not Found for id " + locationId);
+                return response;
+            }
+
+
+            if (!mccAllocations.isEmpty()) {
+                log.info("FarmerProductAllocations Found " + "(" + mccAllocations.size() + ")");
+                response.setEntity(mccAllocations);
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setMessage(HttpStatus.FOUND.getReasonPhrase());
+            } else {
+                log.info("FarmerProductAllocations Not Found ");
+                response.setEntity(mccAllocations);
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setMessage("Product Allocations Not Found for "+pickUpLocation.get().getName());
+            }
+            return response;
+        } catch (Exception e) {
+            log.error("Error: " + e.getLocalizedMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+            return response;
+        }
+    }
+    public EntityResponse<?> updateStatus(Long id,String status) {
+        log.info("verify  product allocations ...");
+        EntityResponse<FarmerProductAllocations> response = new EntityResponse<>();
+        try {
+            Optional<FarmerProductAllocations> farmerAllocation = farmerProdAllocattionsRepo.findById(id);
+            if (farmerAllocation.isPresent()) {
+
+                FarmerProductAllocations f= farmerAllocation.get();
                 if(status.equalsIgnoreCase("Approved")){
                     f.setStatus(RequestStatus.APPROVED);
                 }else if (status.equalsIgnoreCase("Rejected")){
                     f.setStatus(RequestStatus.REJECTED);
                 }
+
+                Optional<MccAllocation> allocationOptional = mccAllocationRepo.findByProductIdAndLocationId(f.getProductId(), f.getLocationId());
+
+                if (allocationOptional.isEmpty()) {
+                    response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                    response.setMessage("No products found for specified mcc");
+                    return response;
+                }
+
+                log.info("Updating the stock level after allocation .......");
+                MccAllocation mccAllocation = allocationOptional.get();
+                mccAllocation.setStock(mccAllocation.getStock() - f.getQuantity());
+                mccAllocationRepo.save(mccAllocation);
+
                 farmerProdAllocattionsRepo.save(f);
-                response.setEntity(FarmerProductAllocationss);
+                response.setEntity(farmerAllocation.get());
                 response.setStatusCode(HttpStatus.OK.value());
-                response.setMessage(HttpStatus.OK.getReasonPhrase());
+                response.setMessage("Successfully allocated "+f.getQuantity()+" of "+f.getProductName()+" to "+f.getFarmerName());
+
             } else {
-                log.info("FarmerProductAllocationss Not Found");
-                response.setEntity(FarmerProductAllocationss);
+                log.info("Farmer Product Allocations Not Found");
                 response.setStatusCode(HttpStatus.NOT_FOUND.value());
                 response.setMessage(HttpStatus.NO_CONTENT.getReasonPhrase());
             }
@@ -343,5 +378,20 @@ public class FarmerProductAllocationService {
             response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
             return response;
         }
+    }
+
+    @NotNull
+    private static FarmerProductAllocations getFarmerProductAllocations(ProductRequestDto productRequest) {
+        FarmerProductAllocations request = new FarmerProductAllocations();
+        request.setProductPrice(productRequest.getPrice());
+        request.setAmount(productRequest.getAmount());
+        request.setRequestedOn(new Date());
+        request.setFarmerNo(productRequest.getFarmerNo());
+        request.setComments(productRequest.getComments());
+        request.setType(productRequest.getType());
+        request.setFarmerName(productRequest.getFarmerName());
+        request.setLocationId(productRequest.getLocationId());
+        request.setQuantity(productRequest.getQuantity());
+        return request;
     }
 }

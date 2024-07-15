@@ -15,8 +15,14 @@ public interface FarmerProdAllocattionsRepo extends JpaRepository<FarmerProductA
 
     List<FarmerProductAllocations> findByFarmerNo(Integer farmerNo);
 
+    @Query(value = "SELECT coalesce(SUM(fa.amount), 0.0) as accruedamount,SUM(fa.quantity) as quantity  from farmer_product_allocations fa join farmer f on f.farmer_no =fa.farmer_no where f.farmer_no =:farmer_no and fa.request_status='APPROVED' and month(fa.approval_date)=month(curdate()) and year(fa.approval_date)=year(curdate())",nativeQuery = true)
+    FarmerAllocationData getMonthlyAmount(Integer farmer_no);
+
     @Query(value = "SELECT a.id,f.farmer_no,f.username,a.no_of_cows as noOfCows,a.heat_start_date as heatstartDate,a.type,a.status,p.name as product,a.amount as amount,a.quantity as quantity,DATE(a.allocation_date) as allocationDate,CAST(a.allocation_date as time) as time ,a.allocatedby as allocatedBy ,a.payment_status as paymentStatus,a.revoke_status as  revokeStatus from farmer_product_allocations a join farmer f  on f.farmer_no=a.farmer_no join  product p on p.id =a.product_id and a.status =:status",nativeQuery = true)
     List<Allocations> getAllocations(Character status);
+
+    @Query(value = "SELECT a.id,f.farmer_no,f.username,a.no_of_cows as noOfCows,a.heat_start_date as heatstartDate,a.type,a.status,p.name as product,a.amount as amount,a.quantity as quantity,DATE(a.allocation_date) as allocationDate,CAST(a.allocation_date as time) as time ,a.allocatedby as allocatedBy ,a.payment_status as paymentStatus,a.revoke_status as  revokeStatus from farmer_product_allocations a join farmer f  on f.farmer_no=a.farmer_no join  product p on p.id =a.product_id and a.status =:status where a.location_id= :locationId",nativeQuery = true)
+    List<Allocations> getMccAllocations(Long locationId, Character status);
     @Query(value = "SELECT a.id,f.farmer_no,f.username,a.no_of_cows as noOfCows,a.heat_start_date as heatstartDate,a.type,p.name as product,a.status,a.amount as amount,a.quantity as quantity,DATE(a.allocation_date) as allocationDate,CAST(a.allocation_date as time) as time ,a.allocatedby as allocatedBy ,a.payment_status as paymentStatus,a.revoke_status as  revokeStatus from farmer_product_allocations a join farmer f  on f.farmer_no=a.farmer_no join  product p on p.id =a.product_id and a.type =:type",nativeQuery = true)
     List<Allocations> getAllocationsPerType(String type);
 
@@ -58,10 +64,10 @@ public interface FarmerProdAllocattionsRepo extends JpaRepository<FarmerProductA
     @Query(value = "SELECT a.username,f.farmer_no,a.no_of_cows as noOfCows,a.heat_start_date as heatstartDate,a.type,p.name as product,a.amount as amount,a.quantity as quantity,DATE(a.allocatio_date),CAST(a.allocatio_date as time) as time ,a.allocatedby as allocatedBy,a.payment_status as paymentStatus from farmer_product_allocations a join farmer f  on f.farmer_no=a.farmer_no join  product p on p.id =a.product_id WHERE a.farmer_no = :farmer_no  and DATE(a.allocatio_date)=:date",nativeQuery = true)
     List<Allocations> getFAllocationsPerDate(Integer farmer_no,String date);
     @Query(value = "SELECT SUM(fa.amount) as accruedamount,f.farmer_no,f.username  from farmer_product_allocations fa join farmer f on f.farmer_no =fa.farmer_no where DATE(fa.allocatio_date) BETWEEN :from and :to and f.farmer_no =:farmer_no and  fa.payment_status =:payment_status",nativeQuery = true)
-    FarmerAllocationDatail getFAllocationsSummary(Integer farmer_no,String from ,String to,Character payment_status);
+    FarmerAllocationData getFAllocationsSummary(Integer farmer_no,String from ,String to,Character payment_status);
 
 
-    interface FarmerAllocationDatail{
+    interface FarmerAllocationData{
         Double getAccruedamount();
         String getUsername();
         Integer getFarmer_no();

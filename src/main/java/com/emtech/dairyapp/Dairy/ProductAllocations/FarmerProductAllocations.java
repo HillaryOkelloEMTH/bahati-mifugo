@@ -31,6 +31,7 @@ public class FarmerProductAllocations {
     private Long productId;
     private String productName;
     private Date allocationDate;
+    private Date approvalDate;
     private String allocatedBY;
     private Integer quantity;
     private String type;//Good/Service
@@ -41,6 +42,8 @@ public class FarmerProductAllocations {
     private Double productPrice;
     private Character revokeStatus=CONSTANTS.NO;
     private Character paymentStatus= CONSTANTS.NO;
+    private Long locationId;
+
 
     //Service properties
     private String serviceStatus; //Pending, Closed, Cancelled
