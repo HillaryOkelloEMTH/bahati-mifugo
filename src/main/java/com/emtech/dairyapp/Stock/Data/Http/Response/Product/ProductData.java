@@ -11,6 +11,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.util.Date;
 
 @ToString
 @Data
@@ -61,4 +62,7 @@ public class ProductData implements Serializable {
 
     @Builder.Default
     private String mcc = null;
+
+    @Builder.Default
+    private Date allocatedOn = null;
 }

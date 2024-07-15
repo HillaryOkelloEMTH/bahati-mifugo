@@ -303,7 +303,7 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
     @Query(value = "SELECT f.farmer_no, f.username,ROUND(SUM(c.amount), 2) AS collectionAmount \n" +
             "FROM collections c \n" +
             "JOIN farmer f ON f.farmer_no = c.farmer_no\n" +
-            "WHERE f.farmer_no = :farmer_no AND c.payment_status ='N'",nativeQuery = true)
+            "WHERE f.farmer_no = :farmer_no AND c.payment_status ='N' and month(c.collection_date)=month(curdate()) and year(c.collection_date)=year(curdate())",nativeQuery = true)
     Totals getTotalUnPaidAmount(Integer farmer_no);
 
     @Query(value = "SELECT f.farmer_no, f.username,ROUND(SUM(c.quantity),2) AS deliveries,ROUND(SUM(c.amount),2)  AS collectionAmount, \n" +

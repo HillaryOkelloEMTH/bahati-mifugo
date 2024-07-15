@@ -23,9 +23,9 @@ public class MccAllocationController {
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
-    @GetMapping("get/{locationId}/{graderId}")
-    public ResponseEntity<?> getMccProducts(@PathVariable Long locationId, @PathVariable Long graderId) {
-        var response = mccAllocationService.getMccProducts(locationId, graderId);
+    @GetMapping("get/{locationId}")
+    public ResponseEntity<?> getMccProducts(@PathVariable Long locationId) {
+        var response = mccAllocationService.getMccProducts(locationId);
 
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }

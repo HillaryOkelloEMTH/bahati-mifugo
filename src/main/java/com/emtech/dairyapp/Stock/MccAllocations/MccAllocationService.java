@@ -2,6 +2,8 @@ package com.emtech.dairyapp.Stock.MccAllocations;
 
 import com.emtech.dairyapp.Auth.User.User;
 import com.emtech.dairyapp.Auth.User.UserRepository;
+import com.emtech.dairyapp.Configurations.MccProductPrices.ProductPrice;
+import com.emtech.dairyapp.Configurations.MccProductPrices.ProductPriceRepository;
 import com.emtech.dairyapp.Configurations.PickUpLocations.PickUpLocations;
 import com.emtech.dairyapp.Configurations.PickUpLocations.PickUpLocationsRepo;
 import com.emtech.dairyapp.Response.EntityResponse;
@@ -35,6 +37,9 @@ public class MccAllocationService {
     private ProductRepository productRepository;
 
     @Autowired
+    private ProductPriceRepository priceRepository;
+
+    @Autowired
     private PickUpLocationsRepo pickUpLocationsRepo;
 
     public EntityResponse<?> allocateProducts(Long productId, Long locationId,Integer stock) {
@@ -43,6 +48,7 @@ public class MccAllocationService {
         try {
             Optional<PickUpLocations> optionalLocation = pickUpLocationsRepo.findById(locationId);
             Optional<Product> optionalProduct = productRepository.findById(productId);
+            boolean priceConfig = priceRepository.existsByProductIdAndLocationId(productId, locationId);
 
             log.info("checking if mcc with id {} exists .....", locationId);
             if (optionalLocation.isEmpty()) {
@@ -62,6 +68,23 @@ public class MccAllocationService {
 
             PickUpLocations pickUpLocations = optionalLocation.get();
             Product product = optionalProduct.get();
+
+
+            log.info("checking if quantity requested is above current stock -----");
+            if (stock > product.getStock()) {
+                response.setMessage("Quantity requested is above current stock");
+                response.setStatusCode(HttpStatus.NOT_ACCEPTABLE.value());
+                response.setEntity("Order lower stock");
+                return response;
+            }
+
+            log.info("checking if the product price for {} in {} collection center is set ......", product.getName(), pickUpLocations.getName());
+            if (!priceConfig) {
+                response.setMessage("Sell prices for "+product.getName()+" in "+pickUpLocations.getName()+" not set");
+                response.setStatusCode(HttpStatus.FORBIDDEN.value());
+                response.setEntity("Selling price absent");
+                return response;
+            }
 
             log.info("Allocating {} of {} to {} MCC on {} ............", stock, product.getName(), pickUpLocations.getName(), LocalDateTime.now());
             MccAllocation mccAllocation = new MccAllocation();
@@ -88,7 +111,7 @@ public class MccAllocationService {
         return response;
     }
 
-    public ProductsResponse getMccProducts(Long locationId, Long graderId) {
+    public ProductsResponse getMccProducts(Long locationId) {
         AtomicReference<ProductsResponse> response = new AtomicReference<>();
 
         try {
@@ -108,6 +131,9 @@ public class MccAllocationService {
                         .category(mccProduct.getCategory())
                         .salePrice(mccProduct.getSelling_price())
                         .description(mccProduct.getDescription())
+                        .mcc(mccProduct.getMcc())
+                        .type(mccProduct.getType())
+                        .categoryId(mccProduct.getCategory_id())
                         .build();
                 productData.add(product);
             } );
@@ -128,7 +154,7 @@ public class MccAllocationService {
             List<ProductData> productData = new ArrayList<>();
 
             if (mccProductsList.isEmpty()) {
-                response.set(ProductsResponse.builder().message("No product allocations found").statusCode(HttpStatus.NOT_FOUND.value()).productData(productData).build());
+                response.set(ProductsResponse.builder().message("No product allocations found").statusCode(HttpStatus.OK.value()).productData(productData).build());
                 return response.get();
             }
 
@@ -138,7 +164,9 @@ public class MccAllocationService {
                         .stock(mccProduct.getStock())
                         .name(mccProduct.getName())
                         .category(mccProduct.getCategory())
+                        .price(mccProduct.getPrice())
                         .salePrice(mccProduct.getSelling_price())
+                        .allocatedOn(mccProduct.getAllocated_on())
                         .description(mccProduct.getDescription())
                         .mcc(mccProduct.getMcc())
                         .build();
