@@ -5,6 +5,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("api/v1/product-prices")
@@ -13,7 +15,7 @@ public class ProductPriceController {
     private final ProductPriceService priceService;
 
     @PostMapping("create/{productId}/{locationId}")
-    public ResponseEntity<?> createProductPrice(@PathVariable Long productId, @PathVariable Long locationId, @RequestParam Double sellingPrice, @RequestParam String effectiveFrom) {
+    public ResponseEntity<?> createProductPrice(@PathVariable Long productId, @PathVariable Long locationId, @RequestParam Double sellingPrice, @RequestParam Date effectiveFrom) {
         var response = priceService.createProductPrice(productId, locationId, sellingPrice,effectiveFrom);
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
@@ -24,7 +26,7 @@ public class ProductPriceController {
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
-    @PutMapping("update/{productId}/{locationId/{sellingPrice}")
+    @PutMapping("update/{productId}/{locationId}/{sellingPrice}")
     public ResponseEntity<?> updateProductPrice(@PathVariable Long productId, @PathVariable Long locationId, @PathVariable Double sellingPrice) {
         var response = priceService.updateProductPrice(productId, locationId, sellingPrice);
         return ResponseEntity.status(response.getStatusCode()).body(response);

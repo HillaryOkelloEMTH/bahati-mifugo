@@ -33,7 +33,7 @@ public class ProductPriceService {
     @Autowired
     private ProductRepository productRepository;
 
-    public EntityResponse<ProductPrice> createProductPrice(Long productId, Long locationId, Double sellingPrice, String effectiveFrom) {
+    public EntityResponse<ProductPrice> createProductPrice(Long productId, Long locationId, Double sellingPrice, Date effectiveFrom) {
         EntityResponse<ProductPrice> response = new EntityResponse<>();
 
         try {
@@ -57,16 +57,12 @@ public class ProductPriceService {
             Product product = optionalProduct.get();
             PickUpLocations pickUpLocations = locationOptional.get();
 
-            LocalDate localDate = LocalDate.parse(effectiveFrom);
-            Instant instant = localDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
-            Date date = Date.from(instant);
-
 
             //create new product price object, set parameters
             ProductPrice productPrice = new ProductPrice();
             productPrice.setBuyingPrice(product.getPrice());
             productPrice.setSellingPrice(sellingPrice);
-            productPrice.setEffectiveFrom(date);
+            productPrice.setEffectiveFrom(effectiveFrom);
             productPrice.setCreatedOn(new Date());
             productPrice.setProductId(productId);
             productPrice.setLocationId(locationId);
