@@ -14,6 +14,7 @@ public interface MccAllocationRepo extends JpaRepository<MccAllocation, Long> {
 
     Optional<MccAllocation> findByProductIdAndLocationId(Long productId, Long locationId);
 
+
     @Query(value = "select ma.product_id, ma.allocated_on, ma.stock, p.name, p.description, p.category, p.type, p.category_id, pp.selling_price from mcc_allocation ma join product p on ma.product_id=p.id join product_price pp on ma.product_id=pp.product_id where ma.location_id = :locationId", nativeQuery = true)
     List<MccProducts> getMccProducts(Long locationId);
 

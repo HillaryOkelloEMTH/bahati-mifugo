@@ -28,7 +28,7 @@ public class ProductController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     public Mono<ResponseEntity<StockEntitiesResponse>> createProduct(@RequestBody ProductCreateRequest body){
-        StockEntitiesResponse response = this.productService.createProduct(body.getName(), body.getDescription(), body.getPrice() , body.getType(), body.getSalePrice(), body.getStock(), body.getCategory());
+        StockEntitiesResponse response = this.productService.createProduct(body.getName(), body.getDescription(), body.getPrice() , body.getType(), body.getSalePrice(), body.getStock(), body.getCategory(), body.getPriceType());
 
         if(!Objects.equals(response.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase()) && response.getStatusCode() != HttpStatus.INTERNAL_SERVER_ERROR.value()){
             return Mono.just(ResponseEntity.ok().body(response));

@@ -10,10 +10,7 @@ import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.data.annotation.CreatedDate;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.sql.Timestamp;
 import java.util.Date;
 
@@ -38,26 +35,18 @@ public class FarmerProductAllocations {
     private Double amount;
     private Date heatStartDate;
     private Integer noOfCows;
+
+    @Enumerated(EnumType.STRING)
     private RequestStatus status= RequestStatus.PENDING;
     private Double productPrice;
     private Character revokeStatus=CONSTANTS.NO;
     private Character paymentStatus= CONSTANTS.NO;
     private Long locationId;
 
-
     //Service properties
     private String serviceStatus; //Pending, Closed, Cancelled
-    private Date requestedOn;
+    private Date requestedOn = new Date();
     private Date resolvedOn;
     private String resolvedBy;
     private String comments;
-
-
-
-
-
-
-
-
-
 }

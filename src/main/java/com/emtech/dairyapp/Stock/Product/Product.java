@@ -50,6 +50,8 @@ public class Product implements Serializable {
     @Column(name = "type")
     private String type;
 
+    private String priceType;
+
     @Column(name = "sale_price")
     private Double salePrice;
 

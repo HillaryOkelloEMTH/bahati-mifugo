@@ -6,6 +6,7 @@ import com.emtech.dairyapp.Configurations.MccProductPrices.ProductPrice;
 import com.emtech.dairyapp.Configurations.MccProductPrices.ProductPriceRepository;
 import com.emtech.dairyapp.Configurations.PickUpLocations.PickUpLocations;
 import com.emtech.dairyapp.Configurations.PickUpLocations.PickUpLocationsRepo;
+import com.emtech.dairyapp.Configurations.Utils.Formatter;
 import com.emtech.dairyapp.Response.EntityResponse;
 import com.emtech.dairyapp.Stock.Data.Http.Response.Product.ProductData;
 import com.emtech.dairyapp.Stock.Data.Http.Response.Product.ProductResponse;
@@ -49,6 +50,7 @@ public class MccAllocationService {
             Optional<PickUpLocations> optionalLocation = pickUpLocationsRepo.findById(locationId);
             Optional<Product> optionalProduct = productRepository.findById(productId);
             boolean priceConfig = priceRepository.existsByProductIdAndLocationId(productId, locationId);
+            Optional<MccAllocation> allocationOptional = mccAllocationRepo.findByProductIdAndLocationId(productId, locationId);
 
             log.info("checking if mcc with id {} exists .....", locationId);
             if (optionalLocation.isEmpty()) {
@@ -86,19 +88,37 @@ public class MccAllocationService {
                 return response;
             }
 
-            log.info("Allocating {} of {} to {} MCC on {} ............", stock, product.getName(), pickUpLocations.getName(), LocalDateTime.now());
+            Integer newStockCount = product.getStock() - stock;
+
+            log.info("checking if the product is already allocated to {} collection center ......",pickUpLocations.getName());
+            if (allocationOptional.isPresent()) {
+                MccAllocation existingAllocation = allocationOptional.get();
+                existingAllocation.setStock(existingAllocation.getStock()+stock);
+                existingAllocation.setUpdatedOn(new Date());
+
+                log.info("updating the product stock count in the inventory .......");
+                product.setStock(newStockCount);
+                productRepository.save(product);
+                mccAllocationRepo.save(existingAllocation);
+
+                response.setMessage(stock+" units of "+product.getName()+" allocated to "+pickUpLocations.getName());
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setEntity("Allocation Successful");
+                return response;
+            }
+
+
+            log.info("updating the product stock count in the inventory .......");
             MccAllocation mccAllocation = new MccAllocation();
             mccAllocation.setProductId(productId);
             mccAllocation.setLocationId(locationId);
             mccAllocation.setStock(stock);
             mccAllocation.setAllocatedOn(new Date());
-
-            mccAllocationRepo.save(mccAllocation);
-
-            log.info("updating the product stock count in the inventory .......");
-            Integer newStockCount = product.getStock() - stock;
             product.setStock(newStockCount);
             productRepository.save(product);
+
+            log.info("Allocating {} units of {} to {} MCC on {} ............", stock, product.getName(), pickUpLocations.getName(), Formatter.formatDate(new Date()));
+            mccAllocationRepo.save(mccAllocation);
 
             response.setMessage(stock+" of "+product.getName()+" allocated to "+pickUpLocations.getName());
             response.setStatusCode(HttpStatus.OK.value());

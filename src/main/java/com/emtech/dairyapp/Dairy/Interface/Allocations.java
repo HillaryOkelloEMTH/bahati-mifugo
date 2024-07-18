@@ -1,5 +1,7 @@
 package com.emtech.dairyapp.Dairy.Interface;
 
+import com.emtech.dairyapp.Auth.Utilities.RequestStatus;
+
 import java.util.Date;
 
 public interface Allocations {
@@ -7,18 +9,18 @@ public interface Allocations {
     Long getId();
     String getProduct();
     String getUsername();
-    Character getStatus();
+    RequestStatus getStatus();
     String getType();
     Integer getNoOfCows();
     Date getheatStartDate();
 
     Integer getFarmer_no();
     Double getAmount();
-    Double getQuantity();
+    Integer getQuantity();
     Date getAllocationDate();
+    Date getRequestedOn();
     String getTime();
     String getAllocatedBy();
     Character getPaymentStatus();
     Character getRevokeStatus();
-
 }

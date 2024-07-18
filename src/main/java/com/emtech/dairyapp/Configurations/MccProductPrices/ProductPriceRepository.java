@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ProductPriceRepository extends JpaRepository<ProductPrice, Long> {
@@ -16,6 +17,11 @@ public interface ProductPriceRepository extends JpaRepository<ProductPrice, Long
 
 
     boolean existsByProductIdAndLocationId(Long productId, Long locationId);
+
+    Optional<ProductPrice> findByProductIdAndLocationId(Long productId, Long locationId);
+
+
+    Optional<ProductPrice> findByProductId(Long productId);
 
     public interface ProductPriceInterface {
         Long getPriceId();
