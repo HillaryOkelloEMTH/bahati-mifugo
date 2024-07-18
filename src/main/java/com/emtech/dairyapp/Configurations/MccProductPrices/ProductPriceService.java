@@ -33,7 +33,7 @@ public class ProductPriceService {
     @Autowired
     private ProductRepository productRepository;
 
-    public EntityResponse<?> createProductPrice(Long productId, Long locationId, Double sellingPrice, String effectiveFrom) {
+    public EntityResponse<ProductPrice> createProductPrice(Long productId, Long locationId, Double sellingPrice, String effectiveFrom) {
         EntityResponse<ProductPrice> response = new EntityResponse<>();
 
         try {
@@ -73,7 +73,7 @@ public class ProductPriceService {
 
             productPriceRepo.save(productPrice);
 
-            response.setMessage("Price for "+product.getName()+" , "+pickUpLocations.getName()+"added successfully");
+            response.setMessage("Price for "+product.getName()+" , "+pickUpLocations.getName()+" added successfully");
             response.setStatusCode(HttpStatus.OK.value());
             response.setEntity(productPrice);
         } catch (Exception e) {
@@ -102,6 +102,59 @@ public class ProductPriceService {
         } catch (Exception e) {
             log.error(e.toString());
             response.setMessage("Bad request");
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        }
+        return response;
+    }
+
+    public EntityResponse<ProductPrice> updateProductPrice(Long productId, Long locationId,Double sellingPrice) {
+        EntityResponse<ProductPrice> response = new EntityResponse<>();
+
+        try {
+            boolean configExists = productPriceRepo.existsByProductIdAndLocationId(productId, locationId);
+
+            if (!configExists) {
+                response.setMessage("Price for product doesn't exist");
+                response.setStatusCode(HttpStatus.NOT_ACCEPTABLE.value());
+                return response;
+            }
+
+            log.info("updating existing product prices ............");
+            Optional<ProductPrice> priceOptional = productPriceRepo.findByProductIdAndLocationId(productId, locationId);
+
+            if (priceOptional.isEmpty()) {
+                response.setMessage("Price for product doesn't exist");
+                response.setStatusCode(HttpStatus.NOT_ACCEPTABLE.value());
+                return response;
+            }
+
+
+            ProductPrice productPrice = priceOptional.get();
+            productPrice.setEffectiveFrom(new Date());
+            productPrice.setSellingPrice(sellingPrice);
+
+            Optional<Product> optionalProduct = productRepository.findById(productId);
+            Optional<PickUpLocations> locationOptional = pickUpLocationsRepo.findById(locationId);
+
+            if (optionalProduct.isEmpty() || locationOptional.isEmpty()) {
+                response.setMessage("both center and product are required");
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                return  response;
+            }
+
+            Product product = optionalProduct.get();
+            PickUpLocations pickUpLocations = locationOptional.get();
+
+
+            //update product price object, set parameters
+            productPriceRepo.save(productPrice);
+
+            response.setMessage("Price for "+product.getName()+" , "+pickUpLocations.getName()+" updated successfully");
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(productPrice);
+        } catch (Exception e) {
+            log.error(e.toString());
+            response.setMessage("An error occurred");
             response.setStatusCode(HttpStatus.BAD_REQUEST.value());
         }
         return response;

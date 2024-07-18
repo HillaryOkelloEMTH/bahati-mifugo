@@ -33,4 +33,7 @@ public class ProductCreateRequest implements Serializable {
 
     @JsonProperty(value = "category")
     private Long category;
+
+    @JsonProperty(value = "priceType")
+    private String priceType;
 }

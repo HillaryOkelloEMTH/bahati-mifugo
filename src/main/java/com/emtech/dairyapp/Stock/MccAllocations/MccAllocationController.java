@@ -4,10 +4,7 @@ import com.emtech.dairyapp.Response.EntityResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("api/v1/mcc-allocations")
@@ -16,7 +13,7 @@ public class MccAllocationController {
     @Autowired
     private MccAllocationService mccAllocationService;
 
-    @GetMapping("allocate/{productId}/{locationId}/{stock}")
+    @PostMapping("allocate/{productId}/{locationId}/{stock}")
     public ResponseEntity<?> allocateProducts(@PathVariable Long productId,@PathVariable Long locationId,@PathVariable Integer stock) {
         var response = mccAllocationService.allocateProducts(productId, locationId, stock);
 

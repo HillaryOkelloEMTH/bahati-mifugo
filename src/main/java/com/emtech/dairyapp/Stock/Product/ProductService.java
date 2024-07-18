@@ -2,6 +2,11 @@ package com.emtech.dairyapp.Stock.Product;
 
 
 import com.emtech.dairyapp.Auth.UserRole.UserRole;
+import com.emtech.dairyapp.Configurations.Interfaces.PickUpLocation;
+import com.emtech.dairyapp.Configurations.MccProductPrices.ProductPriceRepository;
+import com.emtech.dairyapp.Configurations.MccProductPrices.ProductPriceService;
+import com.emtech.dairyapp.Configurations.PickUpLocations.PickUpLocations;
+import com.emtech.dairyapp.Configurations.PickUpLocations.PickUpLocationsRepo;
 import com.emtech.dairyapp.Stock.Category.Category;
 import com.emtech.dairyapp.Stock.Category.CategoryRepo;
 import com.emtech.dairyapp.Stock.CategoryProduct.CategoryProduct;
@@ -19,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
@@ -35,8 +41,14 @@ public class ProductService {
     @Autowired
     private CategoryRepo categoryRepo;
 
+    @Autowired
+    private ProductPriceService productPriceService;
+
+    @Autowired
+    private PickUpLocationsRepo pickUpLocationsRepo;
+
     @Transactional
-    public StockEntitiesResponse createProduct(@NonNull String name, @NonNull String description, @NonNull Double price, @NonNull String type, @NonNull Double salePrice,Integer stock, @NonNull Long categoryId){
+    public StockEntitiesResponse createProduct(@NonNull String name, @NonNull String description, @NonNull Double price, @NonNull String type, @NonNull Double salePrice,Integer stock, @NonNull Long categoryId, @NonNull String priceType){
         AtomicReference<StockEntitiesResponse> response = new AtomicReference<>();
 
         this.categoryRepo.findById(categoryId).ifPresentOrElse(category -> {
@@ -51,6 +63,7 @@ public class ProductService {
             product.get().setCategory(category.getName());
             product.get().setProductCategoryId(category.getId());
             product.get().setProductCategory(category);
+            product.get().setPriceType(priceType);
 
             if (salePrice > price){
                 product.get().setDiscounted(0);
@@ -70,6 +83,12 @@ public class ProductService {
                 product.get().setProfit(0.0);
             }
 
+            log.info("getting pickup locations ...........");
+            List<PickUpLocations> pickUpLocations = pickUpLocationsRepo.findAll();
+            if (pickUpLocations.isEmpty()) {
+                response.set(StockEntitiesResponse.builder().statusCode(HttpStatus.NOT_FOUND.value()).message("Milk Centers Not Found").build());
+            }
+
             //saving the product and its category
             Product savedProduct = productRepository.save(product.get());
             CategoryProduct categoryProduct = new CategoryProduct();
@@ -77,10 +96,13 @@ public class ProductService {
             categoryProduct.setCategory(category);
             categoryProductRepository.save(categoryProduct);
 
+            log.info("creating a new product prices in pp table for every mcc ........");
+            for(PickUpLocations pickUpLocation: pickUpLocations) {
+                productPriceService.createProductPrice(savedProduct.getId(), pickUpLocation.getId(), salePrice, (savedProduct.getUpdateDate()).toString());
+            }
 
 
             product.set(product.get());
-
             if(this.assignCategory(category, product.get())){
                 response.set(StockEntitiesResponse.builder().message("Product added successfully ").statusCode(HttpStatus.OK.value()).build());
             }else {
@@ -160,6 +182,15 @@ public class ProductService {
 
                 productData.get().setDiscount(discount);
                 productData.get().setProfit(0.0);
+            }
+
+            log.info("update product prices for pick up locations ............");
+            List<PickUpLocations> pickUpLocations = pickUpLocationsRepo.findAll();
+
+            if (!pickUpLocations.isEmpty()) {
+                for(PickUpLocations pickUpLocation: pickUpLocations) {
+                    productPriceService.updateProductPrice(productId, pickUpLocation.getId(), salePrice);
+                }
             }
 
             productData.set(this.productRepository.save(productData.get()));

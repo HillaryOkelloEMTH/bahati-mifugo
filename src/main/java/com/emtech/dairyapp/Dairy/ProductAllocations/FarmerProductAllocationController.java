@@ -18,7 +18,7 @@ public class FarmerProductAllocationController {
     @PostMapping("add")
     public ResponseEntity<?> addAllocations(@RequestBody ProductRequestDto productRequest){
         EntityResponse<?> response = service.addFarmerProductAllocations(productRequest);
-        return ResponseEntity.ok().body(response);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
     @GetMapping("get")
     public ResponseEntity<EntityResponse> getFarmerProductAllocations(){
@@ -57,7 +57,7 @@ public class FarmerProductAllocationController {
         EntityResponse response = service.fetchFarmerProductAllocationsPerType(type);
         return ResponseEntity.ok().body(response);
     }
-    @GetMapping("verify")
+    @PutMapping("verify")
     public ResponseEntity<EntityResponse> approveAllocation(@RequestParam Long id,@RequestParam String status){
         EntityResponse response = service.updateStatus(id,status);
         return ResponseEntity.ok().body(response);
