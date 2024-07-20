@@ -65,4 +65,7 @@ public class ProductData implements Serializable {
 
     @Builder.Default
     private Date allocatedOn = null;
+
+    @Builder.Default
+    private String priceType = null;
 }

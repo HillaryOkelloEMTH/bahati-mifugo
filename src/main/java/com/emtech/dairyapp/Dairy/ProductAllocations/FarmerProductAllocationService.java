@@ -189,11 +189,37 @@ public class FarmerProductAllocationService {
             if (farmerAllocation.isPresent()) {
 
                 FarmerProductAllocations f= farmerAllocation.get();
+                Optional<FarmerInfo> farmerInfo = farmerRepo.findByFarmerNo(f.getFarmerNo());
+
+                log.info("checking farmer existence for farmer no {} ........ ", f.getFarmerNo());
+                if (farmerInfo.isEmpty()) {
+                    response.setMessage("Farmer not found");
+                    response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                    return response;
+                }
+
                 if(status.equalsIgnoreCase("Approved")){
                     f.setStatus(RequestStatus.APPROVED);
                     f.setApprovalDate(new Date());
                 }else if (status.equalsIgnoreCase("Rejected")){
                     f.setStatus(RequestStatus.REJECTED);
+                } else if (status.equalsIgnoreCase("Cancel")) {
+                    log.info("delete product request for farmer, {}, farmerNo, {} , {} units, {}, added on {}", f.getFarmerName(), f.getFarmerNo(), f.getQuantity(), f.getProductName(), f.getRequestedOn());
+                    // create object to get sms details from
+                    FarmerProductAllocations ef = new FarmerProductAllocations();
+                    ef = f;
+                    farmerProdAllocattionsRepo.delete(f);
+                    if (farmerInfo.get().getMobile_no() != null) {
+                        String message = "Dear "+ef.getFarmerName()+" f.no "+ef.getFarmerNo()+
+                                ", your request for "+ef.getQuantity()+" units of "+ef.getProductName()+
+                                " has been cancelled on "+Formatter.formatDate(new Date());
+
+                        smsServiceV2.SMSNotification(message, Formatter.formatPhone(farmerInfo.get().getMobile_no()));
+                    }
+
+                    response.setMessage("Request cancelled successfully");
+                    response.setStatusCode(HttpStatus.OK.value());
+                    return response;
                 }
 
                 Optional<MccAllocation> allocationOptional = mccAllocationRepo.findByProductIdAndLocationId(f.getProductId(), f.getLocationId());
@@ -204,13 +230,6 @@ public class FarmerProductAllocationService {
                     return response;
                 }
 
-                log.info("checking farmer existence for farmer no {} ........ ", f.getFarmerNo());
-                Optional<FarmerInfo> farmerInfo = farmerRepo.findByFarmerNo(f.getFarmerNo());
-                if (farmerInfo.isEmpty()) {
-                    response.setStatusCode(HttpStatus.NOT_FOUND.value());
-                    response.setMessage("Farmer not found!");
-                    return response;
-                }
                 MccAllocation mccAllocation = allocationOptional.get();
 
 
@@ -285,7 +304,7 @@ public class FarmerProductAllocationService {
         log.info("Fetching FarmerProductAllocationss ...");
         EntityResponse response = new EntityResponse();
         try {
-            List<Allocations> FarmerProductAllocationss = farmerProdAllocattionsRepo.getAllocationsByFarmer(farmerNo, CONSTANTS.NO);
+            List<Allocations> FarmerProductAllocationss = farmerProdAllocattionsRepo.getAllocationsByFarmer(farmerNo);
             if (FarmerProductAllocationss.size() > 0) {
                 log.info("FarmerProductAllocationss Found " + "(" + FarmerProductAllocationss.size() + ")");
                 response.setEntity(FarmerProductAllocationss);

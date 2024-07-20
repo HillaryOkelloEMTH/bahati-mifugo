@@ -88,7 +88,7 @@ public class BulkSupplyService {
                                 Optional<FarmerInfo> optionalFarmer = farmerRepo.findByFarmerNo(row.getFarmerNo());
 
                                 //check if the record already exists before proceeding
-                                log.info("checking if record was already saved.......");
+                                log.info("checking if record was already saved....... for {}, {}, {}", row.getFarmerNo(), row.getDate(), row.getSession());
                                 SimpleDateFormat formatter = new SimpleDateFormat();
                                 String formatted = formatter.format(row.getDate());
 
@@ -109,7 +109,7 @@ public class BulkSupplyService {
                                     continue;
                                 }
 
-                                log.info("checking farmer existence ----------");
+                                log.info("checking farmer existence ---------- for {} ", row.getFarmerNo());
                                 if (optionalFarmer.isEmpty()) {
                                     //create a response for failed step
                                     Map<String, Object> record = new LinkedHashMap<>();
@@ -126,7 +126,7 @@ public class BulkSupplyService {
                                 }
                                 FarmerInfo farmerInfo = optionalFarmer.get();
 
-                                log.info("checking milk buying price for route ------");
+                                log.info("checking milk buying price for route ------ for {} ", farmerInfo.getRouteId() );
                                 Optional<ProductConfig> configOptional = productConfigRepo.findByRouteFk(farmerInfo.getRouteId());
                                 if (configOptional.isEmpty()) {
                                     //create a response for failed step
@@ -142,7 +142,7 @@ public class BulkSupplyService {
                                     continue;
                                 }
 
-                                log.info("getting route collector ------");
+                                log.info("getting route collector ------ for {}", farmerInfo.getRouteId());
                                 String collector = routeRepo.getFarmerCollector(farmerInfo.getRouteId());
 
                                 if (collector.isEmpty()) {

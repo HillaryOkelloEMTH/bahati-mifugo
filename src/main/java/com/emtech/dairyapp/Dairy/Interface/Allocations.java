@@ -19,6 +19,8 @@ public interface Allocations {
     Integer getQuantity();
     Date getAllocationDate();
     Date getRequestedOn();
+
+    String getComments();
     String getTime();
     String getAllocatedBy();
     Character getPaymentStatus();

@@ -143,7 +143,7 @@ public class MccAllocationService {
                 return response.get();
             }
 
-            mccProductsList.stream().filter(mccProduct -> mccProduct.getStock() >= 1).forEach(mccProduct -> {
+            mccProductsList.forEach(mccProduct -> {
                 ProductData product = ProductData.builder()
                         .id(mccProduct.getProduct_id())
                         .stock(mccProduct.getStock())
@@ -158,7 +158,7 @@ public class MccAllocationService {
                 productData.add(product);
             } );
 
-            response.set(ProductsResponse.builder().message("Product allocations found").statusCode(HttpStatus.OK.value()).productData(productData).build());
+            response.set(ProductsResponse.builder().message(productData.size()+" Product allocations found").statusCode(HttpStatus.OK.value()).productData(productData).build());
         } catch (Exception e) {
             log.error(e.toString());
             response.set(ProductsResponse.builder().message("Bad Request").statusCode(HttpStatus.BAD_REQUEST.value()).build());
@@ -178,7 +178,7 @@ public class MccAllocationService {
                 return response.get();
             }
 
-            mccProductsList.stream().filter(mccProduct -> mccProduct.getStock() >= 1).forEach(mccProduct -> {
+            mccProductsList.forEach(mccProduct -> {
                 ProductData product = ProductData.builder()
                         .id(mccProduct.getProduct_id())
                         .stock(mccProduct.getStock())
