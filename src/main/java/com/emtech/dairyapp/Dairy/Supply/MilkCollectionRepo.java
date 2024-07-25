@@ -324,6 +324,11 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
     Double getMonthyAccumulation(Integer farmer_no);
 
 
+    @Query(value = "select round(sum(quantity), 2) as quantity, date(collection_date) as date from collections where month(collection_date)=\n" +
+            "month(curdate()) and route_fk= :routeId group by date(collection_date)", nativeQuery = true)
+    List<RouteTotals> getRouteSummary(Long routeId);
+
+
     interface Totals{
         Integer getFarmer_no();
         String getUsername();
@@ -332,6 +337,11 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
         Double getDeliveries();
     }
 
+
+    interface RouteTotals {
+        Double getQuantity();
+        String getDate();
+    }
 
 
 

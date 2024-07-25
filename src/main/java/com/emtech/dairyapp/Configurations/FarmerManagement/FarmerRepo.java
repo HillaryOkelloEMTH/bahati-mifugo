@@ -18,7 +18,6 @@ public interface FarmerRepo extends JpaRepository<Farmer,Long> {
 
     List<Farmer> findByDeletedFlag(Character deletedFlag);
     List<Farmer> findByWardFk(Long wardId);
-    Optional<Farmer> findById(Long id);
 
     @Query(value = "select * from farmer where farmer_no = :farmer_no limit 1", nativeQuery = true)
     Optional<Farmer> getByFarmerNo(Integer farmer_no);
@@ -29,6 +28,9 @@ public interface FarmerRepo extends JpaRepository<Farmer,Long> {
     Optional<FarmerInfo> getfarmerDetails(Long farmerId);
     @Query(value = "SELECT f.id,f.username,f.payment_freequency,r.route as route,r.id as routeId ,f.first_name as name,b.account_name ,b.account_number  ,f.alternative_mobile_no  ,f.id_number ,f.created_at ,f.payment_mode ,f.deleted_flag,f.mobile_no ,f.member_type ,f.no_of_cows ,f.farmer_no ,s.name as subcounty,c.name as county,p.name as pickUpLocation from farmer f left join ward w  on f.ward_fk =w.id left join subcounty s on s.id =f.subcounty_fk left join county c on c.id =s.county_fk left join route r on r.id=f.route_fk left join pick_up_locations p on p.id =r.location_id left join bank_details b on b.id =f.bank_details_id",nativeQuery = true)
     List<FarmerInfo> getAllfarmers();
+
+    @Query(value = "SELECT f.id,f.username,r.route as routeName,r.id as routeFk ,f.first_name as name, f.alternative_mobile_no  ,f.id_number as idNumber,f.created_at ,f.payment_mode ,f.deleted_flag,f.mobile_no as mobileNo,f.farmer_no as farmerNo,p.name as pickUpLocation from farmer f left join route r on r.id=f.route_fk left join pick_up_locations p on p.id =r.location_id where r.location_id= :locationId", nativeQuery = true)
+    List<FarmerInterface> getMccfarmers(Long locationId);
     @Query(value = "\n" +
             "SELECT DISTINCT  f.*  from farmer f left join route r on r.id=f.route_fk  left join subcounty s on s.id =f.subcounty_fk \n" +
             "left join county c on c.id =s.county_fk left JOIN pick_up_locations p on p.id=r.location_id join collector c2 on c2.location_id =p.id \n" +

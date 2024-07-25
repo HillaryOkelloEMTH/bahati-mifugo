@@ -16,10 +16,14 @@ public class MccAllocationController {
     @PostMapping("allocate/{productId}/{locationId}/{stock}")
     public ResponseEntity<?> allocateProducts(@PathVariable Long productId,@PathVariable Long locationId,@PathVariable Integer stock) {
         var response = mccAllocationService.allocateProducts(productId, locationId, stock);
-
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
+    @PostMapping("transfer/{sourceId}/{destinationId}/{productId}/{stock}")
+    public ResponseEntity<?> transferProducts(@PathVariable Long sourceId,@PathVariable Long destinationId,@PathVariable Long productId, @PathVariable Integer stock) {
+        var response = mccAllocationService.stockTransfer(sourceId, destinationId, productId, stock);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
+    }
     @GetMapping("get/{locationId}")
     public ResponseEntity<?> getMccProducts(@PathVariable Long locationId) {
         var response = mccAllocationService.getMccProducts(locationId);

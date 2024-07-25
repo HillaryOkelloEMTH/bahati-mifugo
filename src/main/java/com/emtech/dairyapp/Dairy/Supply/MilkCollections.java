@@ -29,6 +29,7 @@ public class MilkCollections {
     private String event;//buying or selling
     private Double currentPrice;
     private Date collectionDate=new Date();
+    private Date postedOn = new Date();
     private Double originalQuantity=0.0;//KG
     private Double quantity=0.0;//KG
     private Double proteinContent=0.0;

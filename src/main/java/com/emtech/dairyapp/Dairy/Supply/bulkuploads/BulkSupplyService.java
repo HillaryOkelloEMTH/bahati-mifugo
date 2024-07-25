@@ -76,6 +76,7 @@ public class BulkSupplyService {
                         try (InputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray())) {
                             var fileUpload = getData(inputStream, filePart.filename());
                             List<BulkDto> bulkDtos = fileUpload.getEntity();
+                            List<BulkDelivery> bulkDeliveries = new ArrayList<>();
 
                             if (fileUpload.getStatusCode() != 200) {
                                 response.setMessage(fileUpload.getMessage());
@@ -96,6 +97,7 @@ public class BulkSupplyService {
 
                                 if (duplicate > 0) {
                                     //create a response for failed step
+                                    BulkDelivery bulkDelivery = new BulkDelivery();
                                     Map<String, Object> record = new LinkedHashMap<>();
                                     record.put("farmer no", row.getFarmerNo());
                                     record.put("quantity", row.getQuantity());
@@ -112,6 +114,7 @@ public class BulkSupplyService {
                                 log.info("checking farmer existence ---------- for {} ", row.getFarmerNo());
                                 if (optionalFarmer.isEmpty()) {
                                     //create a response for failed step
+                                    BulkDelivery bulkDelivery = new BulkDelivery();
                                     Map<String, Object> record = new LinkedHashMap<>();
                                     record.put("farmer no", row.getFarmerNo());
                                     record.put("quantity", row.getQuantity());
@@ -130,6 +133,7 @@ public class BulkSupplyService {
                                 Optional<ProductConfig> configOptional = productConfigRepo.findByRouteFk(farmerInfo.getRouteId());
                                 if (configOptional.isEmpty()) {
                                     //create a response for failed step
+                                    BulkDelivery bulkDelivery = new BulkDelivery();
                                     Map<String, Object> record = new LinkedHashMap<>();
                                     record.put("farmer no", row.getFarmerNo());
                                     record.put("quantity", row.getQuantity());
@@ -147,6 +151,7 @@ public class BulkSupplyService {
 
                                 if (collector.isEmpty()) {
                                     //create a response for failed step
+                                    BulkDelivery bulkDelivery = new BulkDelivery();
                                     Map<String, Object> record = new LinkedHashMap<>();
                                     record.put("farmer no", row.getFarmerNo());
                                     record.put("quantity", row.getQuantity());
@@ -163,6 +168,7 @@ public class BulkSupplyService {
 
                                 if (optional.isEmpty()) {
                                     //create a response for failed step
+                                    BulkDelivery bulkDelivery = new BulkDelivery();
                                     Map<String, Object> record = new LinkedHashMap<>();
                                     record.put("farmer no", row.getFarmerNo());
                                     record.put("quantity", row.getQuantity());
@@ -197,6 +203,7 @@ public class BulkSupplyService {
                                 milkSupply.setAmount(row.getQuantity() * configOptional.get().getBuyingPrice());
 
                                 milkCollectionRepo.save(milkSupply);
+
 
                                 //retrieve updated monthly total
                                 Double monthTotal = milkCollectionRepo.getMonthyAccumulation(farmerInfo.getFarmer_no());

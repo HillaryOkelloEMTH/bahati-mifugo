@@ -56,6 +56,12 @@ public class MilkCollectionController {
                 });
     }
 
+    @GetMapping("route-summary/{routeId}")
+    public ResponseEntity<?> getRouteSummary(@PathVariable Long routeId) {
+        var response = collectionService.getRouteSummary(routeId);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
+    }
+
 
     @PostMapping("return/{id}")
     public ResponseEntity<?> returnDelivery(@PathVariable Long id) {

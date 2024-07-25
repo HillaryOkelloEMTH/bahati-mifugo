@@ -451,6 +451,22 @@ public class MilkCollectionService {
         return response;
     }
 
+    public EntityResponse<?> getRouteSummary(Long routeId) {
+        EntityResponse<Object> response = new EntityResponse<>();
+
+        try {
+            List<MilkCollectionRepo.RouteTotals> totalsList = milkCollectionRepo.getRouteSummary(routeId);
+
+            response.setMessage("Found "+totalsList.size()+" records");
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(totalsList);
+        } catch (Exception e){
+            response.setMessage("An error occurred");
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        }
+        return response;
+    }
+
     public EntityResponse getCollectorsPurchasesByDateRange(Long collectorId, String from, String to) {
 
         EntityResponse response = new EntityResponse();

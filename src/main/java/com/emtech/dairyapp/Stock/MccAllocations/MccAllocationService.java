@@ -200,4 +200,113 @@ public class MccAllocationService {
         }
         return response.get();
     }
+
+
+    public EntityResponse<?> stockTransfer(Long sourceId, Long destinationId, Long productId, Integer stock) {
+        EntityResponse<String> response = new EntityResponse<>();
+
+        try {
+            Optional<PickUpLocations> optionalLocationA = pickUpLocationsRepo.findById(sourceId);
+            Optional<PickUpLocations> optionalLocationB = pickUpLocationsRepo.findById(destinationId);
+
+            Optional<Product> optionalProduct = productRepository.findById(productId);
+            boolean priceConfigA = priceRepository.existsByProductIdAndLocationId(productId, sourceId);
+            boolean priceConfigB = priceRepository.existsByProductIdAndLocationId(productId, destinationId);
+
+            Optional<MccAllocation> allocationOptionalA = mccAllocationRepo.findByProductIdAndLocationId(productId, sourceId);
+            Optional<MccAllocation> allocationOptionalB = mccAllocationRepo.findByProductIdAndLocationId(productId, destinationId);
+
+            log.info("checking if mcc's with id's {} and {} exists .....", sourceId, destinationId);
+            if (optionalLocationA.isEmpty() || optionalLocationB.isEmpty()) {
+                response.setMessage("pickup centers not found not found");
+                response.setEntity("Not Found");
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                return response;
+            }
+
+            log.info("checking if product with id {} exists .......", productId);
+            if (optionalProduct.isEmpty()) {
+                response.setMessage("Product details not found");
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                response.setEntity("Not Found");
+                return response;
+            }
+
+            PickUpLocations pickUpLocationsA = optionalLocationA.get();
+            PickUpLocations pickUpLocationsB = optionalLocationB.get();
+
+            log.info("checking the current stock of the product in the source destination .....");
+            if (allocationOptionalA.isEmpty()) {
+                response.setMessage("Product not found for {} "+ pickUpLocationsA.getName());
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                response.setEntity("Not Found");
+                return response;
+            }
+
+            MccAllocation mccAllocationA = allocationOptionalA.get();
+            Product product = optionalProduct.get();
+
+
+            log.info("checking if quantity requested is above current stock -----");
+            if (stock > mccAllocationA.getStock()) {
+                response.setMessage("Quantity requested is above current stock");
+                response.setStatusCode(HttpStatus.NOT_ACCEPTABLE.value());
+                response.setEntity("Order lower stock");
+                return response;
+            }
+
+            log.info("checking if the product price for {} in {} collection center is set ......", product.getName(), pickUpLocationsB.getName());
+            if (!priceConfigB) {
+                response.setMessage("Sell prices for "+product.getName()+" in "+pickUpLocationsB.getName()+" not set");
+                response.setStatusCode(HttpStatus.FORBIDDEN.value());
+                response.setEntity("Selling price absent");
+                return response;
+            }
+
+            Integer newStockCount = mccAllocationA.getStock() - stock;
+
+            log.info("checking if the product is already allocated to {} collection center ......",pickUpLocationsB.getName());
+            if (allocationOptionalB.isPresent()) {
+                MccAllocation existingAllocation = allocationOptionalB.get();
+                existingAllocation.setStock(existingAllocation.getStock() + stock);
+                existingAllocation.setUpdatedOn(new Date());
+
+                log.info("updating the product stock count in the inventory .......");
+                mccAllocationA.setStock(newStockCount);
+                mccAllocationRepo.save(mccAllocationA);
+                mccAllocationRepo.save(existingAllocation);
+
+                response.setMessage(stock + " units of " + product.getName() + " transferred to " + pickUpLocationsB.getName());
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setEntity("Stock transfer Successful");
+                return response;
+            }
+
+
+            log.info("updating the product stock count in the mcc inventory .......");
+            MccAllocation mccAllocation = new MccAllocation();
+            mccAllocation.setProductId(productId);
+            mccAllocation.setLocationId(destinationId);
+            mccAllocation.setStock(stock);
+            mccAllocation.setAllocatedOn(new Date());
+            mccAllocationA.setStock(newStockCount);
+
+
+            log.info("updating the product stock count in the inventory of source mcc .......");
+            mccAllocationA.setStock(newStockCount);
+            mccAllocationRepo.save(mccAllocationA);
+
+            log.info("Allocating {} units of {} to {} MCC on {} ............", stock, product.getName(), pickUpLocationsB.getName(), Formatter.formatDate(new Date()));
+            mccAllocationRepo.save(mccAllocation);
+
+            response.setMessage(stock+" of "+product.getName()+" transferred to "+pickUpLocationsB.getName());
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity("Stock transfer Successful");
+        } catch (Exception e) {
+            log.error(e.toString());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage("Bad Request");
+        }
+        return response;
+    }
 }

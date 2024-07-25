@@ -214,7 +214,7 @@ public class FarmerProductAllocationService {
                                 ", your request for "+ef.getQuantity()+" units of "+ef.getProductName()+
                                 " has been cancelled on "+Formatter.formatDate(new Date());
 
-                        smsServiceV2.SMSNotification(message, Formatter.formatPhone(farmerInfo.get().getMobile_no()));
+//                        smsServiceV2.SMSNotification(message, Formatter.formatPhone(farmerInfo.get().getMobile_no()));
                     }
 
                     response.setMessage("Request cancelled successfully");
@@ -438,23 +438,21 @@ public class FarmerProductAllocationService {
         }
     }
 
-    public EntityResponse revoke(Long id) {
-        EntityResponse response = new EntityResponse();
+    public EntityResponse<?> revoke(Long id) {
+        EntityResponse<?> response = new EntityResponse<>();
         try {
             Optional<FarmerProductAllocations> allocations = farmerProdAllocattionsRepo.findById(id);
             if (allocations.isPresent()) {
                 allocations.get().setRevokeStatus(CONSTANTS.YES);
+                allocations.get().setStatus(RequestStatus.CANCELLED);
                 farmerProdAllocattionsRepo.save(allocations.get());
                 response.setStatusCode(HttpStatus.OK.value());
                 response.setMessage("FarmerProductAllocations deleted Successfully");
-                return response;
-
             } else {
                 response.setStatusCode(HttpStatus.NOT_FOUND.value());
                 response.setMessage("FarmerProductAllocations with id " + id + "Not Found");
-                return response;
-
             }
+            return response;
         } catch (Exception e) {
             log.error("Error: " + e.getLocalizedMessage());
             response.setStatusCode(HttpStatus.BAD_REQUEST.value());

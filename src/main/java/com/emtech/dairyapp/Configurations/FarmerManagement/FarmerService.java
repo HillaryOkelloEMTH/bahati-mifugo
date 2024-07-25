@@ -4,6 +4,8 @@ import com.emtech.dairyapp.Analytics.LinkedStringInteger;
 import com.emtech.dairyapp.Configurations.Interfaces.FarmerAccruedAmount;
 import com.emtech.dairyapp.Configurations.Interfaces.FarmerInfo;
 import com.emtech.dairyapp.Configurations.Interfaces.FarmersPerWard;
+import com.emtech.dairyapp.Configurations.Interfaces.PickUpLocation;
+import com.emtech.dairyapp.Configurations.PickUpLocations.PickUpLocationsRepo;
 import com.emtech.dairyapp.Configurations.Routes.Route;
 import com.emtech.dairyapp.Configurations.Routes.RouteRepo;
 import com.emtech.dairyapp.Configurations.Utils.CONSTANTS;
@@ -31,6 +33,8 @@ public class FarmerService {
 
     private final SmsServiceV2 smsServiceV2;
 
+    private final PickUpLocationsRepo pickUpLocationsRepo;
+
 
 //    public static String generatecSystemCode(int len) {
 //        String chars = "01234567890";
@@ -42,10 +46,11 @@ public class FarmerService {
 //        return S + sb;
 //    }
 
-    public FarmerService(FarmerRepo farmerRepo, SmsServiceV2 smsServiceV2, RouteRepo routeRepo) {
+    public FarmerService(FarmerRepo farmerRepo, SmsServiceV2 smsServiceV2, RouteRepo routeRepo, PickUpLocationsRepo pickUpLocationsRepo) {
         this.farmerRepo = farmerRepo;
         this.smsServiceV2 = smsServiceV2;
         this.routeRepo = routeRepo;
+        this.pickUpLocationsRepo = pickUpLocationsRepo;
     }
 
     public EntityResponse addFarmer(Farmer farmer){
@@ -121,6 +126,29 @@ public class FarmerService {
         }
     }
 
+    public EntityResponse<?> getByFarmerNo(Integer farmerNo) {
+        EntityResponse<Farmer> response = new EntityResponse<>();
+
+        try {
+            Optional<Farmer> optionalFarmer = farmerRepo.getByFarmerNo(farmerNo);
+
+            if (optionalFarmer.isEmpty()) {
+                response.setMessage("Farmer with member no "+farmerNo+ "not found");
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                return response;
+            }
+
+            response.setMessage("Farmer found");
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(optionalFarmer.get());
+        } catch (Exception e) {
+            log.error(e.toString());
+            response.setMessage("An error occurred");
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        }
+        return response;
+    }
+
 
     public EntityResponse fetchFarmer() {
         log.info("Fetching Farmers ...");
@@ -194,6 +222,31 @@ public class FarmerService {
             response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
             return response;
         }
+    }
+
+    public EntityResponse<?> getMccFarmers(Long locationId) {
+        EntityResponse<List<FarmerInterface>> response = new EntityResponse<>();
+
+        try {
+            boolean exists = pickUpLocationsRepo.existsById(locationId);
+
+            if (!exists) {
+                response.setMessage("pick up location with id "+locationId+" not found");
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                return  response;
+            }
+
+            List<FarmerInterface> farmers = farmerRepo.getMccfarmers(locationId);
+
+            response.setMessage("Found "+farmers.size()+" farmers");
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(farmers);
+        } catch (Exception e) {
+            log.error(e.toString());
+            response.setMessage("failed to get farmers");
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        }
+        return response;
     }
     public EntityResponse fetchFarmers() {
         log.info("Fetching Farmers ...");

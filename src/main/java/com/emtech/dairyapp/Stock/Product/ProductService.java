@@ -269,8 +269,7 @@ public class ProductService {
         List<ProductData> productsData = new ArrayList<>();
 
         if(!products.isEmpty()){
-            products.stream()
-                    .filter(product -> product.getStock() >=1 )
+            products
                     .forEach(product -> {
                                ProductData productData = ProductData.builder()
                                     .id(product.getId())

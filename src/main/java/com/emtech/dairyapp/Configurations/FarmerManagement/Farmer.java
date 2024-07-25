@@ -54,5 +54,4 @@ public class Farmer {
     private Long routeFk;
     private String transportMeans;
     private String gender;
-
 }
