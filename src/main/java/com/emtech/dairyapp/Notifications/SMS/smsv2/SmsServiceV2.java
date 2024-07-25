@@ -54,16 +54,16 @@ public class SmsServiceV2 {
                            .collectList()
                            .doOnSuccess(body-> {
                                Double bal = body.get(0).getCredit_balance();
-//                               if (bal == 50.0 || bal == 100.0 || bal == 200.0 || bal == 1000.0 || bal == 500.0 || bal == 2000.0){
-////                                   SMSNotification("The credit amount balance is at "+ bal+" units", "254708145423");
-//                                   SMSNotification("The credit amount balance is at "+ bal+" units", "254112209296");
-//
-//                                   SMSNotification("Hello Njogu The credit amount balance is at "+ bal+" units.", "254707454022");
-//
-//                                   SMSNotification("The credit amt balance for Jufred is"+ bal+" units.", "254722585903");
-//
-//
-//                               }
+                               if (bal == 50.0 || bal == 100.0 || bal == 200.0 || bal == 1000.0 || bal == 500.0 || bal == 2000.0){
+//                                   SMSNotification("The credit amount balance is at "+ bal+" units", "254708145423");
+                                   SMSNotification("The credit amount balance is at "+ bal+" units", "254112209296");
+
+                                   SMSNotification("Hello Katherine The credit amount balance is at "+ bal+" units.", "254719411709");
+
+                                   SMSNotification("The credit amt balance for Bahati Dairies is"+ bal+" units.", "254715318204");
+
+
+                               }
                                log.info("The response is ::: {} and body is {}", clientResponse.statusCode(), body);
                            });
                }else {
@@ -99,7 +99,7 @@ public class SmsServiceV2 {
         });
     }
     public static String generatecSystemCode(int len) {
-        String chars = "JUFREDDAIRYFARM1234567890";
+        String chars = "BAHATIDAIRYFARM1234567890";
         Random rnd = new Random();
         StringBuilder sb = new StringBuilder(len);
         for (int i = 0; i < 12; i++)

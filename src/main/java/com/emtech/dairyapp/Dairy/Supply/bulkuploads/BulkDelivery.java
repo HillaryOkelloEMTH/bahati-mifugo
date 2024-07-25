@@ -24,4 +24,5 @@ public class BulkDelivery {
     private Date postedOn = new Date();
     private String session;
     private String reason;
+    private String postedBy;
 }
