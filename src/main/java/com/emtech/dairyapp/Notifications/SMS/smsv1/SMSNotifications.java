@@ -21,6 +21,7 @@ public class SMSNotifications {
 
     private String messageId;
     private String phoneNumber;
+    private  Long farmerNo;
     private String farmerName;
     private String senderId;
     @Column(length = 5000)

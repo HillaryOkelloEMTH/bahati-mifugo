@@ -19,6 +19,7 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.codec.multipart.FilePart;
@@ -31,6 +32,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 @Slf4j
@@ -53,15 +55,22 @@ public class BulkSupplyService {
     private final MilkCollectionRepo milkCollectionRepo;
 
     @Autowired
+    private final BulkDeliveryRepo bulkDeliveryRepo;
+
+    @Autowired
     private final Codenerator codenerator;
 
     @Autowired
     private final SmsServiceV2 smsServiceV2;
 
 
-    public Mono<EntityResponse<?>> uploadBulkDeliveries(FilePart filePart) {
+    public Mono<EntityResponse<?>> uploadBulkDeliveries(FilePart filePart, String postedBy) {
         EntityResponse<List<Object>> response = new EntityResponse<>();
         List<Object> failed = new ArrayList<>();
+        List<BulkDelivery> bulkDeliveries = new ArrayList<>();
+         AtomicInteger success = new AtomicInteger();
+         AtomicInteger failures = new AtomicInteger();
+
 
         return filePart.content()
                 .collectList()
@@ -88,73 +97,55 @@ public class BulkSupplyService {
                                 Optional<FarmerInfo> optionalFarmer = farmerRepo.findByFarmerNo(row.getFarmerNo());
 
                                 //check if the record already exists before proceeding
-                                log.info("checking if record was already saved.......");
+                                log.info("checking if record was already saved....... for {}, {}, {}", row.getFarmerNo(), row.getDate(), row.getSession());
                                 SimpleDateFormat formatter = new SimpleDateFormat();
                                 String formatted = formatter.format(row.getDate());
 
                                 Integer duplicate = milkCollectionRepo.checkDuplicateEntry(row.getFarmerNo(), row.getSession(), formatted);
 
                                 if (duplicate > 0) {
-                                    //create a response for failed step
-                                    Map<String, Object> record = new LinkedHashMap<>();
-                                    record.put("farmer no", row.getFarmerNo());
-                                    record.put("quantity", row.getQuantity());
-                                    record.put("date", row.getDate());
-                                    record.put("session", row.getSession());
-                                    record.put("reason", "Duplicate detected");
+                                    // create a response for failed step
+                                    BulkDelivery bulkDelivery = getBulkDelivery(row, "duplicate entry detected", postedBy);
+                                    failures.getAndIncrement();
 
-                                    failed.add(record);
-
+                                    bulkDeliveries.add(bulkDelivery);
                                     log.info("duplicate entry detected .........");
                                     continue;
                                 }
 
-                                log.info("checking farmer existence ----------");
+                                log.info("checking farmer existence ---------- for {} ", row.getFarmerNo());
                                 if (optionalFarmer.isEmpty()) {
-                                    //create a response for failed step
-                                    Map<String, Object> record = new LinkedHashMap<>();
-                                    record.put("farmer no", row.getFarmerNo());
-                                    record.put("quantity", row.getQuantity());
-                                    record.put("date", row.getDate());
-                                    record.put("session", row.getSession());
-                                    record.put("reason", "farmer not found");
+                                    // create a response for failed step
+                                    BulkDelivery bulkDelivery = getBulkDelivery(row, "farmer not found", postedBy);
+                                    failures.getAndIncrement();
 
-                                    failed.add(record);
-
+                                    bulkDeliveries.add(bulkDelivery);
                                     log.info("farmer with member number {} not found", row.getFarmerNo());
                                     continue;
                                 }
                                 FarmerInfo farmerInfo = optionalFarmer.get();
 
-                                log.info("checking milk buying price for route ------");
+                                log.info("checking milk buying price for route ------ for {} ", farmerInfo.getRouteId() );
                                 Optional<ProductConfig> configOptional = productConfigRepo.findByRouteFk(farmerInfo.getRouteId());
                                 if (configOptional.isEmpty()) {
-                                    //create a response for failed step
-                                    Map<String, Object> record = new LinkedHashMap<>();
-                                    record.put("farmer no", row.getFarmerNo());
-                                    record.put("quantity", row.getQuantity());
-                                    record.put("date", row.getDate());
-                                    record.put("session", row.getSession());
-                                    record.put("reason", "price config not found");
+                                    // create a response for failed step
+                                    BulkDelivery bulkDelivery = getBulkDelivery(row, "price config not found", postedBy);
+                                    failures.getAndIncrement();
 
-                                    failed.add(record);
+                                    bulkDeliveries.add(bulkDelivery);
                                     log.info("Product config for route with id {} not found", farmerInfo.getRouteId());
                                     continue;
                                 }
 
-                                log.info("getting route collector ------");
+                                log.info("getting route collector ------ for {}", farmerInfo.getRouteId());
                                 String collector = routeRepo.getFarmerCollector(farmerInfo.getRouteId());
 
                                 if (collector.isEmpty()) {
-                                    //create a response for failed step
-                                    Map<String, Object> record = new LinkedHashMap<>();
-                                    record.put("farmer no", row.getFarmerNo());
-                                    record.put("quantity", row.getQuantity());
-                                    record.put("date", row.getDate());
-                                    record.put("session", row.getSession());
-                                    record.put("reason", "collector not found");
+                                    // create a response for failed step
+                                    BulkDelivery bulkDelivery = getBulkDelivery(row, "collector not found", postedBy);
+                                    failures.getAndIncrement();
 
-                                    failed.add(record);
+                                    bulkDeliveries.add(bulkDelivery);
                                     log.info("Collector not found for route {}", farmerInfo.getRouteId());
                                     continue;
                                 }
@@ -162,16 +153,11 @@ public class BulkSupplyService {
                                 Optional<User> optional = userRepository.findByUsername(collector);
 
                                 if (optional.isEmpty()) {
-                                    //create a response for failed step
-                                    Map<String, Object> record = new LinkedHashMap<>();
-                                    record.put("farmer no", row.getFarmerNo());
-                                    record.put("quantity", row.getQuantity());
-                                    record.put("date", row.getDate());
-                                    record.put("session", row.getSession());
-                                    record.put("reason", "collector data not found");
+                                    // create a response for failed step
+                                    BulkDelivery bulkDelivery = getBulkDelivery(row, "collector data not found", postedBy);
+                                    failures.getAndIncrement();
 
-                                    failed.add(record);
-
+                                    bulkDeliveries.add(bulkDelivery);
                                     log.info("Collector userdata not found for route {}", farmerInfo.getRouteId());
                                     continue;
                                 }
@@ -196,6 +182,7 @@ public class BulkSupplyService {
                                 milkSupply.setReturned('N');
                                 milkSupply.setAmount(row.getQuantity() * configOptional.get().getBuyingPrice());
 
+                                success.getAndIncrement();
                                 milkCollectionRepo.save(milkSupply);
 
                                 //retrieve updated monthly total
@@ -212,6 +199,11 @@ public class BulkSupplyService {
                                 }
                             }
 
+                            //notify staff member on status of delivery uploads
+                            String message = "Hello Silvia ,successful uploads: "+success+", failed uploads "+failures+" on "+Formatter.formatDate(new Date());
+                            smsServiceV2.SMSNotification(message, Formatter.formatPhone("0715318204"));
+
+                            bulkDeliveryRepo.saveAll(bulkDeliveries);
                             response.setMessage("Bulk Collections uploaded successfully");
                             response.setStatusCode(HttpStatus.OK.value());
                             response.setEntity(failed);
@@ -227,6 +219,17 @@ public class BulkSupplyService {
                     }
                     return Mono.just(response);
                 });
+    }
+
+    private static BulkDelivery getBulkDelivery(BulkDto row, String message, String postedBy) {
+        BulkDelivery bulkDelivery = new BulkDelivery();
+        bulkDelivery.setFarmerNo(row.getFarmerNo());
+        bulkDelivery.setQuantity(row.getQuantity());
+        bulkDelivery.setDate(row.getDate());
+        bulkDelivery.setSession(row.getSession());
+        bulkDelivery.setReason(message);
+        bulkDelivery.setPostedBy(postedBy);
+        return bulkDelivery;
     }
 
     public EntityResponse<List<BulkDto>> getData(InputStream inputStream, String filename) {

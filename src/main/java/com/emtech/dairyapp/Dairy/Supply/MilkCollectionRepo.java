@@ -307,7 +307,7 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
     Totals getTotalUnPaidAmount(Integer farmer_no);
 
     @Query(value = "SELECT f.farmer_no, f.username,ROUND(SUM(c.quantity),2) AS deliveries,ROUND(SUM(c.amount),2)  AS collectionAmount, \n" +
-            "    (SELECT SUM(fa.amount) FROM farmer_product_allocations fa WHERE fa.farmer_no = f.farmer_no AND fa.payment_status ='N'and fa.status='Y' AND DATE(fa.allocation_date)  BETWEEN :from AND :to) AS allocationAmount\n" +
+            "    (SELECT SUM(fa.amount) FROM farmer_product_allocations fa WHERE fa.farmer_no = f.farmer_no AND fa.payment_status ='N'and fa.status='APPROVED' AND DATE(fa.approval_date)  BETWEEN :from AND :to) AS allocationAmount\n" +
             "FROM collections c \n" +
             "JOIN farmer f ON f.farmer_no = c.farmer_no\n" +
             "WHERE f.farmer_no = :farmer_no AND c.payment_status ='N' AND DATE(c.collection_date) BETWEEN :from and :to",nativeQuery = true)
@@ -324,6 +324,11 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
     Double getMonthyAccumulation(Integer farmer_no);
 
 
+    @Query(value = "select round(sum(quantity), 2) as quantity, date(collection_date) as date from collections where month(collection_date)=\n" +
+            "month(curdate()) and route_fk= :routeId group by date(collection_date)", nativeQuery = true)
+    List<RouteTotals> getRouteSummary(Long routeId);
+
+
     interface Totals{
         Integer getFarmer_no();
         String getUsername();
@@ -332,6 +337,11 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
         Double getDeliveries();
     }
 
+
+    interface RouteTotals {
+        Double getQuantity();
+        String getDate();
+    }
 
 
 

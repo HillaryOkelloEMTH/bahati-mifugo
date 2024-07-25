@@ -45,6 +45,9 @@ public class ProductService {
     private ProductPriceService productPriceService;
 
     @Autowired
+    private ProductPriceRepository productPriceRepository;
+
+    @Autowired
     private PickUpLocationsRepo pickUpLocationsRepo;
 
     @Transactional
@@ -96,9 +99,9 @@ public class ProductService {
             categoryProduct.setCategory(category);
             categoryProductRepository.save(categoryProduct);
 
-            log.info("creating a new product prices in pp table for every mcc ........");
+            log.info("creating a new product price in pp table for every mcc ........");
             for(PickUpLocations pickUpLocation: pickUpLocations) {
-                productPriceService.createProductPrice(savedProduct.getId(), pickUpLocation.getId(), salePrice, (savedProduct.getUpdateDate()).toString());
+                productPriceService.createProductPrice(savedProduct.getId(), pickUpLocation.getId(), salePrice, savedProduct.getUpdateDate());
             }
 
 
@@ -189,7 +192,13 @@ public class ProductService {
 
             if (!pickUpLocations.isEmpty()) {
                 for(PickUpLocations pickUpLocation: pickUpLocations) {
-                    productPriceService.updateProductPrice(productId, pickUpLocation.getId(), salePrice);
+                    boolean mccPrice = productPriceRepository.existsByProductIdAndLocationId(productId, pickUpLocation.getId());
+
+                    if (mccPrice) {
+                        productPriceService.updateProductPrice(productId, pickUpLocation.getId(), salePrice);
+                    } else {
+                        productPriceService.createProductPrice(productId, pickUpLocation.getId(), salePrice,productData.get().getCreationDate());
+                    }
                 }
             }
 
@@ -260,8 +269,7 @@ public class ProductService {
         List<ProductData> productsData = new ArrayList<>();
 
         if(!products.isEmpty()){
-            products.stream()
-                    .filter(product -> product.getStock() >=1 )
+            products
                     .forEach(product -> {
                                ProductData productData = ProductData.builder()
                                     .id(product.getId())

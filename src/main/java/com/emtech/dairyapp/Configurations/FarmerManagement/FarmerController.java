@@ -27,9 +27,9 @@ public class FarmerController {
 
 
     @PostMapping("add")
-    public ResponseEntity<EntityResponse> addfarmer(@RequestBody Farmer farmer){
-        log.info("recieving request ...adding farmer...");
-        EntityResponse response = farmerService.addFarmer(farmer);
+    public ResponseEntity<EntityResponse<?>> addfarmer(@RequestBody Farmer farmer){
+        log.info("receiving request ...adding farmer...");
+        EntityResponse<?> response = farmerService.addFarmer(farmer);
         return ResponseEntity.ok().body(response);
     }
     @GetMapping("get")
@@ -37,10 +37,23 @@ public class FarmerController {
         EntityResponse response = farmerService.fetchFarmer();
         return ResponseEntity.ok().body(response);
     }
+
+    @GetMapping("get/{farmerNo}")
+    public ResponseEntity<?> getByFarmerNo(@PathVariable Integer farmerNo) {
+        var response = farmerService.getByFarmerNo(farmerNo);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
+    }
+
     @GetMapping("all")
     public ResponseEntity<EntityResponse> getAllfarmers(){
         EntityResponse response = farmerService.fetchFarmers();
         return ResponseEntity.ok().body(response);
+    }
+
+    @GetMapping("mcc/{locationId}")
+    public ResponseEntity<?> getMccFarmers(@PathVariable Long locationId) {
+        var response = farmerService.getMccFarmers(locationId);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
     @PutMapping("update")
     public ResponseEntity<EntityResponse> updatefarmer(@RequestBody Farmer farmer){

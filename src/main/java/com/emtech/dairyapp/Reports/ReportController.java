@@ -261,6 +261,7 @@ public class ReportController {
                     parameters.put("location", profile.getLocation());
                     parameters.put("company", profile.getCompanyName());
                     parameters.put("address", profile.getPhysicalAddress());
+                    parameters.put("allocations", report_path+"/farmer_allocations.jasper");
 
                     parameters.put("from", from);
                     parameters.put("to", to);
