@@ -19,6 +19,8 @@ public interface FarmerRepo extends JpaRepository<Farmer,Long> {
     List<Farmer> findByDeletedFlag(Character deletedFlag);
     List<Farmer> findByWardFk(Long wardId);
 
+    boolean existsByIdNumber(String idNumber);
+
     @Query(value = "select * from farmer where farmer_no = :farmer_no limit 1", nativeQuery = true)
     Optional<Farmer> getByFarmerNo(Integer farmer_no);
 

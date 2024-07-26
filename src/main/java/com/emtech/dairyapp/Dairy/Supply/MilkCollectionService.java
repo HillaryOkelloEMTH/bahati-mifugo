@@ -25,8 +25,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.*;
 
-import static com.emtech.dairyapp.Configurations.Utils.Formatter.formatDate;
-import static com.emtech.dairyapp.Configurations.Utils.Formatter.formatPhone;
+import static com.emtech.dairyapp.Configurations.Utils.Formatter.*;
 
 @Service
 @Slf4j
@@ -59,7 +58,7 @@ public class MilkCollectionService {
     }
 
 
-    public EntityResponse newcollection(MilkCollections collections) {
+    public EntityResponse<?> newcollection(MilkCollections collections) {
 
         EntityResponse response = new EntityResponse();
         try {
@@ -126,7 +125,7 @@ public class MilkCollectionService {
                     Optional<ProductConfig> productConfig = productConfigRepo.findByRouteFk(collections.getRouteFk());
                     if (productConfig.isPresent()) {
                         Optional<Can> cancheck = canRepo.findByCanNo(collections.getCanNo());
-                        if (!cancheck.isPresent()) {
+                        if (cancheck.isEmpty()) {
 
                             log.info("----Collection event----");
 //                            Can can = cancheck.get();
@@ -136,7 +135,7 @@ public class MilkCollectionService {
                             collections.setQuantity(actual_quantity);
                             collections.setDeductedWeight(lessWeight);
                             Double buyingPrice = productConfig.get().getBuyingPrice();
-                            log.info("buying price ", buyingPrice);
+                            log.info("buying price {}", buyingPrice);
                             Double totalAmount = buyingPrice * collections.getQuantity();
                             collections.setOriginalQuantity(actual_quantity);
                             log.info("total amount " + totalAmount);
@@ -153,10 +152,12 @@ public class MilkCollectionService {
                     } else {
                         Optional<Route> r = routeRepo.findById(collections.getRouteFk());
 
-                        log.info("Price Configuration for " + r.get().getRoute() + " Not Found");
-                        response.setStatusCode(HttpStatus.BAD_REQUEST.value());
-                        response.setMessage("Price Configuration for " + r.get().getRoute() + " Not Found");
-                        return response;
+                        if (r.isPresent()) {
+                            log.info("Price Configuration for " + r.get().getRoute() + " Not Found");
+                            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+                            response.setMessage("Price Configuration for " + r.get().getRoute() + " Not Found");
+                            return response;
+                        }
                     }
                 } else {
                     response.setStatusCode(HttpStatus.NOT_FOUND.value());
@@ -176,8 +177,8 @@ public class MilkCollectionService {
                 String session = Objects.equals(collections.getSession(), "Session 1") ? "Morning" : (Objects.equals(collections.getSession(), "Session 2") ? "Afternoon" : "Evening");
                 if (check.get().getMobile_no() != null) {
                     log.info("Sending sms ...");
-                    String message = "Dear " + username + ", Farmer No. " + check.get().getFarmer_no() + " we have received " + collections.getQuantity() + " Kgs of milk" +
-                             session + " ,Session on " + formatDate(collections.getCollectionDate()) + ". Month Total: " + monthTotal + " Kgs. Helpline: 0726777884";
+                    String message = "Dear " + username + ", Farmer No. " + check.get().getFarmer_no() + " received milk: " + collections.getQuantity() + " Kgs of milk" +
+                             session + " ,Session on " + formatDateOnly(collections.getCollectionDate()) + ". Month Total: " + monthTotal + " Kgs. Helpline: 0726777884";
                     String phoneno = check.get().getMobile_no().trim();
                     if (phoneno.startsWith("0")) {
                         log.info("Starting with 0");

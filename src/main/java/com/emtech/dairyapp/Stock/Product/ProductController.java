@@ -45,7 +45,7 @@ public class ProductController {
     )
     public Mono<ResponseEntity<StockEntitiesResponse>> updateProduct(@PathVariable Long productId, @RequestBody ProductCreateRequest body){
         System.out.println("received body "+body);
-        StockEntitiesResponse response = this.productService.updateProduct(productId, body.getName(), body.getDescription(), body.getPrice(), body.getSalePrice());
+        StockEntitiesResponse response = this.productService.updateProduct(productId, body.getName(), body.getDescription(), body.getPrice(), body.getSalePrice(), body.getStock());
 
         if(!Objects.equals(response.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase()) && response.getStatusCode() != HttpStatus.INTERNAL_SERVER_ERROR.value()){
             return Mono.just(ResponseEntity.ok().body(response));

@@ -26,6 +26,7 @@ import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+import javax.swing.text.html.parser.Entity;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -98,7 +99,7 @@ public class BulkSupplyService {
 
                                 //check if the record already exists before proceeding
                                 log.info("checking if record was already saved....... for {}, {}, {}", row.getFarmerNo(), row.getDate(), row.getSession());
-                                SimpleDateFormat formatter = new SimpleDateFormat();
+                                SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
                                 String formatted = formatter.format(row.getDate());
 
                                 Integer duplicate = milkCollectionRepo.checkDuplicateEntry(row.getFarmerNo(), row.getSession(), formatted);
@@ -162,6 +163,8 @@ public class BulkSupplyService {
                                     continue;
                                 }
 
+                                BulkDelivery bulkDelivery = getBulkDelivery(row, "Success", postedBy);
+
                                 User user = optional.get();
 
                                 //set milk collection parameters
@@ -203,6 +206,7 @@ public class BulkSupplyService {
                             String message = "Hello Silvia ,successful uploads: "+success+", failed uploads "+failures+" on "+Formatter.formatDate(new Date());
                             smsServiceV2.SMSNotification(message, Formatter.formatPhone("0715318204"));
 
+
                             bulkDeliveryRepo.saveAll(bulkDeliveries);
                             response.setMessage("Bulk Collections uploaded successfully");
                             response.setStatusCode(HttpStatus.OK.value());
@@ -219,6 +223,23 @@ public class BulkSupplyService {
                     }
                     return Mono.just(response);
                 });
+    }
+
+    public EntityResponse<?> getUploadsByDateRange(String from, String to) {
+        EntityResponse<List<BulkDelivery>> response = new EntityResponse<>();
+
+        try {
+            List<BulkDelivery> bulkDeliveries = bulkDeliveryRepo.getUploadsByDate(from, to);
+
+            response.setMessage("found "+bulkDeliveries.size()+" bulk uploads");
+            response.setEntity(bulkDeliveries);
+            response.setStatusCode(HttpStatus.OK.value());
+        } catch (Exception e) {
+            log.error(e.toString());
+            response.setMessage("Unable to get records");
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        }
+        return response;
     }
 
     private static BulkDelivery getBulkDelivery(BulkDto row, String message, String postedBy) {

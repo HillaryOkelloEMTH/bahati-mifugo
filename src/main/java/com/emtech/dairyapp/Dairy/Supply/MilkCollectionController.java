@@ -62,6 +62,12 @@ public class MilkCollectionController {
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
+    @GetMapping("bulk/by-date/{from}/{to}")
+    public ResponseEntity<?> getRouteSummary(@PathVariable String from, @PathVariable String to) {
+        var response = bulkSupplyService.getUploadsByDateRange(from, to);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
+    }
+
 
     @PostMapping("return/{id}")
     public ResponseEntity<?> returnDelivery(@PathVariable Long id) {
