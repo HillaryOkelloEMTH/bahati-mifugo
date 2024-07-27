@@ -236,7 +236,7 @@ public class FarmerProductAllocationService {
                 log.info("checking if requested quantity is available in mcc stock");
                 if (mccAllocation.getStock() < f.getQuantity()) {
                     response.setStatusCode(HttpStatus.NOT_FOUND.value());
-                    response.setMessage("requested quantity is lesser than stock");
+                    response.setMessage("requested quantity is more than stock");
                     return response;
                 }
 

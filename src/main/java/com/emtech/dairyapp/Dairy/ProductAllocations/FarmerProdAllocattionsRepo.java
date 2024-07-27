@@ -15,6 +15,9 @@ public interface FarmerProdAllocattionsRepo extends JpaRepository<FarmerProductA
 
     List<FarmerProductAllocations> findByFarmerNo(Integer farmerNo);
 
+    @Query(value = "select count(*) from farmer_product_allocations al where al.status='APPROVED' and al.location_id = :locationId  and monthname(al.approval_date)= :month and year(al.approval_date)= :year", nativeQuery = true)
+    Integer getMccAllocationsCount(Long locationId, String month, String year);
+
     @Query(value = "SELECT coalesce(SUM(fa.amount), 0.0) as accruedamount,SUM(fa.quantity) as quantity  from farmer_product_allocations fa join farmer f on f.farmer_no =fa.farmer_no where f.farmer_no =:farmer_no and fa.status='APPROVED' and month(fa.approval_date)=month(curdate()) and year(fa.approval_date)=year(curdate())",nativeQuery = true)
     FarmerAllocationData getMonthlyAmount(Integer farmer_no);
 
