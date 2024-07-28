@@ -204,6 +204,23 @@ public class MilkCollectionService {
 
     }
 
+    public EntityResponse<?> getFarmerDeliveries(Integer farmerNo, String from, String to) {
+        EntityResponse<List<FarmerDelivery>> response = new EntityResponse<>();
+
+        try {
+            List<FarmerDelivery> deliveries = milkCollectionRepo.getFarmerDeliveries(farmerNo, from, to);
+
+            response.setMessage("Found "+deliveries.size()+" deliveries");
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(deliveries);
+        } catch (Exception e) {
+            log.error(e.toString());
+            response.setMessage("An error occurred");
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        }
+        return response;
+    }
+
     public EntityResponse getCollection() {
 
         EntityResponse response = new EntityResponse();

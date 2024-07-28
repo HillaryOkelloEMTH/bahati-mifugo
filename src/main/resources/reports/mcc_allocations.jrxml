@@ -8,7 +8,7 @@
 	<parameter name="address" class="java.lang.String"/>
 	<parameter name="locationId" class="java.lang.Long"/>
 	<parameter name="month" class="java.lang.String"/>
-	<parameter name="year" class="java.lang.Integer"/>
+	<parameter name="year" class="java.lang.String"/>
 	<parameter name="mcc" class="java.lang.String"/>
 	<parameter name="logo" class="java.lang.String"/>
 	<queryString language="SQL">

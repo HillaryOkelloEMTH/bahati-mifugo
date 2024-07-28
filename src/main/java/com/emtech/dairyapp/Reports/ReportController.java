@@ -146,7 +146,10 @@ public class ReportController {
     @GetMapping("allocations/mcc/{mccId}/{month}/{year}")
     public ResponseEntity<?> getMccAllocations(@PathVariable Long mccId, @PathVariable Integer month, @PathVariable String year) {
         var response = reportService.getMccAllocations(mccId, month, year);
-        return ResponseEntity.status(response.getStatusCode()).headers(response.getEntity().getHeaders()).contentType(MediaType.APPLICATION_PDF).body(response.getEntity().getData());
+        if (response.getEntity() != null) {
+            return ResponseEntity.status(response.getStatusCode()).headers(response.getEntity().getHeaders()).contentType(MediaType.APPLICATION_PDF).body(response.getEntity().getData());
+        }
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
     @GetMapping("farmer/collections")
