@@ -129,6 +129,7 @@
 	</title>
 	<pageHeader>
 		<band height="301" splitType="Stretch">
+			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
 			<printWhenExpression><![CDATA[$V{PAGE_NUMBER} == 1]]></printWhenExpression>
 			<staticText>
 				<reportElement x="77" y="7" width="400" height="20" uuid="e6df04b0-65fa-41ed-9f22-33a66957f6ae"/>
@@ -385,8 +386,8 @@
 					<pen lineWidth="2.0" lineStyle="Dashed" lineColor="#218F0B"/>
 				</graphicElement>
 			</line>
-			<subreport>
-				<reportElement x="-20" y="272" width="574" height="20" uuid="ff23b674-ea5c-4021-98d1-7513b3aa3182">
+			<subreport overflowType="Stretch">
+				<reportElement x="-20" y="270" width="574" height="21" uuid="ff23b674-ea5c-4021-98d1-7513b3aa3182">
 					<printWhenExpression><![CDATA[$P{expenses}>0.0]]></printWhenExpression>
 				</reportElement>
 				<subreportParameter name="farmerNo">

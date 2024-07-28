@@ -207,6 +207,10 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
             @Param("session") String session, @Param("date") String date);
 
 
+    @Query(value = "select quantity, date(collection_date) as date from collections where farmer_no = :farmerNo and date(collection_date) between :from and :to", nativeQuery = true)
+    List<FarmerDelivery> getFarmerDeliveries(Integer farmerNo, String from, String to);
+
+
     @Query(value = "SELECT ROUND(sum(c.amount),2)  as amount from collections c join farmer f  on f.id =c.farmer_no  where c.payment_status =:payment_status  and c.farmer_no=:farmerNo", nativeQuery = true)
     BigDecimal getPaymentAmount(Character payment_status, Integer farmerNo);
 

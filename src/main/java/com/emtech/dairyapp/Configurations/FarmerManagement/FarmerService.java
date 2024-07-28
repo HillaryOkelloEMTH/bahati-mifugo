@@ -53,14 +53,22 @@ public class FarmerService {
         this.pickUpLocationsRepo = pickUpLocationsRepo;
     }
 
-    public EntityResponse addFarmer(Farmer farmer){
+    public EntityResponse<?> addFarmer(Farmer farmer){
         log.info("Adding new Farmer ...");
-        EntityResponse response = new EntityResponse();
+        EntityResponse<Farmer> response = new EntityResponse<>();
         try{
             String username = farmer.getFirstName()+ " " +farmer.getLastName();
             farmer.setUsername(username);
             Integer count = farmerRepo.getCount();
 
+
+            boolean exists = farmerRepo.existsByIdNumber(farmer.getIdNumber());
+
+            if (exists) {
+                response.setMessage("Farmer with id "+farmer.getIdNumber()+" already exists");
+                response.setStatusCode(HttpStatus.NOT_ACCEPTABLE.value());
+                return response;
+            }
 
             Integer memberNO=null;
             if (count > 0) {

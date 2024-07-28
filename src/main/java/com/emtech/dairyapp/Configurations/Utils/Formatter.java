@@ -31,4 +31,15 @@ public class Formatter {
             // Format the date
             return dateFormat.format(date);
         }
+
+    public static String formatDateOnly(Date date) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("EEE MMM dd yyyy");
+
+        // Set the timezone to EAT (East Africa Time)
+        TimeZone eatTimeZone = TimeZone.getTimeZone("Africa/Nairobi");
+        dateFormat.setTimeZone(eatTimeZone);
+
+        // Format the date
+        return dateFormat.format(date);
+    }
 }

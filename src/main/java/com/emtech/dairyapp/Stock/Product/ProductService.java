@@ -159,7 +159,7 @@ public class ProductService {
         return res.get();
     }
 
-    public StockEntitiesResponse updateProduct(@NonNull Long productId, @NonNull String name, @NonNull String description, @NonNull Double price, @NonNull Double salePrice){
+    public StockEntitiesResponse updateProduct(@NonNull Long productId, @NonNull String name, @NonNull String description, @NonNull Double price, @NonNull Double salePrice, @NonNull Integer stock){
         AtomicReference<StockEntitiesResponse> response = new AtomicReference<>();
 
         this.productRepository.findById(productId).ifPresentOrElse(product -> {
@@ -168,6 +168,7 @@ public class ProductService {
             productData.get().setDescription(description);
             productData.get().setPrice(price);
             productData.get().setSalePrice(salePrice);
+            productData.get().setStock(stock);
 
             if (salePrice > price){
                 productData.get().setDiscounted(0);
