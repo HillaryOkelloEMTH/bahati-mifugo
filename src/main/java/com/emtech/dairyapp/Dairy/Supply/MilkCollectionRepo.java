@@ -207,7 +207,7 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
             @Param("session") String session, @Param("date") String date);
 
 
-    @Query(value = "select quantity, date(collection_date) as date from collections where farmer_no = :farmerNo and date(collection_date) between :from and :to", nativeQuery = true)
+    @Query(value = "select quantity, date(collection_date) as date from collections where farmer_no = :farmerNo and date(collection_date) between :from and :to order by date(collection_date) desc", nativeQuery = true)
     List<FarmerDelivery> getFarmerDeliveries(Integer farmerNo, String from, String to);
 
 
@@ -329,7 +329,7 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
 
 
     @Query(value = "select round(sum(quantity), 2) as quantity, date(collection_date) as date from collections where month(collection_date)=\n" +
-            "month(curdate()) and route_fk= :routeId group by date(collection_date)", nativeQuery = true)
+            "month(curdate()) and route_fk= :routeId group by date(collection_date) order by date(collection_date) desc", nativeQuery = true)
     List<RouteTotals> getRouteSummary(Long routeId);
 
 

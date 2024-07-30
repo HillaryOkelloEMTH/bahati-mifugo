@@ -58,9 +58,9 @@ public class FarmerProductAllocationController {
         return ResponseEntity.ok().body(response);
     }
     @PutMapping("verify")
-    public ResponseEntity<EntityResponse> approveAllocation(@RequestParam Long id,@RequestParam String status){
-        EntityResponse response = service.updateStatus(id,status);
-        return ResponseEntity.ok().body(response);
+    public ResponseEntity<?> approveAllocation(@RequestParam Long id,@RequestParam String status){
+        var  response = service.updateStatus(id,status);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
     @PutMapping("update")
     public ResponseEntity<EntityResponse> updateFarmerProductAllocations(@RequestBody FarmerProductAllocations allocations){

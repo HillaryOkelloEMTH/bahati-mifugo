@@ -1,9 +1,11 @@
 package com.emtech.dairyapp.Configurations.FarmerManagement;
 
 import com.emtech.dairyapp.Configurations.Interfaces.FarmerAccruedAmount;
+import com.emtech.dairyapp.Configurations.Interfaces.FarmerData;
 import com.emtech.dairyapp.Configurations.Interfaces.FarmerInfo;
 import com.emtech.dairyapp.Configurations.Interfaces.FarmersPerWard;
 import com.emtech.dairyapp.Dairy.Interface.CurrentTotalFarmers;
+import com.emtech.dairyapp.Reports.Dto.PayrollInterface;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -24,9 +26,17 @@ public interface FarmerRepo extends JpaRepository<Farmer,Long> {
     @Query(value = "select * from farmer where farmer_no = :farmer_no limit 1", nativeQuery = true)
     Optional<Farmer> getByFarmerNo(Integer farmer_no);
 
+    @Query(value = "select f.username, f.farmer_no as fno, f.mobile_no, f.id_number as idno, r.route, pul.name as mcc, b.bank_name as bank, \n"
+            + " b.account_number as accno, b.account_name as accname, b.branch, sc.name as subcounty, c.name as county, \n"
+            +" f.gender from farmer f join route r on f.route_fk=r.id join pick_up_locations pul on r.location_id=pul.id left join bank_details b on f.bank_details_id=b.id left join subcounty sc on f.subcounty_fk=sc.id left join county c on sc.county_fk=c.id where f.farmer_no= :farmerNo", nativeQuery = true)
+    Optional<FarmerData> getFarmerData(Integer farmerNo);
+
+    @Query(value = "select * from farmer where route_fk= :routeId", nativeQuery = true)
+    List<Farmer> getFarmersPerRoute(Long routeId);
+
     @Query(value = "select count(*) from farmer",nativeQuery = true)
     Integer getCount();
-    @Query(value = "SELECT f.id,f.username,f.payment_freequency,r.route as route ,r.id as routeId,f.first_name,b.account_name ,b.account_number  ,f.alternative_mobile_no   ,f.id_number ,f.created_at ,f.payment_mode ,f.deleted_flag,f.mobile_no ,f.member_type ,f.no_of_cows ,f.farmer_no ,s.name as subcounty,c.name as county,p.name as pickUpLocation from farmer f join ward w  on f.ward_fk =w.id join subcounty s on s.id =f.subcounty_fk join county c on c.id =s.county_fk join route r on r.id=f.route_fk join pick_up_locations p on p.id =r.location_id join bank_details b on b.id =f.bank_details_id where f.id=:farmerId",nativeQuery = true)
+    @Query(value = "SELECT f.id,f.username,f.payment_freequency,r.route as route ,r.id as routeId,f.first_name,b.account_name ,b.account_number,f.alternative_mobile_no   ,f.id_number ,f.created_at ,f.payment_mode ,f.deleted_flag,f.mobile_no ,f.member_type ,f.no_of_cows ,f.farmer_no ,s.name as subcounty,c.name as county,p.name as pickUpLocation from farmer f join ward w  on f.ward_fk =w.id join subcounty s on s.id =f.subcounty_fk join county c on c.id =s.county_fk join route r on r.id=f.route_fk join pick_up_locations p on p.id =r.location_id join bank_details b on b.id =f.bank_details_id where f.id=:farmerId",nativeQuery = true)
     Optional<FarmerInfo> getfarmerDetails(Long farmerId);
     @Query(value = "SELECT f.id,f.username,f.payment_freequency,r.route as route,r.id as routeId ,f.first_name as name,b.account_name ,b.account_number  ,f.alternative_mobile_no  ,f.id_number ,f.created_at ,f.payment_mode ,f.deleted_flag,f.mobile_no ,f.member_type ,f.no_of_cows ,f.farmer_no ,s.name as subcounty,c.name as county,p.name as pickUpLocation from farmer f left join ward w  on f.ward_fk =w.id left join subcounty s on s.id =f.subcounty_fk left join county c on c.id =s.county_fk left join route r on r.id=f.route_fk left join pick_up_locations p on p.id =r.location_id left join bank_details b on b.id =f.bank_details_id",nativeQuery = true)
     List<FarmerInfo> getAllfarmers();
@@ -59,4 +69,42 @@ FarmerAccruedAmount getFarmerAccruedAmount(Long id, Character paymentyStatus);
 
     @Query(nativeQuery = true, value = "select count(*) as totalFarmers from farmer f join route r on f.route_fk=r.id join collector c on r.location_id=c.location_id join users u on c.username=u.user_name where u.id= :collectorId and MONTH(f.created_at) = :month ")
     CurrentTotalFarmers fetchCurrentAndPreviousCollectionsAndFarmersCount(Integer collectorId, Integer month);
+
+    @Query(value = "SELECT c.farmer_no AS fno, " +
+            "ROUND(SUM(c.quantity), 2) AS qty, " +
+            "ROUND(SUM(c.amount), 2) AS income, " +
+            "f.first_name AS fname, " +
+            "f.middle_name AS mname, " +
+            "f.last_name AS lname, " +
+            "f.mobile_no AS mobileNo, " +
+            "r.route, " +
+            "p.name AS mcc, " +
+            "c.current_price as price, " +
+            "(SELECT ROUND(COALESCE(SUM(fpa.amount), 0.0), 2) " +
+            " FROM farmer_product_allocations fpa " +
+            " WHERE MONTH(fpa.approval_date) = :month " +
+            "   AND YEAR(fpa.approval_date) = :year " +
+            "   AND fpa.farmer_no = c.farmer_no) AS expenses, " +
+            "(ROUND(SUM(c.amount), 2) - " +
+            " (SELECT ROUND(COALESCE(SUM(fpa.amount), 0.0), 2) " +
+            "  FROM farmer_product_allocations fpa " +
+            "  WHERE MONTH(fpa.approval_date) = :month " +
+            "    AND YEAR(fpa.approval_date) = :year " +
+            "    AND fpa.farmer_no = c.farmer_no)) AS netpay, " +
+            "b.bank_name AS bname, " +
+            "b.account_number AS accno, " +
+            "b.branch " +
+            "FROM collections c " +
+            "LEFT JOIN farmer f ON c.farmer_no = f.farmer_no " +
+            "LEFT JOIN farmer_product_allocations fpa ON f.farmer_no = fpa.farmer_no " +
+            "LEFT JOIN route r ON c.route_fk = r.id " +
+            "LEFT JOIN pick_up_locations p ON r.location_id = p.id " +
+            "LEFT JOIN bank_details b ON f.bank_details_id = b.id " +
+            "WHERE MONTH(c.collection_date) = :month " +
+            "  AND YEAR(c.collection_date) = :year " +
+            "  AND c.quantity > 0 " +
+            "GROUP BY c.farmer_no " +
+            "ORDER BY p.id asc, c.farmer_no asc", nativeQuery = true)
+    List<PayrollInterface> getFarmerPayroll(Integer month, String year);
+
 }

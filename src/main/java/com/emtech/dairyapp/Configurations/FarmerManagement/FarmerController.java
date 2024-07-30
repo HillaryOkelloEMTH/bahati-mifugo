@@ -38,6 +38,12 @@ public class FarmerController {
         return ResponseEntity.ok().body(response);
     }
 
+    @GetMapping("data/{farmerNo}")
+    public ResponseEntity<?> getFarmerData(@PathVariable Integer farmerNo) {
+        var response = farmerService.getFarmerData(farmerNo);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
+    }
+
     @GetMapping("get/{farmerNo}")
     public ResponseEntity<?> getByFarmerNo(@PathVariable Integer farmerNo) {
         var response = farmerService.getByFarmerNo(farmerNo);
@@ -55,6 +61,13 @@ public class FarmerController {
         var response = farmerService.getMccFarmers(locationId);
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
+
+    @GetMapping("route/{routeId}")
+    public ResponseEntity<?> getRouteFarmers(@PathVariable Long routeId) {
+        var response = farmerService.getRouteFarmers(routeId);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
+    }
+
     @PutMapping("update")
     public ResponseEntity<EntityResponse> updatefarmer(@RequestBody Farmer farmer){
         EntityResponse response = farmerService.updateFarmer(farmer);

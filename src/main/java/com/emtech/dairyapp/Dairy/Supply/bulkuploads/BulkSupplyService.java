@@ -203,7 +203,7 @@ public class BulkSupplyService {
                             }
 
                             //notify staff member on status of delivery uploads
-                            String message = "Hello Silvia ,successful uploads: "+success+", failed uploads "+failures+" on "+Formatter.formatDate(new Date());
+                            String message = "Hello Silvia ,successful uploads: "+success+", failed uploads: "+failures+" on "+Formatter.formatDate(new Date());
                             smsServiceV2.SMSNotification(message, Formatter.formatPhone("0715318204"));
 
 
