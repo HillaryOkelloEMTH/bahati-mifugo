@@ -214,7 +214,7 @@ public class FarmerProductAllocationService {
                                 ", your request for "+ef.getQuantity()+" units of "+ef.getProductName()+
                                 " has been cancelled on "+Formatter.formatDate(new Date());
 
-//                        smsServiceV2.SMSNotification(message, Formatter.formatPhone(farmerInfo.get().getMobile_no()));
+                        smsServiceV2.SMSNotification(message, Formatter.formatPhone(farmerInfo.get().getMobile_no()));
                     }
 
                     response.setMessage("Request cancelled successfully");

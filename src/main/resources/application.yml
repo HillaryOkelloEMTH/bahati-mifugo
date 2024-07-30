@@ -30,10 +30,10 @@ spring:
       max-request-size: 10MB
 
 dairy:
-#  company_logo_path: /home/ubuntu/prod/bahati/resources/dairy_logo.jpg
-#  report-path: /home/ubuntu/prod/bahati/resources/reports
-  company_logo_path: C:\\Users\\michael\\Documents\\springboot projects\\DAIRY_APP_BE\\src\\main\\resources\\dairy_logo.jpg
-  report-path: C:\\Users\\michael\\Documents\\springboot projects\\DAIRY_APP_BE\\src\\main\\resources\\reports
+  company_logo_path: /home/ubuntu/prod/bahati/resources/dairy_logo.jpg
+  report-path: /home/ubuntu/prod/bahati/resources/reports
+#  company_logo_path: C:\\Users\\michael\\Documents\\springboot projects\\DAIRY_APP_BE\\src\\main\\resources\\dairy_logo.jpg
+#  report-path: C:\\Users\\michael\\Documents\\springboot projects\\DAIRY_APP_BE\\src\\main\\resources\\reports
 
 
 pagination:

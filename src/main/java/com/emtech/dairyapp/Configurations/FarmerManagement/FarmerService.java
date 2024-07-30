@@ -1,10 +1,7 @@
 package com.emtech.dairyapp.Configurations.FarmerManagement;
 
 import com.emtech.dairyapp.Analytics.LinkedStringInteger;
-import com.emtech.dairyapp.Configurations.Interfaces.FarmerAccruedAmount;
-import com.emtech.dairyapp.Configurations.Interfaces.FarmerInfo;
-import com.emtech.dairyapp.Configurations.Interfaces.FarmersPerWard;
-import com.emtech.dairyapp.Configurations.Interfaces.PickUpLocation;
+import com.emtech.dairyapp.Configurations.Interfaces.*;
 import com.emtech.dairyapp.Configurations.PickUpLocations.PickUpLocationsRepo;
 import com.emtech.dairyapp.Configurations.Routes.Route;
 import com.emtech.dairyapp.Configurations.Routes.RouteRepo;
@@ -134,6 +131,29 @@ public class FarmerService {
         }
     }
 
+    public EntityResponse<?> getFarmerData(Integer farmerNo) {
+        EntityResponse<FarmerData> response = new EntityResponse<>();
+
+        try {
+            Optional<FarmerData> optional = farmerRepo.getFarmerData(farmerNo);
+
+            if (optional.isEmpty()) {
+                response.setMessage("Farmer with farmer no "+farmerNo+" not found");
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                return response;
+            }
+
+            response.setMessage("Retrieved farmer");
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(optional.get());
+        } catch (Exception e) {
+            log.error(e.toString());
+            response.setMessage("An error occurred");
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        }
+        return response;
+    }
+
     public EntityResponse<?> getByFarmerNo(Integer farmerNo) {
         EntityResponse<Farmer> response = new EntityResponse<>();
 
@@ -252,6 +272,23 @@ public class FarmerService {
         } catch (Exception e) {
             log.error(e.toString());
             response.setMessage("failed to get farmers");
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        }
+        return response;
+    }
+
+    public EntityResponse<?> getRouteFarmers(Long routeId) {
+        EntityResponse<List<Farmer>> response = new EntityResponse<>();
+
+        try {
+            List<Farmer> farmers = farmerRepo.getFarmersPerRoute(routeId);
+
+            response.setMessage("Found "+farmers.size()+" farmers");
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(farmers);
+        } catch (Exception e) {
+            log.error(e.toString());
+            response.setMessage("An error occurred");
             response.setStatusCode(HttpStatus.BAD_REQUEST.value());
         }
         return response;

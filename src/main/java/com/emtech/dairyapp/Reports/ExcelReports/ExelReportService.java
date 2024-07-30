@@ -1,18 +1,22 @@
 package com.emtech.dairyapp.Reports.ExcelReports;
 
 import com.emtech.dairyapp.Analytics.AnalyticsData;
+import com.emtech.dairyapp.Configurations.FarmerManagement.FarmerRepo;
 import com.emtech.dairyapp.Dairy.Interface.CollectionsData;
 import com.emtech.dairyapp.Dairy.PaymentComponent.PaymentFileData;
 import com.emtech.dairyapp.Dairy.Supply.MilkCollectionRepo;
 import com.emtech.dairyapp.Dairy.Supply.MilkCollectionService;
+import com.emtech.dairyapp.Reports.Dto.PayrollInterface;
+import com.emtech.dairyapp.Response.EntityResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StreamUtils;
-
 
 
 import java.io.*;
@@ -20,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Service
 public class ExelReportService {
 
@@ -29,9 +34,12 @@ public class ExelReportService {
 
     private final MilkCollectionService milkCollectionService;
 
-    public ExelReportService(MilkCollectionRepo collectionRepo, MilkCollectionService milkCollectionService) {
+    private final FarmerRepo farmerRepo;
+
+    public ExelReportService(MilkCollectionRepo collectionRepo, MilkCollectionService milkCollectionService, FarmerRepo farmerRepo) {
         this.collectionRepo = collectionRepo;
         this.milkCollectionService = milkCollectionService;
+        this.farmerRepo = farmerRepo;
     }
 
     public static String TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
@@ -39,8 +47,6 @@ public class ExelReportService {
     static String SHEET = "Collections Records";
 
     private void createHeaderRow(Row headerRow,String[] headers) {
-
-
         for (int col = 0; col < headers.length; col++) {
             Cell cell = headerRow.createCell(col);
             cell.setCellValue(headers[col]);
@@ -67,6 +73,36 @@ public class ExelReportService {
         } catch (IOException e) {
             throw new RuntimeException("fail to import data to Excel file: " + e.getMessage());
         }
+    }
+
+    public EntityResponse<ByteArrayInputStream> farmerPayroll(Integer month, String year) {
+        EntityResponse<ByteArrayInputStream> response = new EntityResponse<>();
+
+        try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream();){
+            Sheet sheet = workbook.createSheet(SHEET);
+            String[] headers = {"firstname", "middlename", "lastname", "farmerno", "mobileno", "quantity", "price", "income", "expenses", "netpay", "bank", "accountno", "branch", "route", "mcc"};
+            List<PayrollInterface> data = farmerRepo.getFarmerPayroll(month, year);
+
+            // header row
+            int rowNum = 0;
+            Row headerRow = sheet.createRow(rowNum++);
+            createHeaderRow(headerRow, headers);
+
+            for (PayrollInterface record: data) {
+                Row row = sheet.createRow(rowNum++);
+                fillPayroll(row, record);
+            }
+            workbook.write(out);
+
+            response.setMessage("retrieved payroll successfully");
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(new ByteArrayInputStream(out.toByteArray()));
+        } catch (IOException e) {
+            log.error(e.toString());
+            response.setMessage("Unable to generate payroll");
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        }
+        return response;
     }
 
     public ByteArrayInputStream routeSummaryForCenter(String date, Long centerId) {
@@ -131,6 +167,24 @@ public class ExelReportService {
         row.createCell(4).setCellValue(entity.getSession());
         row.createCell(5).setCellValue(entity.getRoute());
         row.createCell(6).setCellValue(entity.getPickUpLocation());
+    }
+
+    private void fillPayroll(Row row, PayrollInterface pd) {
+        row.createCell(0).setCellValue(pd.getFname());
+        row.createCell(1).setCellValue(pd.getMname());
+        row.createCell(2).setCellValue(pd.getLname());
+        row.createCell(3).setCellValue(pd.getFno());
+        row.createCell(4).setCellValue(pd.getMobileNo());
+        row.createCell(5).setCellValue(pd.getQty());
+        row.createCell(6).setCellValue(pd.getPrice());
+        row.createCell(7).setCellValue(pd.getIncome());
+        row.createCell(8).setCellValue(pd.getExpenses());
+        row.createCell(9).setCellValue(pd.getNetpay());
+        row.createCell(10).setCellValue(pd.getBname());
+        row.createCell(11).setCellValue(pd.getAccno());
+        row.createCell(12).setCellValue(pd.getBranch());
+        row.createCell(13).setCellValue(pd.getRoute());
+        row.createCell(14).setCellValue(pd.getMcc());
     }
     private void fillDataRowPaymentFile(Row row, PaymentFileData entity) {
         row.createCell(0).setCellValue(entity.getFarmer_no());
