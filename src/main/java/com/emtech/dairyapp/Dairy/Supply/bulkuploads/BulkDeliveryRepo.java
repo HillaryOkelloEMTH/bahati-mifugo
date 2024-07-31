@@ -9,6 +9,6 @@ import java.util.List;
 @Repository
 public interface BulkDeliveryRepo extends JpaRepository<BulkDelivery, Long> {
 
-    @Query(value = "select * from bulk_delivery where date(posted_on) between :from and :to", nativeQuery = true)
+    @Query(value = "select * from bulk_delivery where date(posted_on) between :from and :to order by id desc", nativeQuery = true)
     List<BulkDelivery> getUploadsByDate(String from, String to);
 }
