@@ -25,4 +25,6 @@ public class BulkDelivery {
     private String session;
     private String reason;
     private String postedBy;
+    private String farmer;
+    private String route;
 }

@@ -4,8 +4,10 @@ import com.emtech.dairyapp.Auth.User.User;
 import com.emtech.dairyapp.Auth.User.UserRepository;
 import com.emtech.dairyapp.Configurations.FarmerManagement.FarmerRepo;
 import com.emtech.dairyapp.Configurations.Interfaces.FarmerInfo;
+import com.emtech.dairyapp.Configurations.PickUpLocations.PickUpLocationsRepo;
 import com.emtech.dairyapp.Configurations.ProductPriceConfiguration.ProductConfig;
 import com.emtech.dairyapp.Configurations.ProductPriceConfiguration.ProductConfigRepo;
+import com.emtech.dairyapp.Configurations.Routes.Route;
 import com.emtech.dairyapp.Configurations.Routes.RouteRepo;
 import com.emtech.dairyapp.Configurations.Utils.Formatter;
 import com.emtech.dairyapp.Dairy.Supply.Codenerator;
@@ -19,14 +21,12 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-import javax.swing.text.html.parser.Entity;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -34,6 +34,7 @@ import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Service
 @Slf4j
@@ -59,18 +60,23 @@ public class BulkSupplyService {
     private final BulkDeliveryRepo bulkDeliveryRepo;
 
     @Autowired
+    private final PickUpLocationsRepo pickUpLocationsRepo;
+
+    @Autowired
     private final Codenerator codenerator;
 
     @Autowired
     private final SmsServiceV2 smsServiceV2;
 
 
-    public Mono<EntityResponse<?>> uploadBulkDeliveries(FilePart filePart, String postedBy) {
+    public Mono<EntityResponse<?>> uploadBulkDeliveries(FilePart filePart, String postedBy, String mobile) {
         EntityResponse<List<Object>> response = new EntityResponse<>();
         List<Object> failed = new ArrayList<>();
         List<BulkDelivery> bulkDeliveries = new ArrayList<>();
          AtomicInteger success = new AtomicInteger();
          AtomicInteger failures = new AtomicInteger();
+         AtomicReference<String> farmer = new AtomicReference<>();
+         AtomicReference<String> route = new AtomicReference<>();
 
 
         return filePart.content()
@@ -97,27 +103,10 @@ public class BulkSupplyService {
                                 MilkCollections milkSupply = new MilkCollections();
                                 Optional<FarmerInfo> optionalFarmer = farmerRepo.findByFarmerNo(row.getFarmerNo());
 
-                                //check if the record already exists before proceeding
-                                log.info("checking if record was already saved....... for {}, {}, {}", row.getFarmerNo(), row.getDate(), row.getSession());
-                                SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-                                String formatted = formatter.format(row.getDate());
-
-                                Integer duplicate = milkCollectionRepo.checkDuplicateEntry(row.getFarmerNo(), row.getSession(), formatted);
-
-                                if (duplicate > 0) {
-                                    // create a response for failed step
-                                    BulkDelivery bulkDelivery = getBulkDelivery(row, "duplicate entry detected", postedBy);
-                                    failures.getAndIncrement();
-
-                                    bulkDeliveries.add(bulkDelivery);
-                                    log.info("duplicate entry detected .........");
-                                    continue;
-                                }
-
                                 log.info("checking farmer existence ---------- for {} ", row.getFarmerNo());
                                 if (optionalFarmer.isEmpty()) {
                                     // create a response for failed step
-                                    BulkDelivery bulkDelivery = getBulkDelivery(row, "farmer not found", postedBy);
+                                    BulkDelivery bulkDelivery = getBulkDelivery(row, "farmer not found", postedBy, farmer.get(), route.get());
                                     failures.getAndIncrement();
 
                                     bulkDeliveries.add(bulkDelivery);
@@ -126,11 +115,38 @@ public class BulkSupplyService {
                                 }
                                 FarmerInfo farmerInfo = optionalFarmer.get();
 
+                                //check if the record already exists before proceeding
+                                log.info("checking if record was already saved....... for {}, {}, {}", row.getFarmerNo(), row.getDate(), row.getSession());
+                                SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+                                String formatted = formatter.format(row.getDate());
+
+                                Integer duplicate = milkCollectionRepo.checkDuplicateEntry(row.getFarmerNo(), row.getSession(), formatted);
+
+                                // getting farmer route
+                                Optional<Route> optionalRoute = routeRepo.findById(farmerInfo.getRouteId());
+                                if (optionalRoute.isEmpty()) {
+                                    log.info("farmer route absent");
+                                    continue;
+                                }
+
+                                farmer.set(farmerInfo.getName() + " " + farmerInfo.getLast_name());
+                                route.set(optionalRoute.get().getRoute());
+
+                                if (duplicate > 0) {
+                                    // create a response for failed step
+                                    BulkDelivery bulkDelivery = getBulkDelivery(row, "duplicate entry detected", postedBy, farmer.get(), route.get());
+                                    failures.getAndIncrement();
+
+                                    bulkDeliveries.add(bulkDelivery);
+                                    log.info("duplicate entry detected .........");
+                                    continue;
+                                }
+
                                 log.info("checking milk buying price for route ------ for {} ", farmerInfo.getRouteId() );
                                 Optional<ProductConfig> configOptional = productConfigRepo.findByRouteFk(farmerInfo.getRouteId());
                                 if (configOptional.isEmpty()) {
                                     // create a response for failed step
-                                    BulkDelivery bulkDelivery = getBulkDelivery(row, "price config not found", postedBy);
+                                    BulkDelivery bulkDelivery = getBulkDelivery(row, "price config not found", postedBy, farmer.get(), route.get());
                                     failures.getAndIncrement();
 
                                     bulkDeliveries.add(bulkDelivery);
@@ -143,7 +159,7 @@ public class BulkSupplyService {
 
                                 if (collector.isEmpty()) {
                                     // create a response for failed step
-                                    BulkDelivery bulkDelivery = getBulkDelivery(row, "collector not found", postedBy);
+                                    BulkDelivery bulkDelivery = getBulkDelivery(row, "collector not found", postedBy, farmer.get(), route.get());
                                     failures.getAndIncrement();
 
                                     bulkDeliveries.add(bulkDelivery);
@@ -155,7 +171,7 @@ public class BulkSupplyService {
 
                                 if (optional.isEmpty()) {
                                     // create a response for failed step
-                                    BulkDelivery bulkDelivery = getBulkDelivery(row, "collector data not found", postedBy);
+                                    BulkDelivery bulkDelivery = getBulkDelivery(row, "collector data not found", postedBy, farmer.get(), route.get());
                                     failures.getAndIncrement();
 
                                     bulkDeliveries.add(bulkDelivery);
@@ -163,8 +179,13 @@ public class BulkSupplyService {
                                     continue;
                                 }
 
-                                BulkDelivery bulkDelivery = getBulkDelivery(row, "Success", postedBy);
+                                BulkDelivery bulkDelivery = getBulkDelivery(row, "Success", postedBy, farmer.get(), route.get());
+                                //set farmer route and name
+                                bulkDelivery.setFarmer(farmerInfo.getName()+" "+farmerInfo.getLast_name());
+                                bulkDelivery.setRoute(optionalRoute.get().getRoute());
 
+
+                                bulkDeliveries.add(bulkDelivery);
                                 User user = optional.get();
 
                                 //set milk collection parameters
@@ -198,13 +219,18 @@ public class BulkSupplyService {
 
                                 if (farmerInfo.getMobile_no() != null) {
                                     log.info("sending sms .......to {} .....farmer number {}", farmerInfo.getName(), farmerInfo.getFarmer_no());
-                                    smsServiceV2.SMSNotification(message, Formatter.formatPhone(farmerInfo.getMobile_no()));
+//                                    smsServiceV2.SMSNotification(message, Formatter.formatPhone(farmerInfo.getMobile_no()));
                                 }
                             }
 
                             //notify staff member on status of delivery uploads
-                            String message = "Hello Silvia ,successful uploads: "+success+", failed uploads: "+failures+" on "+Formatter.formatDate(new Date());
+                            String message = "Hello Silvia, successful uploads: "+success+", failed uploads: "+failures+". on "+Formatter.formatDate(new Date());
+                            smsServiceV2.SMSNotification(message, Formatter.formatPhone("0112209296"));
                             smsServiceV2.SMSNotification(message, Formatter.formatPhone("0715318204"));
+
+                            if (mobile != null && !mobile.equalsIgnoreCase("0715318204")) {
+                                smsServiceV2.SMSNotification(message, Formatter.formatPhone(mobile));
+                            }
 
 
                             bulkDeliveryRepo.saveAll(bulkDeliveries);
@@ -242,7 +268,7 @@ public class BulkSupplyService {
         return response;
     }
 
-    private static BulkDelivery getBulkDelivery(BulkDto row, String message, String postedBy) {
+    private static BulkDelivery getBulkDelivery(BulkDto row, String message, String postedBy, String farmer, String route) {
         BulkDelivery bulkDelivery = new BulkDelivery();
         bulkDelivery.setFarmerNo(row.getFarmerNo());
         bulkDelivery.setQuantity(row.getQuantity());
@@ -250,6 +276,8 @@ public class BulkSupplyService {
         bulkDelivery.setSession(row.getSession());
         bulkDelivery.setReason(message);
         bulkDelivery.setPostedBy(postedBy);
+        bulkDelivery.setFarmer(farmer);
+        bulkDelivery.setRoute(route);
         return bulkDelivery;
     }
 

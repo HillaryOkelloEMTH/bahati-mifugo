@@ -41,7 +41,7 @@ public class MilkCollectionController {
 
 
     @PostMapping("/add/bulk")
-    public Mono<ResponseEntity<?>> uploadBulkDeliveries(ServerWebExchange exchange, @RequestParam String username) {
+    public Mono<ResponseEntity<?>> uploadBulkDeliveries(ServerWebExchange exchange, @RequestParam String username, @RequestParam String mobile) {
         return exchange.getMultipartData()
                 .flatMap(multipart -> {
                     FilePart filePart = (FilePart) multipart.getFirst("file");
@@ -51,7 +51,7 @@ public class MilkCollectionController {
                         errBody.put("status", "400");
                         return Mono.just(ResponseEntity.badRequest().body(errBody));
                     }
-                    return bulkSupplyService.uploadBulkDeliveries(filePart, username)
+                    return bulkSupplyService.uploadBulkDeliveries(filePart, username, mobile)
                             .map(response -> ResponseEntity.status(response.getStatusCode()).body(response));
                 });
     }
@@ -63,7 +63,7 @@ public class MilkCollectionController {
     }
 
     @GetMapping("bulk/by-date/{from}/{to}")
-    public ResponseEntity<?> getRouteSummary(@PathVariable String from, @PathVariable String to) {
+    public ResponseEntity<?> getBulkUploads(@PathVariable String from, @PathVariable String to) {
         var response = bulkSupplyService.getUploadsByDateRange(from, to);
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
