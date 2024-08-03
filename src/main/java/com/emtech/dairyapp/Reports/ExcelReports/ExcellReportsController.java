@@ -59,6 +59,24 @@ public class ExcellReportsController {
                 .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
                 .body(file);
     }
+
+    @GetMapping("/route-summary-center/monthly/{month}/{centerId}")
+    public ResponseEntity<?> getMccMonthlyRouteSummary(@PathVariable Integer month, @PathVariable Long centerId) {
+        Month m = Month.of(month);
+        String monthName = m.toString();
+        String filename = "mcc_summary_"+monthName+".xlsx";
+        var response  = exelReportService.getMccMonthlyRouteSummary(month, centerId);
+
+        if (response.getStatusCode() == 200) {
+            InputStreamResource file =new InputStreamResource(response.getEntity());
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
+                    .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
+                    .body(file);
+        } else {
+            return ResponseEntity.status(response.getStatusCode()).body(response);
+        }
+    }
     @GetMapping("/collections/pickuplocation")
     public ResponseEntity<Resource> collectinsPerPickuplocations(@RequestParam Long pid,@RequestParam String date) {
         String filename = "collectionsPerPickuplocations.xlsx";

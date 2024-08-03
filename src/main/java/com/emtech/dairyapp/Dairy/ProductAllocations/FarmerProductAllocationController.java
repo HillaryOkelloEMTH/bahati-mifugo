@@ -26,14 +26,14 @@ public class FarmerProductAllocationController {
         return ResponseEntity.ok().body(response);
     }
 
-    @GetMapping("get/{locationId}")
-    public ResponseEntity<EntityResponse> getMccFarmerProductAllocations(@PathVariable Long locationId){
-        EntityResponse response = service.fetchMccFarmerProductAllocations(locationId);
+    @GetMapping("get/{locationId}/{month}/{year}")
+    public ResponseEntity<EntityResponse<?>> getMccFarmerProductAllocations(@PathVariable Long locationId, @PathVariable Integer month, String year){
+        EntityResponse<?> response = service.fetchMccFarmerProductAllocations(locationId, month, year);
         return ResponseEntity.ok().body(response);
     }
     @GetMapping("farmer")
-    public ResponseEntity<EntityResponse> getFarmerAllocations(@RequestParam Integer farmerNo){
-        EntityResponse response = service.fetchFarmerAllocations(farmerNo);
+    public ResponseEntity<EntityResponse<?>> getFarmerAllocations(@RequestParam Integer farmerNo){
+        EntityResponse<?> response = service.fetchFarmerAllocations(farmerNo);
         return ResponseEntity.ok().body(response);
     }
     @GetMapping("date")

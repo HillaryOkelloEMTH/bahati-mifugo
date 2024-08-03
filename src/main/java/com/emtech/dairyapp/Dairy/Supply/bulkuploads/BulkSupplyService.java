@@ -209,9 +209,17 @@ public class BulkSupplyService {
                                 success.getAndIncrement();
                                 milkCollectionRepo.save(milkSupply);
 
+                                // get month and year
+                                SimpleDateFormat formatMonth = new SimpleDateFormat("MM");
+                                SimpleDateFormat formatYear = new SimpleDateFormat("yyyy");
+                                int monthNo = Integer.parseInt(formatMonth.format(row.getDate()));
+                                String year = formatYear.format(row.getDate());
+
                                 //retrieve updated monthly total
-                                Double monthTotal = milkCollectionRepo.getMonthyAccumulation(farmerInfo.getFarmer_no());
+                                Double monthTotal = milkCollectionRepo.getMonthyAccumulation(farmerInfo.getFarmer_no(), monthNo, year);
                                 String session = row.getSession().equalsIgnoreCase("Session 1") ? "Morning" : (row.getSession().equalsIgnoreCase("Session 2") ? "Afternoon" : "Evening");
+
+                                log.info("new month total for {} , farmer no {}, month {} , updated qty: {} .......", farmerInfo.getName(), farmerInfo.getFarmer_no(), monthNo, monthTotal);
                                 //send sms if farmer phone no exists
                                 String message = "Dear "+farmerInfo.getName()+", farmer no "+farmerInfo.getFarmer_no()+", delivery of " +
                                         row.getQuantity()+" kgs, "+session+" Session for "+ Formatter.formatDate(row.getDate()) +
@@ -219,12 +227,12 @@ public class BulkSupplyService {
 
                                 if (farmerInfo.getMobile_no() != null) {
                                     log.info("sending sms .......to {} .....farmer number {}", farmerInfo.getName(), farmerInfo.getFarmer_no());
-//                                    smsServiceV2.SMSNotification(message, Formatter.formatPhone(farmerInfo.getMobile_no()));
+                                    smsServiceV2.SMSNotification(message, Formatter.formatPhone(farmerInfo.getMobile_no()));
                                 }
                             }
 
                             //notify staff member on status of delivery uploads
-                            String message = "Hello Silvia, successful uploads: "+success+", failed uploads: "+failures+". on "+Formatter.formatDate(new Date());
+                            String message = "Hello "+postedBy+", successful uploads: "+success+", failed uploads: "+failures+". on "+Formatter.formatDate(new Date());
                             smsServiceV2.SMSNotification(message, Formatter.formatPhone("0112209296"));
                             smsServiceV2.SMSNotification(message, Formatter.formatPhone("0715318204"));
 

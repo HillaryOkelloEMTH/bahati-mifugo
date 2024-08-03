@@ -85,7 +85,7 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
     @Query(value = "SELECT f.first_name ,f.last_name ,f.farmer_no ,c.updated_status as updateStatus,c.can_no as canNo,c.original_quantity as originalQuantity,c.session, c.id, c.collection_number as collectionCode ,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer,c.amount,c.quantity,c.collection_date,f.mobile_no, c.can_no, c.session, c.latitude, c.longitude, c.route_fk, r.route as route,p.name as pickUpLocation from collections c join users u on c.collector_id =u.id join farmer f on f.farmer_no=c.farmer_no join route r on r.id=c.route_fk join pick_up_locations p on p.id =r.location_id where c.id= :id", nativeQuery = true)
     CollectionItemData getCollectionDetailsByCollectionId(Long id);
 
-    @Query(value = "SELECT f.first_name ,f.last_name ,f.farmer_no,c.updated_status as updateStatus,c.can_no as canNo,c.original_quantity as originalQuantity,c.session, c.id, c.collection_number as collectionCode,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer,c.amount,c.quantity,c.collection_date,r.route as route,p.name as pickUpLocation  from collections c join users u on c.collector_id =u.id join farmer f on f.farmer_no=c.farmer_no join route r on r.id=c.route_fk join pick_up_locations p on p.id =r.location_id where f.farmer_no =:farmerId order by c.collection_date", nativeQuery = true)
+    @Query(value = "SELECT f.first_name ,f.last_name ,f.farmer_no,c.updated_status as updateStatus,c.can_no as canNo,c.original_quantity as originalQuantity,c.session, c.id, c.collection_number as collectionCode,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer,c.amount,c.quantity,c.collection_date,r.route as route,p.name as pickUpLocation  from collections c join users u on c.collector_id =u.id join farmer f on f.farmer_no=c.farmer_no join route r on r.id=c.route_fk join pick_up_locations p on p.id =r.location_id where f.farmer_no =:farmerId order by c.collection_date desc", nativeQuery = true)
     List<CollectionsData> getCollectionsbyFarmer(Long farmerId);
     @Query(value = "SELECT f.first_name ,f.last_name ,f.farmer_no,c.can_no as canNo,c.original_quantity as originalQuantity,c.session, c.id, c.collection_number as collectionCode,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer,c.amount,c.quantity,c.collection_date,r.route as route,p.name as pickUpLocation  from collections c join users u on c.collector_id =u.id join farmer f on f.farmer_no=c.farmer_no join route r on r.id=c.route_fk join pick_up_locations p on p.id =r.location_id where DATE(c.collection_date)=:date and p.id =:locationid order by c.collection_date",nativeQuery = true)
     List<CollectionsData> getCollectionsbyPickUpLocationAndDate(Long locationid,String date);
@@ -177,6 +177,9 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
 
     @Query(value = "SELECT ROUND(SUM(c.quantity),2) as quantity,ROUND(SUM(c.amount),2) as amount,r.route as route, c.session from collections c join route r on r.id=c.route_fk  join pick_up_locations p on p.id=r.location_id  where DATE(c.collection_date)=:date and p.id= :centerId  GROUP BY r.id, c.session", nativeQuery = true)
     List<AnalyticsData> getRouteSummaryForCenter(String date, Long centerId);
+
+    @Query(value = "SELECT ROUND(SUM(c.quantity),2) as quantity,ROUND(SUM(c.amount),2) as amount,r.route as route, date(c.collection_date) as date, c.session, p.name as location from collections c join route r on r.id=c.route_fk  join pick_up_locations p on p.id=r.location_id  where month(c.collection_date)= :month and p.id= :centerId GROUP BY date(c.collection_date), r.id order by p.id, date(c.collection_date) asc;", nativeQuery = true)
+    List<AnalyticsData> getMccMonthlyRouteSummary(Integer month, Long centerId);
     @Query(value = "SELECT ROUND(SUM(c.quantity),2) as quantity,ROUND(SUM(c.amount),2) as amount,r.route as route,p.name as location from collections c join route r on r.id=c.route_fk join pick_up_locations p on p.id=r.location_id  where DATE(c.collection_date)=:date GROUP BY p.id", nativeQuery = true)
     List<AnalyticsData> getCollectorsPerMCCandDate(String date);
     @Query(value = "SELECT ROUND(SUM(c.quantity),2) as quantity,ROUND(SUM(c.amount),2) as amount,r.route as route,p.name as location from collections c join route r on r.id=c.route_fk join pick_up_locations p on p.id=r.location_id  where MONTHNAME(c.collection_date)=:month  GROUP BY p.id", nativeQuery = true)
@@ -323,9 +326,9 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
             "WHERE f.farmer_no = :farmer_no AND c.payment_status ='Y' AND DATE(c.collection_date) BETWEEN :from and :to",nativeQuery = true)
     Totals getPaidAmount(Integer farmer_no,String from,String to);
 
-    @Query(value = "select round(sum(quantity), 2) as quantity from collections where farmer_no= :farmer_no and month(collection_date)=month(now()) and year\n" +
-            "(collection_date)=year(now())", nativeQuery = true)
-    Double getMonthyAccumulation(Integer farmer_no);
+    @Query(value = "select round(sum(quantity), 2) as quantity from collections where farmer_no= :farmer_no and month(collection_date)= :month and year\n" +
+            "(collection_date)= :year", nativeQuery = true)
+    Double getMonthyAccumulation(Integer farmer_no, int month, String year);
 
 
     @Query(value = "select round(sum(quantity), 2) as quantity, date(collection_date) as date from collections where month(collection_date)=\n" +

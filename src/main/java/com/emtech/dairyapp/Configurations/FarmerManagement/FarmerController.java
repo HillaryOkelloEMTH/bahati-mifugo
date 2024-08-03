@@ -30,7 +30,7 @@ public class FarmerController {
     public ResponseEntity<EntityResponse<?>> addfarmer(@RequestBody Farmer farmer){
         log.info("receiving request ...adding farmer...");
         EntityResponse<?> response = farmerService.addFarmer(farmer);
-        return ResponseEntity.ok().body(response);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
     @GetMapping("get")
     public ResponseEntity<EntityResponse> getfarmers(){

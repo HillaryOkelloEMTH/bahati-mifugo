@@ -23,6 +23,7 @@ public interface Allocations {
     String getComments();
     String getTime();
     String getAllocatedBy();
+    Date getApprovalDate();
     Character getPaymentStatus();
     Character getRevokeStatus();
 }

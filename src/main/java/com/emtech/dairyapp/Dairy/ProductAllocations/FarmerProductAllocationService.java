@@ -147,12 +147,12 @@ public class FarmerProductAllocationService {
         }
     }
 
-    public EntityResponse<?> fetchMccFarmerProductAllocations(Long locationId) {
+    public EntityResponse<?> fetchMccFarmerProductAllocations(Long locationId, Integer month, String year) {
         log.info("Fetching Mcc Farmer Product Allocations ........");
         EntityResponse<List<Allocations>> response = new EntityResponse<>();
         try {
             Optional<PickUpLocations> pickUpLocation = pickUpLocationsRepo.findById(locationId);
-            List<Allocations> mccAllocations = farmerProdAllocattionsRepo.getMccAllocations(locationId);
+            List<Allocations> mccAllocations = farmerProdAllocattionsRepo.getMccAllocations(locationId, month, year);
 
             if (pickUpLocation.isEmpty()) {
                 log.info("Pick Up Location Not Found for id " + locationId);

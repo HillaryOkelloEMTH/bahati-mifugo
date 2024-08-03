@@ -34,6 +34,12 @@ public interface FarmerRepo extends JpaRepository<Farmer,Long> {
     @Query(value = "select * from farmer where route_fk= :routeId", nativeQuery = true)
     List<Farmer> getFarmersPerRoute(Long routeId);
 
+    @Query(value = " select case when count(*) > 0 then true else false end from farmer where id_number= :idNo", nativeQuery = true)
+    Integer farmerExistsById(String idNo);
+
+    @Query(value = " select case when count(*) > 0 then true else false end from farmer where mobile_no= :mobileNo", nativeQuery = true)
+    Integer farmerExistsByMobile(String mobileNo);
+
     @Query(value = "select count(*) from farmer",nativeQuery = true)
     Integer getCount();
     @Query(value = "SELECT f.id,f.username,f.payment_freequency,r.route as route ,r.id as routeId,f.first_name,b.account_name ,b.account_number,f.alternative_mobile_no   ,f.id_number ,f.created_at ,f.payment_mode ,f.deleted_flag,f.mobile_no ,f.member_type ,f.no_of_cows ,f.farmer_no ,s.name as subcounty,c.name as county,p.name as pickUpLocation from farmer f join ward w  on f.ward_fk =w.id join subcounty s on s.id =f.subcounty_fk join county c on c.id =s.county_fk join route r on r.id=f.route_fk join pick_up_locations p on p.id =r.location_id join bank_details b on b.id =f.bank_details_id where f.id=:farmerId",nativeQuery = true)
@@ -73,23 +79,21 @@ FarmerAccruedAmount getFarmerAccruedAmount(Long id, Character paymentyStatus);
     @Query(value = "SELECT c.farmer_no AS fno, " +
             "ROUND(SUM(c.quantity), 2) AS qty, " +
             "ROUND(SUM(c.amount), 2) AS income, " +
-            "f.first_name AS fname, " +
-            "f.middle_name AS mname, " +
-            "f.last_name AS lname, " +
+            "concat(f.first_name,' ', ifnull(f.middle_name, ' '), ' ',f.last_name) as farmer, " +
             "f.mobile_no AS mobileNo, " +
             "r.route, " +
             "p.name AS mcc, " +
             "c.current_price as price, " +
             "(SELECT ROUND(COALESCE(SUM(fpa.amount), 0.0), 2) " +
             " FROM farmer_product_allocations fpa " +
-            " WHERE MONTH(fpa.approval_date) = :month " +
-            "   AND YEAR(fpa.approval_date) = :year " +
+            " WHERE MONTH(fpa.requested_on) = :month " +
+            "   AND YEAR(fpa.requested_on) = :year " +
             "   AND fpa.farmer_no = c.farmer_no) AS expenses, " +
             "(ROUND(SUM(c.amount), 2) - " +
             " (SELECT ROUND(COALESCE(SUM(fpa.amount), 0.0), 2) " +
             "  FROM farmer_product_allocations fpa " +
-            "  WHERE MONTH(fpa.approval_date) = :month " +
-            "    AND YEAR(fpa.approval_date) = :year " +
+            "  WHERE MONTH(fpa.requested_on) = :month " +
+            "    AND YEAR(fpa.requested_on) = :year " +
             "    AND fpa.farmer_no = c.farmer_no)) AS netpay, " +
             "b.bank_name AS bname, " +
             "b.account_number AS accno, " +

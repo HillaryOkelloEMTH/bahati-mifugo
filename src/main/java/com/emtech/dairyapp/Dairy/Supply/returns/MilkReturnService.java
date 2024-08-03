@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.text.SimpleDateFormat;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -60,12 +61,21 @@ public class MilkReturnService {
             milkCollectionRepo.deleteById(collectionId);
             milkReturnRepo.save(milkReturns);
 
-            Double monthTotal = milkCollectionRepo.getMonthyAccumulation(farmerInfo.getFarmer_no());
+            // get year and month
+            SimpleDateFormat formatMonth = new SimpleDateFormat("MM");
+            SimpleDateFormat formartYear = new SimpleDateFormat("yyyy");
+            int month = Integer.parseInt(formatMonth.format(collections.getCollectionDate()));
+            String year = formartYear.format(collections.getCollectionDate());
+
+            Double monthTotal = milkCollectionRepo.getMonthyAccumulation(farmerInfo.getFarmer_no(), month, year);
+
+            log.info("new month total for {} , farmer no {}, month {} , updated qty: {} .......", farmerInfo.getName(), farmerInfo.getFarmer_no(), month, monthTotal);
+
             String session = Objects.equals(collections.getSession(), "Session 1") ? "Morning" : (Objects.equals(collections.getSession(), "Session 2") ? "Afternoon" : "Evening");
             if (farmerInfo.getMobile_no() != null) {
                 log.info("Sending sms ...");
-                String message = "Dear " + farmerInfo.getName() + ", Farmer No. " + farmerInfo.getFarmer_no() + " we have returned " + collections.getQuantity() + "Kgs of milk" +
-                        session + "Session recorded on " + Formatter.formatDate(collections.getCollectionDate()) + ". Month Total: " + monthTotal + " Kgs. Helpline: 0726777884";
+                String message = "Dear " + farmerInfo.getName() + ", Farmer No. " + farmerInfo.getFarmer_no() + " we have returned " + collections.getQuantity() + "Kgs of milk. " +
+                        session + " Session recorded on " + Formatter.formatDate(collections.getCollectionDate()) + ". Month Total: " + monthTotal + " Kgs. Helpline: 0726777884";
                 String phoneno = Formatter.formatPhone(farmerInfo.getMobile_no().trim());
                 smsServiceV2.SMSNotification(message, phoneno);
             }

@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.*;
 
 import static com.emtech.dairyapp.Configurations.Utils.Formatter.*;
@@ -60,7 +61,7 @@ public class MilkCollectionService {
 
     public EntityResponse<?> newcollection(MilkCollections collections) {
 
-        EntityResponse response = new EntityResponse();
+        EntityResponse<MilkCollections> response = new EntityResponse<>();
         try {
 
 
@@ -171,14 +172,21 @@ public class MilkCollectionService {
                 response.setEntity(c);
                 response.setMessage(HttpStatus.CREATED.getReasonPhrase());
 
+                // get month and year
+                SimpleDateFormat formatMonth = new SimpleDateFormat("MM");
+                SimpleDateFormat formatYear = new SimpleDateFormat("yyyy");
+                int monthNo = Integer.parseInt(formatMonth.format(collections.getCollectionDate()));
+                String year = formatYear.format(collections.getCollectionDate());
+
+                Double monthTotal = milkCollectionRepo.getMonthyAccumulation(collections.getFarmerNo(), monthNo, year);
+                log.info("new month total for {} , farmer no {}, month {} , updated month total: {} .......", username, check.get().getFarmer_no(), monthNo, monthTotal);
                 //send sms
 //                if (sms) {
-                Double monthTotal = milkCollectionRepo.getMonthyAccumulation(collections.getFarmerNo());
                 String session = Objects.equals(collections.getSession(), "Session 1") ? "Morning" : (Objects.equals(collections.getSession(), "Session 2") ? "Afternoon" : "Evening");
                 if (check.get().getMobile_no() != null) {
                     log.info("Sending sms ...");
-                    String message = "Dear " + username + ", Farmer No. " + check.get().getFarmer_no() + " received milk: " + collections.getQuantity() + " Kgs of milk" +
-                             session + " ,Session on " + formatDateOnly(collections.getCollectionDate()) + ". Month Total: " + monthTotal + " Kgs. Helpline: 0726777884";
+                    String message = "Dear " + username + ", Farmer No. " + check.get().getFarmer_no() + " received milk: " + collections.getQuantity() + " Kgs of milk. " +
+                             session + " Session on " + formatDateOnly(collections.getCollectionDate()) + ". Month Total: " + monthTotal + " Kgs. Helpline: 0726777884";
                     String phoneno = check.get().getMobile_no().trim();
                     if (phoneno.startsWith("0")) {
                         log.info("Starting with 0");
@@ -221,9 +229,8 @@ public class MilkCollectionService {
         return response;
     }
 
-    public EntityResponse getCollection() {
-
-        EntityResponse response = new EntityResponse();
+    public EntityResponse<?> getCollection() {
+        EntityResponse<List<MilkCollections>> response = new EntityResponse<>();
         try {
 
             List<MilkCollections> cdata = milkCollectionRepo.findAll();
@@ -239,10 +246,10 @@ public class MilkCollectionService {
         return response;
     }
 
-    public EntityResponse updateCollections(UpdateMilkCollectiorequest col) {
+    public EntityResponse<?> updateCollections(UpdateMilkCollectiorequest col) {
         log.info("Updating milk collection ...");
 
-        EntityResponse response = new EntityResponse();
+        EntityResponse<MilkCollections> response = new EntityResponse<>();
         try {
             Optional<MilkCollections> collectionCheck = milkCollectionRepo.findByCollectionNumber(col.getCollectionNumber());
             if (collectionCheck.isPresent()) {
@@ -257,7 +264,8 @@ public class MilkCollectionService {
                       response.setMessage("Farmer with member number "+collections.getFarmerNo()+" not found");
                       return response;
                     }
-                    if (!cancheck.isPresent()) {
+                    FarmerInfo farmer = farmerInfo.get();
+                    if (cancheck.isEmpty()) {
 
                         log.info("----Collection event----");
 //                        Can can = cancheck.get();
@@ -267,7 +275,7 @@ public class MilkCollectionService {
                         collections.setQuantity(actual_quantity);
                         collections.setDeductedWeight(lessWeight);
                         Double buyingPrice = productConfig.get().getBuyingPrice();
-                        log.info("buying price ", +buyingPrice);
+                        log.info("buying price {}", +buyingPrice);
                         Double totalAmount = buyingPrice * collections.getQuantity();
                         log.info("total amount " + totalAmount);
                         collections.setSession(col.getSession());
@@ -282,9 +290,16 @@ public class MilkCollectionService {
                         response.setEntity(cdata);
                         response.setMessage(HttpStatus.OK.getReasonPhrase());
 
+                        // get month and year
+                        SimpleDateFormat formatMonth = new SimpleDateFormat("MM");
+                        SimpleDateFormat formatYear = new SimpleDateFormat("yyyy");
+                        int monthNo = Integer.parseInt(formatMonth.format(collections.getCollectionDate()));
+                        String year = formatYear.format(collections.getCollectionDate());
+
+                        log.info("new month total for {} , farmer no {}, month {} .......", farmer.getName(), farmer.getFarmer_no(), monthNo);
 
                         log.info("Collection for " + collections.getCollectionDate() + " was updated at: " + collections.getUpdatedDate());
-                        Double monthTotal = milkCollectionRepo.getMonthyAccumulation(collections.getFarmerNo());
+                        Double monthTotal = milkCollectionRepo.getMonthyAccumulation(collections.getFarmerNo(), monthNo, year);
 
                         if (farmerInfo.get().getMobile_no() != null){
                             String message = "Dear "+farmerInfo.get().getName()+", M.No. "+farmerInfo.get().getFarmer_no()+"."+
@@ -1109,6 +1124,17 @@ public class MilkCollectionService {
     public List<AnalyticsData> getRouteSummaryForCenter(String date, Long centerId) {
         try {
             return milkCollectionRepo.getRouteSummaryForCenter(date, centerId);
+        }catch (Exception exc){
+            log.info(exc.getLocalizedMessage());
+            return null;
+        }
+    }
+
+
+    // monthly route summary for mcc
+    public List<AnalyticsData> getMccMonthlyRouteSummary(Integer month, Long centerId) {
+        try {
+            return milkCollectionRepo.getMccMonthlyRouteSummary(month, centerId);
         }catch (Exception exc){
             log.info(exc.getLocalizedMessage());
             return null;

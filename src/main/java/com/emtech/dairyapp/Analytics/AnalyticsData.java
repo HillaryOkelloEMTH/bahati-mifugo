@@ -11,6 +11,7 @@ public interface AnalyticsData {
     String getMonth();
     String getRoute();
     String getName();
+    String getDate();
     String getLocation();
     String getSession();
     Integer getDayOfMonth();

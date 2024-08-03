@@ -80,7 +80,7 @@ public class ExelReportService {
 
         try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream();){
             Sheet sheet = workbook.createSheet(SHEET);
-            String[] headers = {"firstname", "middlename", "lastname", "farmerno", "mobileno", "quantity", "price", "income", "expenses", "netpay", "bank", "accountno", "branch", "route", "mcc"};
+            String[] headers = {"farmer", "farmerno", "mobileno", "quantity", "price", "income", "expenses", "netpay", "bank", "accountno", "branch", "route", "mcc"};
             List<PayrollInterface> data = farmerRepo.getFarmerPayroll(month, year);
 
             // header row
@@ -159,6 +159,44 @@ public class ExelReportService {
 
     }
 
+    public EntityResponse<ByteArrayInputStream> getMccMonthlyRouteSummary(Integer month, Long centerId) {
+        EntityResponse<ByteArrayInputStream> response = new EntityResponse<>();
+
+        try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream();) {
+            Sheet sheet = workbook.createSheet(SHEET);
+            String[] headers = {"Route", "Quantity", "Date", "Amount"};
+            List<AnalyticsData> data = milkCollectionService.getMccMonthlyRouteSummary(month, centerId);
+
+            // header row
+            int rowNum = 0;
+            Row headerRow = sheet.createRow(rowNum++);
+            createHeaderRow(headerRow, headers);
+
+            for (AnalyticsData record: data) {
+                Row row = sheet.createRow(rowNum++);
+
+                row.createCell(0).setCellValue(record.getRoute());
+                row.createCell(1).setCellValue(record.getQuantity());
+                row.createCell(2).setCellValue(record.getDate());
+                row.createCell(3).setCellValue(record.getAmount());
+            }
+            workbook.write(out);
+
+            response.setMessage("retrieved summary successfully");
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(new ByteArrayInputStream(out.toByteArray()));
+
+        } catch (IOException e) {
+            log.error(e.toString());
+            response.setMessage("Unable to generate summary");
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        }
+        return response;
+    }
+
+
+
+
     private void fillDataRow(Row row, CollectionsData entity) {
         row.createCell(0).setCellValue(entity.getFarmer_no());
         row.createCell(1).setCellValue(entity.getFarmer());
@@ -170,21 +208,19 @@ public class ExelReportService {
     }
 
     private void fillPayroll(Row row, PayrollInterface pd) {
-        row.createCell(0).setCellValue(pd.getFname());
-        row.createCell(1).setCellValue(pd.getMname());
-        row.createCell(2).setCellValue(pd.getLname());
-        row.createCell(3).setCellValue(pd.getFno());
-        row.createCell(4).setCellValue(pd.getMobileNo());
-        row.createCell(5).setCellValue(pd.getQty());
-        row.createCell(6).setCellValue(pd.getPrice());
-        row.createCell(7).setCellValue(pd.getIncome());
-        row.createCell(8).setCellValue(pd.getExpenses());
-        row.createCell(9).setCellValue(pd.getNetpay());
-        row.createCell(10).setCellValue(pd.getBname());
-        row.createCell(11).setCellValue(pd.getAccno());
-        row.createCell(12).setCellValue(pd.getBranch());
-        row.createCell(13).setCellValue(pd.getRoute());
-        row.createCell(14).setCellValue(pd.getMcc());
+        row.createCell(0).setCellValue(pd.getFarmer());
+        row.createCell(1).setCellValue(pd.getFno());
+        row.createCell(2).setCellValue(pd.getMobileNo());
+        row.createCell(3).setCellValue(pd.getQty());
+        row.createCell(4).setCellValue(pd.getPrice());
+        row.createCell(5).setCellValue(pd.getIncome());
+        row.createCell(6).setCellValue(pd.getExpenses());
+        row.createCell(7).setCellValue(pd.getNetpay());
+        row.createCell(8).setCellValue(pd.getBname());
+        row.createCell(9).setCellValue(pd.getAccno());
+        row.createCell(10).setCellValue(pd.getBranch());
+        row.createCell(11).setCellValue(pd.getRoute());
+        row.createCell(12).setCellValue(pd.getMcc());
     }
     private void fillDataRowPaymentFile(Row row, PaymentFileData entity) {
         row.createCell(0).setCellValue(entity.getFarmer_no());

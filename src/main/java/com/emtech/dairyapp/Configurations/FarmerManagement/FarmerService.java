@@ -58,13 +58,26 @@ public class FarmerService {
             farmer.setUsername(username);
             Integer count = farmerRepo.getCount();
 
+            if (Objects.nonNull(farmer.getIdNumber()) && !"".equalsIgnoreCase(farmer.getIdNumber())){
+                log.info("checking if farmer with farmer with id no "+farmer.getIdNumber()+" exists");
+                Integer existsById = farmerRepo.farmerExistsById(farmer.getIdNumber());
 
-            boolean exists = farmerRepo.existsByIdNumber(farmer.getIdNumber());
+                if (existsById > 0){
+                    response.setMessage("The provided ID number is registered with a different farmer");
+                    response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+                    return response;
+                }
+            }
 
-            if (exists) {
-                response.setMessage("Farmer with id "+farmer.getIdNumber()+" already exists");
-                response.setStatusCode(HttpStatus.NOT_ACCEPTABLE.value());
-                return response;
+            if (Objects.nonNull(farmer.getMobileNo()) && !"".equalsIgnoreCase(farmer.getMobileNo())){
+                log.info("checking if farmer with farmer with mobile "+farmer.getMobileNo()+" exists");
+                Integer existsByMobile = farmerRepo.farmerExistsByMobile(farmer.getMobileNo());
+
+                if (existsByMobile > 0){
+                    response.setMessage("The provided Mobile Number is registered with a different farmer");
+                    response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+                    return response;
+                }
             }
 
             Integer memberNO=null;
