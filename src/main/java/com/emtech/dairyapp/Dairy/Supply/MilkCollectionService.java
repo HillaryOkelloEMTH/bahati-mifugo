@@ -484,11 +484,11 @@ public class MilkCollectionService {
         return response;
     }
 
-    public EntityResponse<?> getRouteSummary(Long routeId) {
+    public EntityResponse<?> getRouteDeliverySummary(Long routeId, int month, String year) {
         EntityResponse<Object> response = new EntityResponse<>();
 
         try {
-            List<MilkCollectionRepo.RouteTotals> totalsList = milkCollectionRepo.getRouteSummary(routeId);
+            List<MilkCollectionRepo.RouteTotals> totalsList = milkCollectionRepo.getRouteSummary(routeId, month, year);
 
             response.setMessage("Found "+totalsList.size()+" records");
             response.setStatusCode(HttpStatus.OK.value());

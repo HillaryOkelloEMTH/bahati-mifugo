@@ -77,6 +77,36 @@ public class ExcellReportsController {
             return ResponseEntity.status(response.getStatusCode()).body(response);
         }
     }
+
+    @GetMapping("allocations/history/{month}/{year}")
+    public ResponseEntity<?> getAllocationsHistory(@PathVariable Integer month, @PathVariable String year) {
+        var response = exelReportService.getAllocationsHistory(month, year);
+        Month m = Month.of(month);
+        String monthName = m.toString();
+        String filename = "allocation_history_"+monthName+".xlsx";
+
+        if (response.getStatusCode() == 200) {
+            InputStreamResource file = new InputStreamResource(response.getEntity());
+            return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename="+filename).contentType(MediaType.parseMediaType("application/vnd.ms-excel")).body(file);
+        } else {
+            return ResponseEntity.status(response.getStatusCode()).body(response);
+        }
+    }
+
+    @GetMapping("route/summary/{routeId}/{month}/{year}")
+    public ResponseEntity<?> getRouteDeliverySummary(@PathVariable Long routeId, @PathVariable int month, @PathVariable String year) {
+        var response = exelReportService.getRouteDeliverySummary(routeId, month, year);
+        Month monthValue = Month.of(month);
+        String monthName = monthValue.toString();
+        String fileName = "summary_"+monthName+".xlsx";
+
+        if (response.getStatusCode() == 200) {
+            InputStreamResource file = new InputStreamResource(response.getEntity());
+            return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename="+fileName).contentType(MediaType.parseMediaType("application/vnd.ms-excel")).body(file);
+        } else {
+            return ResponseEntity.status(response.getStatusCode()).body(response);
+        }
+    }
     @GetMapping("/collections/pickuplocation")
     public ResponseEntity<Resource> collectinsPerPickuplocations(@RequestParam Long pid,@RequestParam String date) {
         String filename = "collectionsPerPickuplocations.xlsx";

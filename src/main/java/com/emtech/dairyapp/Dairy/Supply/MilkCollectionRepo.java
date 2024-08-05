@@ -332,8 +332,9 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
 
 
     @Query(value = "select round(sum(quantity), 2) as quantity, date(collection_date) as date from collections where month(collection_date)=\n" +
-            "month(curdate()) and route_fk= :routeId group by date(collection_date) order by date(collection_date) desc", nativeQuery = true)
-    List<RouteTotals> getRouteSummary(Long routeId);
+            " :month and year(collection_date)= :year and route_fk= :routeId group by date(collection_date) order by date(collection_date) desc", nativeQuery = true)
+    List<RouteTotals> getRouteSummary(Long routeId, int month, String year);
+
 
 
     interface Totals{
