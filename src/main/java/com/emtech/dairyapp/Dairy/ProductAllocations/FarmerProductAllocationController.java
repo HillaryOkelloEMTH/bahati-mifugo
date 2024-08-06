@@ -27,7 +27,7 @@ public class FarmerProductAllocationController {
     }
 
     @GetMapping("get/{locationId}/{month}/{year}")
-    public ResponseEntity<EntityResponse<?>> getMccFarmerProductAllocations(@PathVariable Long locationId, @PathVariable Integer month, String year){
+    public ResponseEntity<EntityResponse<?>> getMccFarmerProductAllocations(@PathVariable Long locationId, @PathVariable Integer month, @PathVariable String year){
         EntityResponse<?> response = service.fetchMccFarmerProductAllocations(locationId, month, year);
         return ResponseEntity.ok().body(response);
     }

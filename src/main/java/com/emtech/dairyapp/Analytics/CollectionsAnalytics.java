@@ -23,9 +23,44 @@ public class CollectionsAnalytics {
         this.collectionRepo = collectionRepo;
     }
 
-    public EntityResponse getCollectionByDate(String date) {
+    public EntityResponse<?> getBahatiDailySummary(Integer month, Integer year) {
+        EntityResponse<List<MilkCollectionRepo.DailySummary>> response = new EntityResponse<>();
 
-        EntityResponse response = new EntityResponse();
+
+        try {
+            List<MilkCollectionRepo.DailySummary> data = collectionRepo.getBahatiDailySummary(month, year);
+
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setMessage("retrieved records for "+data.size()+" days");
+            response.setEntity(data);
+        } catch (Exception e) {
+            log.error(e.toString());
+            response.setMessage("An error occurred");
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        }
+        return response;
+    }
+
+    public EntityResponse<?> getMccDailySummary(Long locationId, Integer month, Integer year) {
+        EntityResponse<List<MilkCollectionRepo.DailySummary>> response = new EntityResponse<>();
+
+        try {
+            List<MilkCollectionRepo.DailySummary> data = collectionRepo.getMccDailySummary(locationId, month, year);
+
+            response.setMessage("Retrieved "+data.size()+" records");
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(data);
+        } catch (Exception e) {
+            log.error(e.toString());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage("An error occurred");
+        }
+        return response;
+    }
+
+    public EntityResponse<?> getCollectionByDate(String date) {
+
+        EntityResponse<List<AnalyticsData>> response = new EntityResponse<>();
         try {
 
             List<AnalyticsData> collections = collectionRepo.getCollectorDataPerDate(date);
@@ -61,9 +96,9 @@ public class CollectionsAnalytics {
         return response;
     }
 
-    public EntityResponse getCollectionByYear(Integer year) {
+    public EntityResponse<?> getCollectionByYear(Integer year) {
 
-        EntityResponse response = new EntityResponse();
+        EntityResponse<List<AnalyticsData>> response = new EntityResponse<>();
         try {
             List<AnalyticsData> collections = collectionRepo.getCollectorDataPerYear(year);
 //            LinkedStringInteger data = new LinkedStringInteger();

@@ -61,7 +61,7 @@ public class ExelReportService {
         headerStyle.setFont(font);
 
         // align to center
-        headerStyle.setAlignment(HorizontalAlignment.CENTER);
+//        headerStyle.setAlignment(HorizontalAlignment.CENTER);
         for (int col = 0; col < headers.length; col++) {
             Cell cell = headerRow.createCell(col);
             cell.setCellValue(headers[col]);
