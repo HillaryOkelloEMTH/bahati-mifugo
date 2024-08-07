@@ -55,6 +55,9 @@ public interface FarmerRepo extends JpaRepository<Farmer,Long> {
             "join users u on u.user_name =c2.username where u.id =:collectorId group by f.id",nativeQuery = true)
     List<Farmer> getfarmersPerCollector(Long collectorId);
 
+    @Query(value = "SELECT DISTINCT  f.*  from farmer f left join route r on r.id=f.route_fk  left join subcounty s on s.id =f.subcounty_fk left join county c on c.id =s.county_fk left JOIN pick_up_locations p on p.id=r.location_id join transporter t on t.route_id =r.id join users u on u.user_name =t.username where u.id =16 group by f.id", nativeQuery = true)
+    List<Farmer> getFarmersPerTransporter(Long transporterId);
+
     @Query(value = "select  max(farmer_no) from farmer",nativeQuery = true)
     Integer getMaxVaue();
      boolean existsByFarmerNo(Integer memberNo);

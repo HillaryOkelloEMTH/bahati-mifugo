@@ -100,11 +100,18 @@ public class FarmerController {
         EntityResponse response = farmerService.findById(farmerId);
         return ResponseEntity.ok().body(response);
     }
-    @GetMapping("farmers/collector")
-    public ResponseEntity<EntityResponse> getfarmerByCollector(@RequestParam Long collectorId){
-        EntityResponse response = farmerService.fetchFarmerByCollector(collectorId);
+    @GetMapping("farmers/collector/{collectorId}")
+    public ResponseEntity<?> getfarmerByCollector(@PathVariable Long collectorId){
+        var response = farmerService.fetchFarmerByCollector(collectorId);
         return ResponseEntity.ok().body(response);
     }
+
+    @GetMapping("farmers/transporter/{transporterId}")
+    public ResponseEntity<?> getFarmersPerTransporter(@PathVariable Long transporterId) {
+        var response = farmerService.getFarmersPerTransporter(transporterId);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
+    }
+
     @GetMapping("farmers/location")
     public ResponseEntity<?> getfarmerByCollector(){
         LinkedStringInteger response = farmerService.farmersPerLocation();

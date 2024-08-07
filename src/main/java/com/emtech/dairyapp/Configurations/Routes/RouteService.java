@@ -68,18 +68,18 @@ public class RouteService {
             return response;
         }
     }
-    public EntityResponse fetchCollectorRoutes(Long collectorId) {
+    public EntityResponse<?> fetchCollectorRoutes(Long collectorId) {
         log.info("Fetching Routes ...");
-        EntityResponse response = new EntityResponse();
+        EntityResponse<Object> response = new EntityResponse<>();
         try {
             List<RouteRepo.CollectorRoutes> Routes = repo.getRouteByCollector(collectorId);
-            if(Routes.size()>0) {
+            if(!Routes.isEmpty()) {
                 log.info("Collector Routes Found "+ "("+Routes.size()+")");
                 response.setEntity(Routes);
                 response.setStatusCode(HttpStatus.OK.value());
                 response.setMessage(HttpStatus.FOUND.getReasonPhrase());
             }else {
-                log.info("Routes Not Found "+ "("+Routes.size()+")");
+                log.info("Routes Not Found "+ "("+ 0 +")");
                 response.setEntity(Routes);
                 response.setStatusCode(HttpStatus.OK.value());
                 response.setMessage(HttpStatus.NO_CONTENT.getReasonPhrase());

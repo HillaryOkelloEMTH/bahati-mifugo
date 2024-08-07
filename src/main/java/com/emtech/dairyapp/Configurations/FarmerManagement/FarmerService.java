@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import javax.swing.text.html.parser.Entity;
 import java.util.*;
 
 @Service
@@ -519,18 +520,17 @@ public class FarmerService {
         }
     }
 
-    public EntityResponse fetchFarmerByCollector(Long collectorId) {
+    public EntityResponse<?> fetchFarmerByCollector(Long collectorId) {
         log.info("Fetching Farmers ...");
-        EntityResponse response = new EntityResponse();
+        EntityResponse<List<Farmer>> response = new EntityResponse<>();
         try {
             List<Farmer> farmer = farmerRepo.getfarmersPerCollector(collectorId);
 
-            if(farmer.size()>0) {
+            if(!farmer.isEmpty()) {
                 response.setEntity(farmer);
                 response.setStatusCode(HttpStatus.OK.value());
                 response.setMessage(HttpStatus.FOUND.getReasonPhrase());
             }else {
-
                 response.setEntity(farmer);
                 response.setStatusCode(HttpStatus.OK.value());
                 response.setMessage(HttpStatus.OK.getReasonPhrase());
@@ -542,6 +542,23 @@ public class FarmerService {
             response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
             return response;
         }
+    }
+
+    public EntityResponse<?> getFarmersPerTransporter(Long transporterId) {
+        EntityResponse<List<Farmer>> response = new EntityResponse<>();
+
+        try {
+            List<Farmer> farmers = farmerRepo.getFarmersPerTransporter(transporterId);
+
+            response.setEntity(farmers);
+            response.setMessage("Found "+farmers.size()+" farmers");
+            response.setStatusCode(HttpStatus.OK.value());
+        } catch (Exception e) {
+            log.error(e.toString());
+            response.setMessage("An error occurred");
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        }
+        return response;
     }
 
 
