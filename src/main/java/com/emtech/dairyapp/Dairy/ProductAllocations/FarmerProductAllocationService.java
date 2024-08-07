@@ -7,6 +7,8 @@ import com.emtech.dairyapp.Configurations.Interfaces.FarmerInfo;
 import com.emtech.dairyapp.Configurations.Interfaces.PickUpLocation;
 import com.emtech.dairyapp.Configurations.PickUpLocations.PickUpLocations;
 import com.emtech.dairyapp.Configurations.PickUpLocations.PickUpLocationsRepo;
+import com.emtech.dairyapp.Configurations.Routes.Route;
+import com.emtech.dairyapp.Configurations.Routes.RouteRepo;
 import com.emtech.dairyapp.Configurations.Utils.CONSTANTS;
 import com.emtech.dairyapp.Configurations.Utils.Formatter;
 import com.emtech.dairyapp.Dairy.Interface.Allocations;
@@ -37,6 +39,9 @@ public class FarmerProductAllocationService {
 
     @Autowired
     private FarmerProdAllocattionsRepo farmerProdAllocattionsRepo;
+
+    @Autowired
+    private RouteRepo routeRepo;
     @Autowired
     private ProductRepository productRepository;
     @Autowired
@@ -147,6 +152,40 @@ public class FarmerProductAllocationService {
         }
     }
 
+    public EntityResponse<?> fetchRouteFarmerProductAllocations(Long routeId, Integer month, String year) {
+        log.info("Fetching Mcc Farmer Product Allocations ........");
+        EntityResponse<List<Allocations>> response = new EntityResponse<>();
+        try {
+            Optional<Route> optionalRoute = routeRepo.findById(routeId);
+            List<Allocations> mccAllocations = farmerProdAllocattionsRepo.getRouteAllocations(routeId, month, year);
+
+            if (optionalRoute.isEmpty()) {
+                log.info("Route data Not Found for id " + routeId);
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                response.setMessage("Route Not Found for id " + routeId);
+                return response;
+            }
+
+
+            if (!mccAllocations.isEmpty()) {
+                log.info("FarmerProductAllocations Found " + "(" + mccAllocations.size() + ")");
+                response.setEntity(mccAllocations);
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setMessage(HttpStatus.FOUND.getReasonPhrase());
+            } else {
+                log.info("FarmerProductAllocations Not Found ");
+                response.setEntity(mccAllocations);
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setMessage("Product Allocations Not Found for "+optionalRoute.get().getRoute());
+            }
+            return response;
+        } catch (Exception e) {
+            log.error("Error: " + e.getLocalizedMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+            return response;
+        }
+    }
     public EntityResponse<?> fetchMccFarmerProductAllocations(Long locationId, Integer month, String year) {
         log.info("Fetching Mcc Farmer Product Allocations ........");
         EntityResponse<List<Allocations>> response = new EntityResponse<>();

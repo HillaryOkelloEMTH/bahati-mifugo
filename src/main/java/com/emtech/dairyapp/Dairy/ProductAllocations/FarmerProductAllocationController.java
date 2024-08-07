@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.swing.text.html.parser.Entity;
+
 @RestController
 @CrossOrigin
 @RequestMapping("api/v1/farmer/allocations")
@@ -28,8 +30,14 @@ public class FarmerProductAllocationController {
 
     @GetMapping("get/{locationId}/{month}/{year}")
     public ResponseEntity<EntityResponse<?>> getMccFarmerProductAllocations(@PathVariable Long locationId, @PathVariable Integer month, @PathVariable String year){
-        EntityResponse<?> response = service.fetchMccFarmerProductAllocations(locationId, month, year);
-        return ResponseEntity.ok().body(response);
+        var response = service.fetchMccFarmerProductAllocations(locationId, month, year);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
+    }
+
+    @GetMapping("get/route/{routeId}/{month}/{year}")
+    public ResponseEntity<?> fetchRouteFarmerProductAllocations(@PathVariable Long routeId, @PathVariable Integer month, @PathVariable String year) {
+        var response = service.fetchRouteFarmerProductAllocations(routeId, month, year);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
     @GetMapping("farmer")
     public ResponseEntity<EntityResponse<?>> getFarmerAllocations(@RequestParam Integer farmerNo){
