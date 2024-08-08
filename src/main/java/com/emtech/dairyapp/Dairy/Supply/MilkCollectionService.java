@@ -1,10 +1,17 @@
 package com.emtech.dairyapp.Dairy.Supply;
 
 import com.emtech.dairyapp.Analytics.AnalyticsData;
+import com.emtech.dairyapp.Auth.Data.User.UserData;
+import com.emtech.dairyapp.Auth.User.User;
+import com.emtech.dairyapp.Auth.User.UserRepository;
+import com.emtech.dairyapp.Auth.User.UserService;
 import com.emtech.dairyapp.Configurations.CanManagement.Can;
 import com.emtech.dairyapp.Configurations.CanManagement.CanRepo;
 import com.emtech.dairyapp.Configurations.FarmerManagement.FarmerRepo;
 import com.emtech.dairyapp.Configurations.Interfaces.FarmerInfo;
+import com.emtech.dairyapp.Configurations.Interfaces.Locations;
+import com.emtech.dairyapp.Configurations.PickUpLocations.PickUpLocations;
+import com.emtech.dairyapp.Configurations.PickUpLocations.PickUpLocationsRepo;
 import com.emtech.dairyapp.Configurations.ProductPriceConfiguration.ProductConfig;
 import com.emtech.dairyapp.Configurations.ProductPriceConfiguration.ProductConfigRepo;
 import com.emtech.dairyapp.Configurations.Routes.Route;
@@ -43,11 +50,15 @@ public class MilkCollectionService {
     private final CanRepo canRepo;
     private final RouteRepo routeRepo;
 
+    private final PickUpLocationsRepo pickUpLocationsRepo;
+
+    private final UserService userService;
+
     @Value("${sms.enable}")
     private boolean sms;
 
 
-    public MilkCollectionService(MilkCollectionRepo milkCollectionRepo, ProductConfigRepo productConfigRepo, FloatManagerRepo floatManagerRepo, Codenerator codenerator, SmsServiceV2 smsServiceV2, FarmerRepo farmerRepo, CanRepo canRepo, RouteRepo routeRepo) {
+    public MilkCollectionService(MilkCollectionRepo milkCollectionRepo, ProductConfigRepo productConfigRepo, FloatManagerRepo floatManagerRepo, Codenerator codenerator, SmsServiceV2 smsServiceV2, FarmerRepo farmerRepo, CanRepo canRepo, RouteRepo routeRepo, PickUpLocationsRepo pickUpLocationsRepo, UserService userService) {
         this.milkCollectionRepo = milkCollectionRepo;
         this.productConfigRepo = productConfigRepo;
         this.floatManagerRepo = floatManagerRepo;
@@ -56,6 +67,8 @@ public class MilkCollectionService {
         this.farmerRepo = farmerRepo;
         this.canRepo = canRepo;
         this.routeRepo = routeRepo;
+        this.pickUpLocationsRepo = pickUpLocationsRepo;
+        this.userService = userService;
     }
 
 
@@ -429,9 +442,26 @@ public class MilkCollectionService {
         return response;
     }
 
-    public EntityResponse getCollectionsByDate(Long collectorId, String date) {
+    public EntityResponse<?> getCollectionsByDateAndSource(Long collectorId, String date) {
+        EntityResponse<List<CollectionsData>> response = new EntityResponse<>();
 
-        EntityResponse response = new EntityResponse();
+        try {
+            if (isTransporter(collectorId)) {
+                response = getCollectionsByDate(collectorId, date);
+            } else {
+                Long mccId = getLocationId(collectorId);
+                response = getMccCollectionsByDate(mccId, date);
+            }
+        } catch (Exception e) {
+            log.error(e.toString());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage("An error occurred");
+        }
+        return response;
+    }
+
+    public EntityResponse<List<CollectionsData>> getCollectionsByDate(Long collectorId, String date) {
+        EntityResponse<List<CollectionsData>> response = new EntityResponse<>();
         try {
 
             List<CollectionsData> farmerrecord = milkCollectionRepo.fetchByCollectorandDate(collectorId, date);
@@ -443,6 +473,23 @@ public class MilkCollectionService {
             log.error(e.getMessage());
             response.setStatusCode(HttpStatus.BAD_REQUEST.value());
             response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+        }
+        return response;
+    }
+
+    public EntityResponse<List<CollectionsData>> getMccCollectionsByDate(Long mccId, String date) {
+        EntityResponse<List<CollectionsData>> response = new EntityResponse<>();
+
+        try {
+            List<CollectionsData> data = milkCollectionRepo.fetchByMccAndDate(mccId, date);
+
+            response.setMessage("retrieved "+data.size()+" deliveries");
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(data);
+        } catch (Exception e) {
+            log.error(e.toString());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage("An error occurred");
         }
         return response;
     }
@@ -553,10 +600,28 @@ public class MilkCollectionService {
         return response;
     }
 
+    public EntityResponse<?> getFilteredCollectionsByDate(Long collector, String farmerNo, String session, String from, String to) {
+        EntityResponse<List<CollectionsData>> response = new EntityResponse<>();
 
-    public EntityResponse getFilteredCollections(Long collector, String farmerNo, String session, String from, String to) {
+        try {
+            if (isTransporter(collector)) {
+                response = getFilteredCollections(collector, farmerNo, session, from, to);
+            } else {
+                Long mccId = getLocationId(collector);
+                response = getMccFilteredCollections(mccId, farmerNo, session, from, to);
+            }
+        } catch (Exception e) {
+            log.error(e.toString());
+            response.setMessage("An error occurred");
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        }
+        return response;
+    };
 
-        EntityResponse response = new EntityResponse();
+
+    public EntityResponse<List<CollectionsData>> getFilteredCollections(Long collector, String farmerNo, String session, String from, String to) {
+        EntityResponse<List<CollectionsData>> response = new EntityResponse<>();
+
         try {
             List<CollectionsData> farmerrecord = milkCollectionRepo.getFilteredCollections(collector, farmerNo, session, from, to);
             response.setStatusCode(HttpStatus.OK.value());
@@ -567,6 +632,23 @@ public class MilkCollectionService {
             log.error(e.getMessage());
             response.setStatusCode(HttpStatus.BAD_REQUEST.value());
             response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+        }
+        return response;
+    }
+
+    public EntityResponse<List<CollectionsData>> getMccFilteredCollections(Long mccId, String farmerNo, String session, String from, String to) {
+        EntityResponse<List<CollectionsData>> response = new EntityResponse<>();
+
+        try {
+            List<CollectionsData> data = milkCollectionRepo.getMccFilteredCollections(mccId, farmerNo, session, from, to);
+
+            response.setMessage("data retrieved successfully");
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(data);
+        } catch (Exception e) {
+            log.error(e.toString());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage("An error occurred");
         }
         return response;
     }
@@ -1128,6 +1210,33 @@ public class MilkCollectionService {
             log.info(exc.getLocalizedMessage());
             return null;
         }
+    }
+
+    // getting the user role from userdata
+    private boolean isTransporter(Long collectorId) {
+        String role = "";
+        try {
+            UserData userData = userService.getUserDetails(collectorId);
+
+            if (userData.getRoles() != null) {
+                role = userData.getRoles().get(0).getName();
+            }
+        } catch (Exception e) {
+            log.error(e.toString());
+        }
+        return role.equalsIgnoreCase("Transporter");
+    }
+
+    // get location id from given id
+    private Long getLocationId(Long collectorId) {
+        List<Locations> locations = new ArrayList<>();
+        try {
+
+            locations = pickUpLocationsRepo.getPickUpLcoationsByCollectorId(collectorId);
+        } catch (Exception e) {
+            log.error(e.toString());
+        }
+        return locations.get(0).getId();
     }
 
 

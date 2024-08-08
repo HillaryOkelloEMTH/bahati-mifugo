@@ -2,6 +2,7 @@ package com.emtech.dairyapp.Configurations.PickUpLocations;
 
 
 import com.emtech.dairyapp.Configurations.Collectors.Collector;
+import com.emtech.dairyapp.Configurations.FarmerManagement.BankDetails;
 import com.emtech.dairyapp.Configurations.Interfaces.Locations;
 import com.emtech.dairyapp.Configurations.Interfaces.PickUpLocation;
 import com.emtech.dairyapp.Configurations.Interfaces.PickUpPoints;
@@ -242,11 +243,11 @@ public class PickUpLocationService {
         }
         return response;
     }
-    public EntityResponse getPickUpLocationsByCollector(Long collectorId) {
-        EntityResponse response = new EntityResponse<>();
+    public EntityResponse<?> getPickUpLocationsByCollector(Long collectorId) {
+        EntityResponse<List<Locations>> response = new EntityResponse<>();
         try {
             List<Locations> data = pickUpLocationsRepo.getPickUpLcoationsByCollectorId(collectorId);
-            if(data.size()>0){
+            if(!data.isEmpty()){
                 response.setStatusCode(HttpStatus.OK.value());
                 response.setEntity(data);
                 response.setMessage(HttpStatus.OK.getReasonPhrase());
@@ -260,6 +261,23 @@ public class PickUpLocationService {
 
             response.setStatusCode(HttpStatus.BAD_REQUEST.value());
             response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+        }
+        return response;
+    }
+
+    public EntityResponse<?> getTransporterPickUpLocations(Long transporterId) {
+        EntityResponse<List<Locations>> response = new EntityResponse<>();
+
+        try {
+            List<Locations> data = pickUpLocationsRepo.getTransporterLocations(transporterId);
+
+            response.setMessage("Retrieved "+data.size()+" records");
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(data);
+        } catch (Exception e) {
+            log.error(e.toString());
+            response.setMessage("An error occurred");
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
         }
         return response;
     }

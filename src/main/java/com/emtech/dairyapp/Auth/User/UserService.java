@@ -29,10 +29,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
@@ -81,6 +78,32 @@ public class UserService {
             return this.userRoleRepository.findAllByUserAndStatus(user, 1).stream().map(UserRole::getRole).collect(Collectors.toList());
         }
     }
+
+    public EntityResponse<?> updateDetails() {
+        log.info("updating details");
+        for (int id=41; id<=65; id++) {
+            Optional<User> optionU = userRepository.findById((long) id);
+            Optional<Role> optR = roleRepository.findById((long) 5);
+
+            if (optionU.isEmpty()) {
+                return new EntityResponse<>();
+            }
+            if (optR.isEmpty()) {
+                return new EntityResponse<>();
+            }
+
+            User u = optionU.get();
+            Role r = optR.get();
+
+
+
+            if (this.assignRole(optionU.get(), optR.get(), true)) {
+                log.log(Level.INFO, String.format("User assigned role [ %s ]", optionU.get()));
+            }
+        }
+        log.info("done updating transporter roles");
+        return new EntityResponse<>();
+        }
 
     public RecordCreateResponse createUser(@NonNull String userName, @NonNull String firstName, @NonNull String lastName, @NonNull String email, @NonNull String mobile, @NonNull Long roleId){
         AtomicReference<RecordCreateResponse> response = new AtomicReference<>();

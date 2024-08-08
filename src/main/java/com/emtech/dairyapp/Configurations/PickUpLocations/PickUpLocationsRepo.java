@@ -27,6 +27,9 @@ public interface PickUpLocationsRepo extends JpaRepository<PickUpLocations, Long
     @Query(value = "SELECT p.id,p.name ,p.land_mark as landmark,w.name as ward from pick_up_locations p join ward w on w.id =p.ward_fk  join collector c ON p.id =c.location_id join users u on c.username =u.user_name WHERE u.id = :collectorId",nativeQuery = true)
     List<Locations> getPickUpLcoationsByCollectorId(Long collectorId );
 
+    @Query(value = "SELECT p.id,p.name ,p.land_mark as landmark,w.name as ward from pick_up_locations p join ward w on w.id =p.ward_fk join route r ON p.id =r.location_id join transporter t on t.route_id = r.id join users u on u.user_name = t.username  WHERE u.id = :transporterId", nativeQuery = true)
+    List<Locations> getTransporterLocations(Long transporterId);
+
     @Query(value = "SELECT r.id,r.route  from route r  WHERE r.location_id= :locationId",nativeQuery = true)
     List<RouteInterface> getRoutesPerLocation(Long locationId );
 

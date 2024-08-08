@@ -44,6 +44,11 @@ public class AuthController {
         }
     }
 
+    @PostMapping("updateroutes")
+    public ResponseEntity<?> updateUserData() {
+        return ResponseEntity.ok().body(userService.updateDetails());
+    }
+
 
     @RequestMapping(
             path = "/update-user-password",
