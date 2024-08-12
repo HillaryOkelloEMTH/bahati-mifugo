@@ -29,7 +29,7 @@ public class AnalyticsController {
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
-    @GetMapping("mcc-daily-summary/{month}/{year}")
+    @GetMapping("mcc-daily-summary/{locationId}/{month}/{year}")
     public ResponseEntity<?> getMccDailySummary(@PathVariable Long locationId, @PathVariable Integer month, @PathVariable Integer year) {
         var response = analyticsService.getMccDailySummary(locationId, month, year);
         return ResponseEntity.status(response.getStatusCode()).body(response);

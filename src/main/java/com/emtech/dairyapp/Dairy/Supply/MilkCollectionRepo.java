@@ -23,12 +23,10 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
     Optional<MilkCollections> findByCollectionNumber(String deliveryNo);
 
 
-    @Query(value = "select round(sum(quantity), 2) as qty, day(collection_date) as day from collections where month(collection_date)= :month and year(collection_date)= :year group by date(collect\n" +
-            "ion_date)", nativeQuery = true)
+    @Query(value = "select round(sum(quantity), 2) as qty, day(collection_date) as day from collections where month(collection_date)= :month and year(collection_date)= :year group by date(collection_date)", nativeQuery = true)
     List<DailySummary> getBahatiDailySummary(Integer month, Integer year);
 
-    @Query(value = " select round(sum(c.quantity), 2) as qty, day(c.collection_date) as day from collections c join route r on c.route_fk=r.id join pick_up_locations pul on r.location_id=pul.id where month(c.collection_date)= :month and year(c.collection_date)= :year and pul.id= :locationId group by date(c.collection_da\n" +
-            "te)", nativeQuery = true)
+    @Query(value = " select round(sum(c.quantity), 2) as qty, day(c.collection_date) as day from collections c join route r on c.route_fk=r.id join pick_up_locations pul on r.location_id=pul.id where month(c.collection_date)= :month and year(c.collection_date)= :year and pul.id= :locationId group by date(c.collection_date)", nativeQuery = true)
     List<DailySummary> getMccDailySummary(Long locationId, Integer month, Integer year);
 
     @Query(value = "SELECT f.first_name ,f.last_name ,f.farmer_no,c.updated_status as updateStatus,c.can_no as canNo,c.original_quantity as originalQuantity,c.id, c.session, c.collection_number as collectionCode,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer ,c.amount,c.quantity,c.collection_date,r.route as route from collections c join users u on c.collector_id =u.id join farmer f on f.farmer_no=c.farmer_no join route r on r.id=c.route_fk  where c.collector_id =:collectorId and c.event= 'Collection' and DATE(c.collection_date)= :date order by c.collection_date", nativeQuery = true)

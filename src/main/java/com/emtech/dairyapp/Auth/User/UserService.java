@@ -57,7 +57,7 @@ public class UserService {
     @Value("${jwt.password.token.expirationMs}")
     private String resetPasswordTokenExpiration;
 
-    EntityResponse res= new EntityResponse<>();
+    EntityResponse<?> res= new EntityResponse<>();
 
     public List<Role> validateUser(@NonNull String username) {
         List<Role> roles = new ArrayList<>();
@@ -67,7 +67,6 @@ public class UserService {
                 roles.addAll(this.userRoles(user, true));
             }
         });
-
         return roles;
     }
 
@@ -95,15 +94,14 @@ public class UserService {
             User u = optionU.get();
             Role r = optR.get();
 
-
-
             if (this.assignRole(optionU.get(), optR.get(), true)) {
                 log.log(Level.INFO, String.format("User assigned role [ %s ]", optionU.get()));
             }
         }
+
         log.info("done updating transporter roles");
         return new EntityResponse<>();
-        }
+    }
 
     public RecordCreateResponse createUser(@NonNull String userName, @NonNull String firstName, @NonNull String lastName, @NonNull String email, @NonNull String mobile, @NonNull Long roleId){
         AtomicReference<RecordCreateResponse> response = new AtomicReference<>();
@@ -164,9 +162,8 @@ public class UserService {
 //                            } catch (Exception e) {
 //                                e.printStackTrace();
 //                            }
-//
                             response.set(RecordCreateResponse.builder().message("User created successfully !").statusCode(HttpStatus.CREATED.value()).build());
-                        }else {
+                        } else {
                             log.log(Level.SEVERE, String.format("Selected role with the id %s is not active !", roleId));
 
                             response.set(RecordCreateResponse.builder().message(String.format("Selected role with the id %s is not active !", roleId)).statusCode(HttpStatus.BAD_REQUEST.value()).build());
@@ -180,7 +177,6 @@ public class UserService {
                 });
             });
         });
-
         return response.get();
     }
 

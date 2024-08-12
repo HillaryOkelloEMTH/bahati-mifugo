@@ -8,6 +8,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import java.util.Date;
 
 @Data
 @NoArgsConstructor
@@ -19,4 +20,6 @@ public class Transporter {
     private Long id;
     private String username;
     private Long routeId;
+    private Character active;
+    private Date createdOn;
 }
