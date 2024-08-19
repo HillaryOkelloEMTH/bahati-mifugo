@@ -59,9 +59,9 @@ public class SmsServiceV2 {
                                    if (bal == 50.0 || bal == 100.0 || bal == 200.0 || bal == 1000.0 || bal == 500.0 || bal == 2000.0) {
 //                                   SMSNotification("The credit amount balance is at "+ bal+" units", "254708145423");
                                        SMSNotification("The credit amount balance is at " + bal + " units", "254112209296");
+                                       SMSNotification("The credit amount balance is at " + bal + " units.", "254722585903");
 
-                                       SMSNotification("Hello Katherine The credit amount balance is at " + bal + " units.", "254719411709");
-
+                                       SMSNotification("The credit amount balance is at " + bal + " units.", "254719411709");
                                        SMSNotification("The credit amt balance for Bahati Dairies is" + bal + " units.", "254715318204");
                                    }
                                    log.info("The response is ::: {} and body is {}", clientResponse.statusCode(), body);

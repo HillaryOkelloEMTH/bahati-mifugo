@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.validator.constraints.UniqueElements;
 
 import javax.persistence.*;
@@ -40,10 +41,6 @@ public class Farmer {
     private Integer paymentDate;
     private String paymentMode; //mpesa/cash/bank
 
-    private Date createdAt = new Date();
-    private Character deletedFlag;
-    private Date deletedOn;
-
     private String location;
     private String subLocation;
     private String village;
@@ -54,4 +51,13 @@ public class Farmer {
     private Long routeFk;
     private String transportMeans;
     private String gender;
+
+    //audit
+    private String addedBy;
+    private String updatedBy;
+    private Date createdAt;
+    @UpdateTimestamp
+    private Date updatedOn;
+    private Character deletedFlag;
+    private Date deletedOn;
 }
