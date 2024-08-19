@@ -1,11 +1,13 @@
 package com.emtech.dairyapp.Configurations.Transporter;
 
+import com.emtech.dairyapp.Configurations.Interfaces.Transporters;
 import com.emtech.dairyapp.Response.EntityResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import javax.swing.text.html.parser.Entity;
 import java.util.List;
 
 @Service
@@ -43,6 +45,24 @@ public class TransporterServiceImpl implements TransporterService {
         } catch (Exception e) {
             log.error(e.toString());
             response.setMessage("An error occurred");
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        }
+        return response;
+    }
+
+    @Override
+    public EntityResponse<?> getTransporters() {
+        EntityResponse<List<Transporters>> response = new EntityResponse<>();
+
+        try {
+            List<Transporters> transporters = transporterRepo.getTransporters();
+
+            response.setMessage("retrieved "+transporters.size()+" records");
+            response.setEntity(transporters);
+            response.setStatusCode(HttpStatus.OK.value());
+        } catch (Exception e) {
+            log.error(e.toString());
+            response.setMessage("Failed to retrieve transporters");
             response.setStatusCode(HttpStatus.BAD_REQUEST.value());
         }
         return response;

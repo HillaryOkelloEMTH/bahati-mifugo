@@ -8,4 +8,5 @@ public interface TransporterService {
     EntityResponse<String> addTransporter(Long routeId, String username);
     EntityResponse<?> getTransporterRoutes(Long transporterId);
     EntityResponse<?> removeTransporter(String username, Long routeId);
+    EntityResponse<?> getTransporters();
 }

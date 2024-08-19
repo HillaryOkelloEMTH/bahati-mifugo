@@ -19,6 +19,12 @@ public class TransporterController {
         return new ResponseEntity<>(response, HttpStatus.valueOf(response.getStatusCode()));
     }
 
+    @GetMapping("all")
+    public ResponseEntity<?> getTransporters() {
+        var response = transporterService.getTransporters();
+        return new ResponseEntity<>(response, HttpStatus.valueOf(response.getStatusCode()));
+    }
+
     @GetMapping("get/{transporterId}")
     public ResponseEntity<?> getTransporterRoutes(@PathVariable Long transporterId) {
         var response = transporterService.getTransporterRoutes(transporterId);
