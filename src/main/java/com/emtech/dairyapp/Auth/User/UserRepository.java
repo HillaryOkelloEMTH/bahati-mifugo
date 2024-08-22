@@ -1,5 +1,6 @@
 package com.emtech.dairyapp.Auth.User;
 
+import org.apache.xmlbeans.impl.xb.xmlconfig.Extensionconfig;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.lang.NonNull;
@@ -23,4 +24,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query(value = "select count(*) from  users where status != 'Active'",nativeQuery = true)
     Integer inactiveUsers();
+
+    @Query(value="select * from users u join user_role ur on u.id=ur.user where ur.role= :roleId", nativeQuery = true)
+    List<User> usersByRole(Long roleId);
 }

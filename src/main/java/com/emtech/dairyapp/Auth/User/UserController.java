@@ -171,6 +171,12 @@ public class UserController {
 
     }
 
+    @GetMapping("by-role/{roleId}")
+    public ResponseEntity<?> getUsersByRole(@PathVariable Long roleId) {
+        var response = userService.getUsersByRole(roleId);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
+    }
+
 //    @PreAuthorize(value = "hasAuthority('VIEW_USERS')")
     @RequestMapping(
             path = "{userId}",

@@ -15,6 +15,7 @@ import com.emtech.dairyapp.Auth.Utilities.PasswordUtil;
 import com.emtech.dairyapp.Auth.Utilities.SendCredentialToMail;
 import com.emtech.dairyapp.Auth.Utilities.ToolKit;
 import com.emtech.dairyapp.Response.EntityResponse;
+import io.netty.handler.logging.LogLevel;
 import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,6 +23,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
+import javax.swing.text.html.parser.Entity;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -546,6 +548,44 @@ public class UserService {
         }
 
         return response.get();
+    }
+
+
+    public EntityResponse<?> getUsersByRole(Long roleId) {
+        EntityResponse<List<UserData>> response = new EntityResponse<>();
+
+        try {
+            List<User> users = userRepository.usersByRole(roleId);
+
+            List<UserData> usersData = new ArrayList<>();
+
+            users.forEach(user -> {
+                UserData userData = UserData.builder()
+                        .id(user.getId())
+                        .firstName(user.getFirstName())
+                        .lastName(user.getLastName())
+                        .username(user.getUsername())
+                        .email(user.getEmail())
+                        .mobile(user.getMobile())
+                        .status(user.getStatus())
+                        .pickUpLocation(user.getPickUpLocation())
+                        .creationDate(user.getCreationDate())
+                        .updateDate(user.getUpdateDate())
+                        .isLoggedIn(user.getIsLoggedIn())
+                .build();
+
+                usersData.add(userData);
+            });
+
+            response.setMessage("retrieved "+usersData.size()+" records");
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(usersData);
+        } catch (Exception e) {
+            log.log(Level.SEVERE, e.toString());
+            response.setMessage("an error occurred");
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        }
+        return response;
     }
 
     public UserData getUserDetails(@NonNull Long userId){
