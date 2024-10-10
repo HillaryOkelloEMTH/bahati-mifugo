@@ -96,7 +96,7 @@ public class ExelReportService {
 
         try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream();){
             Sheet sheet = workbook.createSheet(SHEET);
-            String[] headers = {"Farmer", "Farmer No", "Mobile No", "Quantity", "Price", "Income", "Expenses", "NetPay", "Bank", "Account No", "Branch", "Route", "Mcc"};
+            String[] headers = {"Farmer", "Farmer No", "Mobile No", "Quantity", "Price", "Income", "Dairy Meal", "Salts", "Others","Expenses", "NetPay", "Bank", "Account No", "Branch", "Route", "Mcc"};
             List<PayrollInterface> data = farmerRepo.getFarmerPayroll(month, year);
 
             // header row
@@ -295,13 +295,16 @@ public class ExelReportService {
         row.createCell(3).setCellValue(pd.getQty());
         row.createCell(4).setCellValue(pd.getPrice());
         row.createCell(5).setCellValue(pd.getIncome());
-        row.createCell(6).setCellValue(pd.getExpenses());
-        row.createCell(7).setCellValue(pd.getNetpay());
-        row.createCell(8).setCellValue(pd.getBname());
-        row.createCell(9).setCellValue(pd.getAccno());
-        row.createCell(10).setCellValue(pd.getBranch());
-        row.createCell(11).setCellValue(pd.getRoute());
-        row.createCell(12).setCellValue(pd.getMcc());
+        row.createCell(6).setCellValue(pd.getDairyMeal());
+        row.createCell(7).setCellValue(pd.getSalts());
+        row.createCell(8).setCellValue(0);
+        row.createCell(9).setCellValue(pd.getExpenses());
+        row.createCell(10).setCellValue(pd.getNetpay());
+        row.createCell(11).setCellValue(pd.getBname());
+        row.createCell(12).setCellValue(pd.getAccno());
+        row.createCell(13).setCellValue(pd.getBranch());
+        row.createCell(14).setCellValue(pd.getRoute());
+        row.createCell(15).setCellValue(pd.getMcc());
     }
 
     private void fillAllocationsReport(Row row, AllocationDataInterface data) {

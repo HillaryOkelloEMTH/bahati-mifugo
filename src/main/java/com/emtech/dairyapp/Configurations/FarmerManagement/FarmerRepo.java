@@ -87,6 +87,12 @@ FarmerAccruedAmount getFarmerAccruedAmount(Long id, Character paymentyStatus);
             "r.route, " +
             "p.name AS mcc, " +
             "c.current_price as price, " +
+            "(select round(coalesce(sum(case when fpa2.product_name like '%dairy' then fpa2.amount else 0 end), 0), 2) " +
+            "from farmer_product_allocations fpa2 WHERE MONTH(fpa2.approval_date) = :month " +
+            "AND YEAR(fpa2.approval_date) = :year and fpa2.farmer_no=c.farmer_no) as dairyMeal, " +
+            "(select round(coalesce(sum(case when fpa2.product_name not like '%dairy' then fpa2.amount else 0 end), 0), 2) " +
+            "from farmer_product_allocations fpa2 WHERE MONTH(fpa2.approval_date) = :month " +
+            "AND YEAR(fpa2.approval_date) = :year and fpa2.farmer_no=c.farmer_no) as salts, " +
             "(SELECT ROUND(COALESCE(SUM(fpa.amount), 0.0), 2) " +
             " FROM farmer_product_allocations fpa " +
             " WHERE MONTH(fpa.requested_on) = :month " +
@@ -103,7 +109,7 @@ FarmerAccruedAmount getFarmerAccruedAmount(Long id, Character paymentyStatus);
             "b.branch " +
             "FROM collections c " +
             "LEFT JOIN farmer f ON c.farmer_no = f.farmer_no " +
-            "LEFT JOIN farmer_product_allocations fpa ON f.farmer_no = fpa.farmer_no " +
+//            "LEFT JOIN farmer_product_allocations fpa ON f.farmer_no = fpa.farmer_no " + almost f*ckd -- up join
             "LEFT JOIN route r ON c.route_fk = r.id " +
             "LEFT JOIN pick_up_locations p ON r.location_id = p.id " +
             "LEFT JOIN bank_details b ON f.bank_details_id = b.id " +
