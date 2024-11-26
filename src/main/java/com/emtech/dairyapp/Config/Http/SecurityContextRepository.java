@@ -31,7 +31,7 @@ public class SecurityContextRepository implements ServerSecurityContextRepositor
 //                .filter(authHeader -> authHeader.startsWith("Bearer "))
 //                .flatMap(authHeader -> {
 //                    String authToken = "";
-//                    if(authHeader != null && !authHeader.isEmpty()){
+//                    if(authHeader != null && !authHeader.isEmpty()) {
 //                         authToken = authHeader.substring(7);
 //                    }else{
 //                        authToken = "";

@@ -87,10 +87,10 @@ FarmerAccruedAmount getFarmerAccruedAmount(Long id, Character paymentyStatus);
             "r.route, " +
             "p.name AS mcc, " +
             "c.current_price as price, " +
-            "(select round(coalesce(sum(case when fpa2.product_name like '%dairy' then fpa2.amount else 0 end), 0), 2) " +
+            "(select round(coalesce(sum(case when fpa2.product_name like 'dairy%' then fpa2.amount else 0 end), 0), 2) " +
             "from farmer_product_allocations fpa2 WHERE MONTH(fpa2.approval_date) = :month " +
             "AND YEAR(fpa2.approval_date) = :year and fpa2.farmer_no=c.farmer_no) as dairyMeal, " +
-            "(select round(coalesce(sum(case when fpa2.product_name not like '%dairy' then fpa2.amount else 0 end), 0), 2) " +
+            "(select round(coalesce(sum(case when fpa2.product_name not like 'dairy%' then fpa2.amount else 0 end), 0), 2) " +
             "from farmer_product_allocations fpa2 WHERE MONTH(fpa2.approval_date) = :month " +
             "AND YEAR(fpa2.approval_date) = :year and fpa2.farmer_no=c.farmer_no) as salts, " +
             "(SELECT ROUND(COALESCE(SUM(fpa.amount), 0.0), 2) " +
