@@ -5,8 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.mail.javamail.MimeMessageHelper;
 
-import javax.mail.*;
-import javax.mail.internet.MimeMessage;
+import jakarta.mail.*;
+import jakarta.mail.internet.MimeMessage;
 import java.io.File;
 import java.io.IOException;
 import java.util.Calendar;

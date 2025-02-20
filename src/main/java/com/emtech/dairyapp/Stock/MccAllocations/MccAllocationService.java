@@ -60,7 +60,7 @@ public class MccAllocationService {
                 return response;
             }
 
-            log.info("checking if product with id {} exists .......", productId);
+            log.info("checking if product with id {} exists .....", productId);
             if (optionalProduct.isEmpty()) {
                 response.setMessage("Product details not found");
                 response.setStatusCode(HttpStatus.NOT_FOUND.value());

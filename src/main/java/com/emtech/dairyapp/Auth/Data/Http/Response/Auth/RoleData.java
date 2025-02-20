@@ -7,8 +7,8 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import javax.persistence.Column;
-import javax.persistence.Convert;
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.List;

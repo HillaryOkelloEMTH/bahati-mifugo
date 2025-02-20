@@ -32,10 +32,10 @@ public class BulkSMSController {
         try {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyymmddss");
             String bulkCode = "BULKSMS" + sdf.format(new Date());
-            log.info("Total Number of SMS to be sent - " + request.getRecipients().size());
-            log.info("Bulk SMS Code - " + bulkCode);
+            log.info("Total Number of SMS to be sent - {}", request.getRecipients().size());
+            log.info("Bulk SMS Code - {}", bulkCode);
             List<RecipientsItem> recipients = request.getRecipients();
-            if (recipients.size() > 0) {
+            if (!recipients.isEmpty()) {
                 for (int i = 0; i < recipients.size(); i++) {
                     if (stringIsPhoneNumber(recipients.get(i).getPhoneNumber())) {
                         String body = request.getTemplateBody();

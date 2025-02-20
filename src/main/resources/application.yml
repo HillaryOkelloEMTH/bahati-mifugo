@@ -1,11 +1,11 @@
 server:
   error:
     include-message: always
-  port: 9600
+  port: 8600
 
 spring:
   datasource:
-    url: jdbc:mariadb://localhost:3307/bahatiTest
+    url: jdbc:mariadb://localhost:3306/bahati_test
     username: root
     password:
     driver-class-name: org.mariadb.jdbc.Driver

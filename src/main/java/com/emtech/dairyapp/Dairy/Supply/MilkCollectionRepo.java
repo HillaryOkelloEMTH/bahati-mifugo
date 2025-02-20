@@ -192,7 +192,7 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
     @Query(value = "SELECT ROUND(SUM(c.quantity),2) as quantity,ROUND(SUM(c.amount),2) as amount,r.route as route, c.session from collections c join route r on r.id=c.route_fk  join pick_up_locations p on p.id=r.location_id  where DATE(c.collection_date)=:date and p.id= :centerId  GROUP BY r.id, c.session", nativeQuery = true)
     List<AnalyticsData> getRouteSummaryForCenter(String date, Long centerId);
 
-    @Query(value = "SELECT ROUND(SUM(c.quantity),2) as quantity,ROUND(SUM(c.amount),2) as amount,r.route as route, date(c.collection_date) as date, c.session, p.name as location from collections c join route r on r.id=c.route_fk  join pick_up_locations p on p.id=r.location_id  where month(c.collection_date)= :month and p.id= :centerId GROUP BY date(c.collection_date), r.id order by p.id, date(c.collection_date) asc;", nativeQuery = true)
+    @Query(value = "SELECT ROUND(SUM(c.quantity),2) as quantity,ROUND(SUM(c.amount),2) as amount,r.route as route, date(c.collection_date) as date, c.session, p.name as location from collections c join route r on r.id=c.route_fk  join pick_up_locations p on p.id=r.location_id  where month(c.collection_date)= :month and year(c.collection_date) = year(now()) and p.id= :centerId GROUP BY date(c.collection_date), r.id order by p.id, date(c.collection_date) asc;", nativeQuery = true)
     List<AnalyticsData> getMccMonthlyRouteSummary(Integer month, Long centerId);
     @Query(value = "SELECT ROUND(SUM(c.quantity),2) as quantity,ROUND(SUM(c.amount),2) as amount,r.route as route,p.name as location from collections c join route r on r.id=c.route_fk join pick_up_locations p on p.id=r.location_id  where DATE(c.collection_date)=:date GROUP BY p.id", nativeQuery = true)
     List<AnalyticsData> getCollectorsPerMCCandDate(String date);
@@ -236,7 +236,6 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
 
 
 
-
     @Query(nativeQuery = true,value = "SELECT f.farmer_no,f.payment_mode,f.mobile_no, f.payment_freequency,f.username, p.name as CollectionCenter,r.route as route,\n" +
             "COALESCE(SUM(c.amount), 0.0) AS collectionAmount,  \n" +
             "COALESCE((SELECT SUM(fa.amount) FROM farmer_product_allocations fa\n" +
@@ -262,7 +261,8 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
             "AND MONTHNAME(c.collection_date)  = :month  WHERE f.farmer_no IS NOT NULL AND f.payment_mode=:mode AND p.id =:locationId\n" +
             "GROUP BY f.farmer_no, f.username HAVING NetPay > 0")
     List<PaymentFileData> getPaymentFileDataB(Long locationId,String month, String mode);
-    //    for mpesa
+
+    //   for mpesa
     @Query(nativeQuery = true,value = "\tSELECT CONVERT(f.farmer_no, CHAR) AS farmer_no, f.mobile_no, f.username,f.payment_mode,\n" +
             "    COALESCE(ROUND(SUM(c.amount),2), 0.0) AS collectionAmount,\n" +
             "    COALESCE(ROUND(SUM(c.quantity),2), 0.0) AS quantity,\n" +

@@ -210,7 +210,7 @@ public class MilkCollectionService {
                     } else if (phoneno.startsWith("7") || phoneno.startsWith("1")) {
                         phoneno = "254" + phoneno;
                     }
-                    smsServiceV2.SMSNotification(message, phoneno);
+//                    smsServiceV2.SMSNotification(message, phoneno);
                 }
             }
 

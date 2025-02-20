@@ -110,10 +110,10 @@ public class SMSService {
         String storetype = "JKS";
 
         String[][] props = {
-                {"javax.net.ssl.trustStore", keystore,},
-                {"javax.net.ssl.keyStore", keystore,},
-                {"javax.net.ssl.keyStorePassword", storepass,},
-                {"javax.net.ssl.keyStoreType", storetype,},
+                {"jakarta.net.ssl.trustStore", keystore,},
+                {"jakarta.net.ssl.keyStore", keystore,},
+                {"jakarta.net.ssl.keyStorePassword", storepass,},
+                {"jakarta.net.ssl.keyStoreType", storetype,},
         };
         for (int i = 0; i < props.length; i++) {
             System.getProperties().setProperty(props[i][0], props[i][1]);

@@ -14,7 +14,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import javax.swing.text.html.parser.Entity;
+//import jakarta.swing.text.html.parser.Entity;
 import java.util.*;
 
 @Service
@@ -132,7 +132,7 @@ public class FarmerService {
                 } else if (phoneno.startsWith("7") || phoneno.startsWith("1")) {
                     phoneno = "254" + phoneno;
                 }
-                smsServiceV2.SMSNotification(message, phoneno);
+//                smsServiceV2.SMSNotification(message, phoneno);
 //            }
             log.info("Farmer Added");
             return response;
@@ -459,7 +459,7 @@ public class FarmerService {
 
                 String message = "Dear "+farmer.getFirstName()+", member no "+farmer.getFarmerNo()+" your route has been updated to "+route.getRoute();
 
-                smsServiceV2.SMSNotification(message, phoneNo);
+//                smsServiceV2.SMSNotification(message, phoneNo);
             }
 
 

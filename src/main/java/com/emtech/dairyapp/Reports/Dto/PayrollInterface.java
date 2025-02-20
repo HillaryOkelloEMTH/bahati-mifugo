@@ -19,7 +19,5 @@ public interface PayrollInterface {
     String getBname();
 
     String getAccno();
-
     String getBranch();
-
 }

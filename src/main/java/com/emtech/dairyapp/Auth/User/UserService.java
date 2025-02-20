@@ -23,7 +23,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
-import javax.swing.text.html.parser.Entity;
+//import jakarta.swing.text.html.parser.Entity;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -79,6 +79,7 @@ public class UserService {
             return this.userRoleRepository.findAllByUserAndStatus(user, 1).stream().map(UserRole::getRole).collect(Collectors.toList());
         }
     }
+
 
     public EntityResponse<?> updateDetails() {
         log.info("updating details");

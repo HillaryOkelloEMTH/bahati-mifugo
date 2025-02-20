@@ -7,7 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import javax.swing.text.html.parser.Entity;
+//import jakarta.swing.text.html.parser.Entity;
 import java.util.List;
 
 @Service
