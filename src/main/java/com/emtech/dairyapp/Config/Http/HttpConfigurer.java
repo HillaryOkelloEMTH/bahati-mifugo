@@ -32,8 +32,7 @@ import java.util.List;
 
 @Log
 @Configuration
-//@EnableWebFluxSecurity
-//@EnableReactiveMethodSecurity
+
 
 public class HttpConfigurer {
 
@@ -70,7 +69,7 @@ public class HttpConfigurer {
                 .authenticationManager(authenticationManager)
                 .securityContextRepository(securityContextRepository)
                 .authorizeExchange()
-                .pathMatchers(HttpMethod.GET, "/swagger-*/**", "/v2/api-docs/**", "/v3/api-docs/**").permitAll()
+                .pathMatchers(HttpMethod.GET, "/swagger-ui/**", "/v2/api-docs/**", "/v3/api-docs/**").permitAll()
                 .pathMatchers(HttpMethod.GET, "/api/v1/**").permitAll()
                 .pathMatchers(HttpMethod.POST, "/api/v1/**").permitAll()
                 .pathMatchers(HttpMethod.PUT, "/api/v1/**").permitAll()
@@ -95,7 +94,7 @@ public class HttpConfigurer {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.applyPermitDefaultValues();
         configuration.setAllowCredentials(true);
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:4200", "http://localhost:4300","http://52.15.152.26:4355", "http://192.168.100.3", "http://18.219.121.50:4500", "http://18.219.121.50:4355"));
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:4200", "http://localhost:4300","http://52.15.152.26:4355", "http://192.168.100.3", "http://18.219.121.50:4500","https://lsb2fmx4-4200.inc1.devtunnels.ms/", "http://18.219.121.50:4355"));
         configuration.setAllowedMethods(Arrays.asList("GET","POST", "PATCH", "PUT", "DELETE", "OPTIONS"));
 //        configuration.setAllowedHeaders(Arrays.asList("Access-Control-Allow-Origin: *","Access-Control-Allow-Credentials:  Origin, Content-Type, X-Auth-Token, Authorization, Accept"));
         configuration.setAllowedHeaders(Arrays.asList("X-Requested-With", "Origin", "Content-Type", "Accept", "Authorization"));

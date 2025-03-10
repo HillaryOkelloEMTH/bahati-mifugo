@@ -13,6 +13,7 @@ import org.springframework.security.authentication.ReactiveAuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
@@ -32,7 +33,7 @@ public class AuthenticationManager implements ReactiveAuthenticationManager {
     @Autowired
     private JWTUtil jwtUtil;
 
-    @Override
+
     public Mono<Authentication> authenticate(Authentication authentication) {
 //        String authToken = authentication.getCredentials().toString();
 //        String username = jwtUtil.getUsernameFromToken(authToken);
@@ -48,30 +49,81 @@ public class AuthenticationManager implements ReactiveAuthenticationManager {
 //                            rolesMap.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList())
 //                    );
 //                });
-        log.log(Level.FINE, String.format("Http validate auth [ Principal=%s ]",  authentication.getPrincipal()));
+
+        log.log(Level.FINE, String.format("Http validate auth [ Principal=%s ]", authentication.getPrincipal()));
 
         if (authentication.getPrincipal() != null) {
-            log.log(Level.FINE, String.format("Http validate auth [ Principal=%s, ]",  authentication.getPrincipal()));
+            log.log(Level.FINE, String.format("Http validate auth [ Principal=%s, ]", authentication.getPrincipal()));
 
             String authToken = authentication.getPrincipal().toString();
-
             String username = jwtUtil.getUsernameFromToken(authToken);
-
             List<Role> roles = this.userService.validateUser(username);
+
             if (roles != null && !roles.isEmpty()) {
                 log.log(Level.WARNING, String.format("Authenticated user roles [ %s ] ", roles));
-                return Mono.just(new UsernamePasswordAuthenticationToken(authentication.getPrincipal(),
+
+                Authentication auth = new UsernamePasswordAuthenticationToken(
+                        username, // Use username here
                         authentication.getCredentials(),
-                        roles.stream().map(Role::getAccessRights)
-                                .collect(Collectors.toList()).stream().flatMap(Collection::stream)
-                                .collect(Collectors.toList()).stream().map(s -> new SimpleGrantedAuthority(s.name())).distinct()
-                                .collect(Collectors.toList())));
-            } else {
-                return Mono.just(authentication);
+                        roles.stream()
+                                .map(Role::getAccessRights)
+                                .flatMap(Collection::stream)
+                                .map(s -> new SimpleGrantedAuthority(s.name()))
+                                .distinct()
+                                .collect(Collectors.toList())
+                );
+
+                // ✅ Store Authentication in Security Context
+                return Mono.just(auth)
+                        .doOnNext(ReactiveSecurityContextHolder::withAuthentication);
             }
-        } else {
-            log.log(Level.WARNING, String.format("Http validate auth no authenticate [ %s ]", authentication));
-            return Mono.just(new UsernamePasswordAuthenticationToken("", ""));
         }
+
+        log.log(Level.WARNING, String.format("Http validate auth no authenticate [ %s ]", authentication));
+        return Mono.just(new UsernamePasswordAuthenticationToken("", ""));
     }
+
+
+//    @Override
+//    public Mono<Authentication> authenticate(Authentication authentication) {
+////        String authToken = authentication.getCredentials().toString();
+////        String username = jwtUtil.getUsernameFromToken(authToken);
+////        return Mono.just(jwtUtil.validateToken(authToken))
+////                .filter(valid -> valid)
+////                .switchIfEmpty(Mono.empty())
+////                .map(valid -> {
+////                    Claims claims = jwtUtil.getAllClaimsFromToken(authToken);
+////                    List<String> rolesMap = claims.get("role", List.class);
+////                    return new UsernamePasswordAuthenticationToken(
+////                            username,
+////                            null,
+////                            rolesMap.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList())
+////                    );
+////                });
+//        log.log(Level.FINE, String.format("Http validate auth [ Principal=%s ]",  authentication.getPrincipal()));
+//
+//        if (authentication.getPrincipal() != null) {
+//            log.log(Level.FINE, String.format("Http validate auth [ Principal=%s, ]",  authentication.getPrincipal()));
+//
+//            String authToken = authentication.getPrincipal().toString();
+//
+//            String username = jwtUtil.getUsernameFromToken(authToken);
+//
+//            List<Role> roles = this.userService.validateUser(username);
+//            if (roles != null && !roles.isEmpty()) {
+//                log.log(Level.WARNING, String.format("Authenticated user roles [ %s ] ", roles));
+//                return Mono.just(new UsernamePasswordAuthenticationToken(authentication.getPrincipal(),
+//                        authentication.getCredentials(),
+//                        roles.stream().map(Role::getAccessRights)
+//                                .collect(Collectors.toList()).stream().flatMap(Collection::stream)
+//                                .collect(Collectors.toList()).stream().map(s -> new SimpleGrantedAuthority(s.name())).distinct()
+//                                .collect(Collectors.toList())));
+//            } else {
+//                return Mono.just(authentication);
+//            }
+//        } else {
+//            log.log(Level.WARNING, String.format("Http validate auth no authenticate [ %s ]", authentication));
+//            return Mono.just(new UsernamePasswordAuthenticationToken("", ""));
+//        }
+//    }
 }
