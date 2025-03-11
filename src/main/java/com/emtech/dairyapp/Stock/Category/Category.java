@@ -14,7 +14,6 @@ import java.sql.Timestamp;
 
 @ToString
 @Data
-@EntityListeners(AuditListener.class)
 @EqualsAndHashCode(of = "{id}")
 @DynamicUpdate
 @Entity

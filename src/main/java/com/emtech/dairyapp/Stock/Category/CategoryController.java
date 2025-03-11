@@ -8,10 +8,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 import java.util.Objects;
+
+import static com.emtech.dairyapp.Auth.Utilities.UserInfo.username;
 
 @RestController
 @RequestMapping(path = "/api/v1/product-categories")
@@ -41,8 +44,9 @@ public class CategoryController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public Mono<ResponseEntity<StockEntitiesResponse>> updateCategory(@RequestBody CategoryCreateRequest body){
-        StockEntitiesResponse response = this.categoryService.updateCategory(body.getName(), body.getDescription());
+    public Mono<ResponseEntity<StockEntitiesResponse>> updateCategory(@RequestBody CategoryCreateRequest body, @RequestParam Long categoryId){
+        String currentUsername = username();
+        StockEntitiesResponse response = this.categoryService.updateCategory(body.getName(), body.getDescription(), categoryId);
 
         if(!Objects.equals(response.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase()) && response.getStatusCode() != HttpStatus.INTERNAL_SERVER_ERROR.value()){
             return Mono.just(ResponseEntity.ok().body(response));

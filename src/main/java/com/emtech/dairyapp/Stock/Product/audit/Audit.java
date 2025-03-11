@@ -1,5 +1,6 @@
 package com.emtech.dairyapp.Stock.Product.audit;
 
+import com.emtech.dairyapp.Auth.Utilities.UserInfo;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -21,8 +22,9 @@ public class Audit {
     private String action;
     private String modelName;
     private String objectId;
-    private String username;
+    private String username = UserInfo.username();
     private String machineInfo;
+    @Column(length = 600)
     private String details;
 
     @Column(name = "timestamp", nullable = false)
