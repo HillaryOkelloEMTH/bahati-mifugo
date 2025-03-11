@@ -24,6 +24,7 @@ import com.emtech.dairyapp.Notifications.SMS.smsv2.SmsServiceV2;
 import com.emtech.dairyapp.Response.EntityResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -38,8 +39,6 @@ import static com.emtech.dairyapp.Configurations.Utils.Formatter.*;
 @Service
 @Slf4j
 public class MilkCollectionService {
-
-
     private final MilkCollectionRepo milkCollectionRepo;
     private final ProductConfigRepo productConfigRepo;
     private final FloatManagerRepo floatManagerRepo;
@@ -52,6 +51,7 @@ public class MilkCollectionService {
 
     private final PickUpLocationsRepo pickUpLocationsRepo;
 
+    @Lazy
     private final UserService userService;
 
     @Value("${sms.enable}")

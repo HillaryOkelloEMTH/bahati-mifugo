@@ -2,7 +2,7 @@ package com.emtech.dairyapp.Configurations.servicesConfig;
 
 
 import com.emtech.dairyapp.Response.EntityResponse;
-import io.swagger.annotations.Api;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,11 +16,11 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("api/v1/services")
-@Api(tags = "Services Configuration Controller")
+@Tag(name = "service config controller", description = "services offered controller")
 public class ServicesConfigController {
 
     private final Logger LOG = LoggerFactory.getLogger(ServicesConfigController.class);
-    private final EntityResponse response = new EntityResponse();
+    private final EntityResponse<Object> response = new EntityResponse<>();
 
     @Autowired
     private ServicesConfigService configService;
@@ -47,15 +47,9 @@ public class ServicesConfigController {
     @GetMapping("fetch-all")
     public ResponseEntity<?> fetchAllServices(){
         List<ServicesConfig> services = configService.fetchAllServices();
-        if (services.size() > 0){
+        if (services.isEmpty()){
             response.setMessage(HttpStatus.OK.getReasonPhrase());
             response.setStatusCode(HttpStatus.OK.value());
-            response.setEntity(services);
-
-            return new ResponseEntity<>(response, HttpStatus.OK);
-        }else if (services.size() <= 0){
-            response.setMessage("No Record Found");
-            response.setStatusCode(HttpStatus.NOT_FOUND.value());
             response.setEntity(services);
 
             return new ResponseEntity<>(response, HttpStatus.OK);
@@ -89,22 +83,16 @@ public class ServicesConfigController {
     @GetMapping("fetch/by-status")
     public ResponseEntity<?> fetchServiceByStatus(@RequestParam String status){
         List<ServicesConfig> services = configService.fetchServiceByStatus(status);
-        if (services.size() > 0){
+        if (!services.isEmpty()){
             response.setMessage(HttpStatus.OK.getReasonPhrase());
             response.setStatusCode(HttpStatus.OK.value());
             response.setEntity(services);
 
             return new ResponseEntity<>(response, HttpStatus.OK);
-        }else if (services.size() <= 0){
+        }else {
             response.setMessage("No Record Found");
             response.setStatusCode(HttpStatus.NOT_FOUND.value());
             response.setEntity(services);
-
-            return new ResponseEntity<>(response, HttpStatus.OK);
-        }else {
-            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
-            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
-            response.setEntity(null);
 
             return new ResponseEntity<>(response, HttpStatus.OK);
         }
@@ -123,7 +111,6 @@ public class ServicesConfigController {
         }else{
             response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
             response.setStatusCode(HttpStatus.BAD_REQUEST.value());
-            response.setEntity(service);
 
             return new ResponseEntity<>(response, HttpStatus.OK);
         }
@@ -139,8 +126,5 @@ public class ServicesConfigController {
         return new ResponseEntity<>(response, HttpStatus.OK);
 
     }
-
-
-
 
 }

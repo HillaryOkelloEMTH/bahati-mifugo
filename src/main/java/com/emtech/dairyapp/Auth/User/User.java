@@ -7,8 +7,11 @@ import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import jakarta.persistence.*;
+import org.springframework.security.core.GrantedAuthority;
+
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.util.Collection;
 
 @ToString
 @Data

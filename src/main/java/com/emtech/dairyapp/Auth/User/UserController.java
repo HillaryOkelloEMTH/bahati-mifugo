@@ -9,6 +9,7 @@ import com.emtech.dairyapp.Auth.Data.Http.Response.Auth.UserResponse;
 import com.emtech.dairyapp.Auth.Data.User.UserData;
 import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +24,7 @@ import java.util.Objects;
 @RequestMapping(path = "/admin/api/v1/users")
 public class UserController {
     @Autowired
+    @Lazy
     UserService userService;
 
 //    @PreAuthorize(value = "hasAuthority('CREATE_USER')")

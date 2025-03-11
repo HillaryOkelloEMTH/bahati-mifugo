@@ -49,7 +49,7 @@ public class SMSNotificationsController {
         }
         log.info("Done");
     }
-    @RequestMapping("/sendSMS")
+    @PostMapping("/sendSMS")
     public ResponseEntity<?> sendSSMS(@RequestParam String message,@RequestParam String phone) {
         service.SMSNOtification(message,phone);
       return ResponseEntity.ok().body("Done");

@@ -44,7 +44,7 @@ public class SmsController {
                 .thenReturn(ResponseEntity.ok().body(response));
     }
 
-    @RequestMapping("sms-not/callback")
+    @PostMapping("sms-not/callback")
     public void  receiveCallback(@RequestBody SMSCallback details){
         Gson gs = new Gson();
         log.info("Tilil SMS Callback Received { " + gs.toJson(details) + " }");
