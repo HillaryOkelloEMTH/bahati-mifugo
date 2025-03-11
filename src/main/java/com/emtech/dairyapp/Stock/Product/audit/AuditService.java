@@ -17,38 +17,21 @@ import java.time.ZonedDateTime;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static com.emtech.dairyapp.Auth.Utilities.UserInfo.username;
+
 @Service
 public class AuditService {
     @Autowired
      private AuditRepository auditRepository;
     @Autowired
     private ObjectMapper objectMapper;
-    @Autowired
-    private  JWTUtil jwtUtil;
+
 
     public AuditService(AuditRepository auditRepository, ObjectMapper objectMapper, JWTUtil jwtUtil) {
         this.auditRepository = auditRepository;
         this.objectMapper = objectMapper;
-        this.jwtUtil = jwtUtil;
     }
 
-    public String getCurrentUsername(String token) {
-        Logger logger = Logger.getLogger("UserLogger");
-
-        if (token == null || token.isEmpty()) {
-            logger.log(Level.INFO, "Token is missing, returning Anonymous");
-            return "Anonymous";
-        }
-
-        try {
-            String username = jwtUtil.getUsernameFromToken(token);
-            logger.log(Level.INFO, "Extracted username: " + username);
-            return username;
-        } catch (Exception e) {
-            logger.log(Level.WARNING, "Error extracting username: " + e.getMessage());
-            return "Anonymous";
-        }
-    }
 
 
 
@@ -58,7 +41,8 @@ public class AuditService {
         audit.setAction(action);
         audit.setModelName(modelName);
         audit.setTimestamp(ZonedDateTime.now());
-        audit.setUsername("Staff");
+        String currentUsername = username();
+        audit.setUsername(currentUsername.isEmpty() ? "UnknownUser" : currentUsername);
 
         try {
             audit.setDetails(objectMapper.writeValueAsString(object));
