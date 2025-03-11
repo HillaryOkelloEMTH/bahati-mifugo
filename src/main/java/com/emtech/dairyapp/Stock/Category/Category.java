@@ -1,5 +1,6 @@
 package com.emtech.dairyapp.Stock.Category;
 
+import com.emtech.dairyapp.Stock.Product.audit.AuditListener;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -13,6 +14,7 @@ import java.sql.Timestamp;
 
 @ToString
 @Data
+@EntityListeners(AuditListener.class)
 @EqualsAndHashCode(of = "{id}")
 @DynamicUpdate
 @Entity
