@@ -2,6 +2,7 @@ package com.emtech.dairyapp.Config.Http;
 
 import com.emtech.dairyapp.Auth.Utilities.CurrentUserContext;
 import com.emtech.dairyapp.Auth.Utilities.JWTUtil;
+import com.emtech.dairyapp.Auth.Utilities.TokenExpiredException;
 import lombok.AllArgsConstructor;
 import lombok.extern.java.Log;
 import org.springframework.http.HttpHeaders;
@@ -48,11 +49,13 @@ public class SecurityContextRepository implements ServerSecurityContextRepositor
         String authToken = authHeader.substring(7);
         log.log(Level.INFO, "Extracted Bearer token: {}", authToken);
 
-        if (!jwtUtil.validateToken(authToken)) {
-            log.log(Level.WARNING, "Invalid token. User not authenticated.");
-            Authentication auth = new UsernamePasswordAuthenticationToken(null, null, null);
+        try {
+            jwtUtil.validateToken(authToken);
+        } catch (TokenExpiredException e) {
+            log.log(Level.WARNING, "Token expired: " + e.getMessage());
             return Mono.empty();
         }
+
 
         String username = jwtUtil.getUsernameFromToken(authToken);
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);

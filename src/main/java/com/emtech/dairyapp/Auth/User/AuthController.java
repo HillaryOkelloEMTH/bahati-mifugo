@@ -29,11 +29,9 @@ public class AuthController {
 
 //    @CrossOrigin(value = { "http://localhost:4200"}, allowedHeaders = {"Access-Control-Allow-Origin: *"})
     @PostMapping("login")
-    public Mono<ResponseEntity<EntityResponse<AuthResponse>>> login(@RequestBody AuthRequest body){
-        log.log(Level.WARNING, String.format("User Credentials [credentials=%s]", body));
-        EntityResponse<AuthResponse> authResponse = this.userService.authenticateUser(body.getUsername(), body.getPassword());
-
-        return Mono.just(ResponseEntity.status(authResponse.getStatusCode()).body(authResponse));
+    public ResponseEntity<?> login(@RequestBody AuthRequest body){
+        var authResponse = this.userService.authenticateUser(body);
+        return ResponseEntity.status(authResponse.getStatusCode()).body(authResponse);
     }
 
 
