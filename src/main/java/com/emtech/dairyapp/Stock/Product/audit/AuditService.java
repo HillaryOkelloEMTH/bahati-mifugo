@@ -103,6 +103,29 @@ public class AuditService {
     }
 
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void logDeleteAction(String modelName, Object object) {
+        String objectId = extractId(object);
+
+        Audit audit = new Audit();
+        audit.setAction("DELETE");
+        audit.setModelName(modelName);
+        audit.setTimestamp(ZonedDateTime.now());
+        audit.setMachineInfo(getMachineInfo());
+        audit.setObjectId(objectId);
+
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.setSerializationInclusion(JsonInclude.Include.ALWAYS);
+            audit.setDetails(objectMapper.writeValueAsString(object));
+        } catch (Exception e) {
+            audit.setDetails("Error serializing object: " + e.getMessage());
+        }
+
+        auditRepository.save(audit);
+    }
+
+
     public static String getMachineInfo() {
         try {
             InetAddress inetAddress = InetAddress.getLocalHost();

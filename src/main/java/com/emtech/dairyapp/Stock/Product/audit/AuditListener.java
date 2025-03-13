@@ -18,7 +18,6 @@ public class AuditListener {
     @PostLoad
     public void capturePreviousState(Object object) {
         try {
-            // Clone object before modifications
             previousState = object.getClass().getDeclaredConstructor().newInstance();
             org.springframework.beans.BeanUtils.copyProperties(object, previousState);
         } catch (Exception e) {

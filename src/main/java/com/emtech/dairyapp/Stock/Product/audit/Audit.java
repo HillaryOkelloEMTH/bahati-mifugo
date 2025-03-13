@@ -27,6 +27,7 @@ public class Audit {
     @Column(length = 600)
     private String details;
 
+
     @Column(name = "timestamp", nullable = false)
     private ZonedDateTime timestamp;
 

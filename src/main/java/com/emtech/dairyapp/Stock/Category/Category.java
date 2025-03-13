@@ -35,6 +35,8 @@ public class Category {
 
     @Column(name = "status")
     private Integer status;
+    @Column(nullable = false)
+    private String deletedFlag = "ACTIVE";
 
     @CreationTimestamp
     @JsonFormat(pattern = "dd-MMM-yyyy HH:mm:ss")
