@@ -39,8 +39,6 @@ public class SecurityContextRepository implements ServerSecurityContextRepositor
         ServerHttpRequest request = exchange.getRequest();
         String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
 
-        System.out.println("tge ehehe ehehe {}"+authHeader);
-
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             log.log(Level.WARNING, "Authorization header missing or invalid format.");
             return Mono.empty();
@@ -56,7 +54,6 @@ public class SecurityContextRepository implements ServerSecurityContextRepositor
             return Mono.empty();
         }
 
-
         String username = jwtUtil.getUsernameFromToken(authToken);
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
         CurrentUserContext.setCurrentUserContext(userDetails);
@@ -69,39 +66,4 @@ public class SecurityContextRepository implements ServerSecurityContextRepositor
                 .map(authentication -> (SecurityContext) new SecurityContextImpl(authentication))
                 .doOnSuccess(securityContext -> SecurityContextHolder.getContext().setAuthentication(securityContext.getAuthentication()));
     }
-
-//    @Override
-//    public Mono<SecurityContext> load(ServerWebExchange swe) {
-//        String username;
-//
-//        ServerHttpRequest request = swe.getRequest();
-//        String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
-//        String authToken = null;
-//        UserDetails userDetails = null;
-//        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-//            authToken = authHeader.substring(7);
-//
-//            log.log(Level.INFO, "Bearer token found. Validating it.... token is {} ", authToken);
-//
-//            if (jwtUtil.validateToken(authToken) && SecurityContextHolder.getContext().getAuthentication() == null) {
-//                username = jwtUtil.getUsernameFromToken(authToken);
-//                userDetails = userDetailsService.loadUserByUsername(username);
-//                CurrentUserContext.setCurrentUserContext(userDetails);
-//
-//                log.info("user retrieved, The user data is {}. Authenticating ....."+userDetails.getUsername());
-//                Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-//
-//                return this.authenticationManager.authenticate(auth)
-//                        .doOnSuccess(authentication -> SecurityContextHolder.getContext().setAuthentication(authentication))
-//                        .map(SecurityContextImpl::new);
-//            } else {
-//                log.info("Token invalid. User is not authenticated.");
-//                return Mono.empty();
-//            }
-//
-//        } else {
-//            log.log(Level.WARNING, "couldn't find bearer string, will ignore the header.");
-//            return Mono.empty();
-//        }
-//    }
 }
