@@ -7,6 +7,10 @@ import com.emtech.dairyapp.Stock.Data.Http.Response.Category.CategoriesResponse;
 import com.emtech.dairyapp.Stock.Data.Http.Response.Category.CategoryResponse;
 import com.emtech.dairyapp.Stock.Data.Http.Response.Product.ProductData;
 import com.emtech.dairyapp.Stock.Data.Http.Response.StockEntitiesResponse;
+import com.emtech.dairyapp.Stock.Product.audit.AuditService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.transaction.Transactional;
 import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,8 +19,11 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
+
+import static com.emtech.dairyapp.Auth.Utilities.UserInfo.username;
 
 @Service
 @Log
@@ -27,6 +34,8 @@ public class CategoryService {
 
     @Autowired
     private CategoryProductRepository categoryProductRepository;
+    @Autowired
+    private AuditService auditService;
 
 
     public StockEntitiesResponse createCategory(@NonNull String name, @NonNull String description){
@@ -43,6 +52,7 @@ public class CategoryService {
             category.get().setStatus(1);
 
             category.set(this.categoryRepo.save(category.get()));
+            auditService.logAction("POST", "Category", category.get(), "New category created");
 
             response.set(StockEntitiesResponse.builder().message("Category added successfully ").statusCode(HttpStatus.OK.value()).build());
         });
@@ -50,44 +60,66 @@ public class CategoryService {
         return response.get();
     }
 
-    public StockEntitiesResponse updateCategory(@NonNull String name, @NonNull String description){
+    @Transactional
+    public StockEntitiesResponse updateCategory(@NonNull String name, @NonNull String description, Long categoryId) {
+
         AtomicReference<StockEntitiesResponse> response = new AtomicReference<>();
 
-        this.categoryRepo.findByName(name).ifPresentOrElse(category -> {
-            AtomicReference<Category> categoryData = new AtomicReference<>(category);
-            categoryData.get().setName(name);
-            categoryData.get().setDescription(description);
+        this.categoryRepo.findById(categoryId).ifPresent(existingCategory -> {
+            Category beforeUpdate = new Category();
+            beforeUpdate.setId(existingCategory.getId());
+            beforeUpdate.setName(existingCategory.getName());
+            beforeUpdate.setDescription(existingCategory.getDescription());
+            beforeUpdate.setStatus(existingCategory.getStatus());
 
-            categoryData.set(this.categoryRepo.save(categoryData.get()));
+            existingCategory.setName(name);
+            existingCategory.setDescription(description);
 
-            response.set(StockEntitiesResponse.builder().message("Category details modified successfully").statusCode(HttpStatus.OK.value()).build());
+            Category afterUpdate = this.categoryRepo.save(existingCategory);
+
+            auditService.logUpdateAction("Category", beforeUpdate, afterUpdate);
+
+            response.set(StockEntitiesResponse.builder()
+                    .message("Category details modified successfully")
+                    .statusCode(HttpStatus.OK.value())
+                    .build());
+        });
+
+        return response.get() != null ? response.get() : StockEntitiesResponse.builder()
+                .message("No updates were made, category may not exist")
+                .statusCode(HttpStatus.OK.value())
+                .build();
+    }
+
+    public StockEntitiesResponse recoverDeletedCategory(@NonNull Long categoryId) {
+        AtomicReference<StockEntitiesResponse> response = new AtomicReference<>();
+
+        this.categoryRepo.findById(categoryId).ifPresentOrElse(category -> {
+            Category beforeUpdate = new Category();
+            beforeUpdate.setDeletedFlag(category.getDeletedFlag());
+
+            category.setDeletedFlag("Active");
+
+            Category afterUpdate = this.categoryRepo.save(category);
+
+            auditService.logUpdateAction("Category", beforeUpdate, afterUpdate);
+
+            response.set(StockEntitiesResponse.builder()
+                    .message("Category recovered successfully")
+                    .statusCode(HttpStatus.OK.value())
+                    .build());
         }, () -> {
-            log.log(Level.WARNING, String.format("Category with the name %s not found ", name));
+            log.log(Level.WARNING, String.format("Category with the id %s not found ", categoryId));
 
-            response.set(StockEntitiesResponse.builder().message(String.format("Category with the name %s not found ", name)).statusCode(HttpStatus.BAD_REQUEST.value()).build());
+            response.set(StockEntitiesResponse.builder()
+                    .message(String.format("Category with the id %s not found ", categoryId))
+                    .statusCode(HttpStatus.BAD_REQUEST.value())
+                    .build());
         });
 
         return response.get();
     }
 
-    public StockEntitiesResponse updateCategoryStatus(@NonNull Long id, @NonNull Integer status){
-        AtomicReference<StockEntitiesResponse> response = new AtomicReference<>();
-
-        this.categoryRepo.findById(id).ifPresentOrElse(category -> {
-            AtomicReference<Category> categoryData = new AtomicReference<>(category);
-            categoryData.get().setStatus(status);
-
-            categoryData.set(this.categoryRepo.save(categoryData.get()));
-
-            response.set(StockEntitiesResponse.builder().message("Category details modified successfully").statusCode(HttpStatus.OK.value()).build());
-        }, () -> {
-            log.log(Level.WARNING, String.format("Category with the id %s not found ", id));
-
-            response.set(StockEntitiesResponse.builder().message(String.format("Category with the id %s not found ", id)).statusCode(HttpStatus.BAD_REQUEST.value()).build());
-        });
-
-        return response.get();
-    }
 
     public CategoryResponse findCategoryById(@NonNull Long id){
         AtomicReference<CategoryResponse> response = new AtomicReference<>();
@@ -292,5 +324,34 @@ public class CategoryService {
 
         return response.get();
     }
+
+    public StockEntitiesResponse deleteCategory(Long categoryId) {
+        return categoryRepo.findById(categoryId)
+                .map(existingCategory -> {
+
+                    Category beforeUpdate = new Category();
+
+                    beforeUpdate.setId(existingCategory.getId());
+                    beforeUpdate.setName(existingCategory.getName());
+                    beforeUpdate.setDescription(existingCategory.getDescription());
+                    beforeUpdate.setStatus(existingCategory.getStatus());
+                    beforeUpdate.setDeletedFlag(existingCategory.getDeletedFlag());
+                    existingCategory.setDeletedFlag("DELETED");
+
+                    Category afterUpdate = categoryRepo.save(existingCategory);
+
+                    auditService.logUpdateAction("Category", beforeUpdate, afterUpdate);
+
+                    return StockEntitiesResponse.builder()
+                            .message("Category flagged as deleted successfully")
+                            .statusCode(HttpStatus.OK.value())
+                            .build();
+                })
+                .orElseGet(() -> StockEntitiesResponse.builder()
+                        .message("Category not found")
+                        .statusCode(HttpStatus.NOT_FOUND.value())
+                        .build());
+    }
+
 
 }

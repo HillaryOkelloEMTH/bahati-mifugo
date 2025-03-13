@@ -37,9 +37,9 @@ public class CountyController {
     }
 
     @PutMapping("update")
-    public ResponseEntity<EntityResponse> updatecounty(@RequestBody County county) {
+    public ResponseEntity<EntityResponse> updatecounty(@RequestBody County county, @RequestParam Long countyId) {
 
-        EntityResponse response = countyService.updateCounty(county);
+        EntityResponse response = countyService.updateCounty(county, countyId);
         return ResponseEntity.ok().body(response);
 
     }

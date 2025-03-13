@@ -3,6 +3,7 @@ package com.emtech.dairyapp.Auth.Utilities;
 
 import com.emtech.dairyapp.Auth.Data.User.UserData;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -10,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import jakarta.annotation.PostConstruct;
 import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
@@ -37,10 +37,15 @@ public class JWTUtil {
         return getAllClaimsFromToken(token).getExpiration();
     }
 
-    private Boolean isTokenExpired(String token) {
+
+
+    private void isTokenExpired(String token) {
         final Date expiration = getExpirationDateFromToken(token);
-        return expiration.before(new Date());
+        if (expiration.before(new Date())) {
+            throw new TokenExpiredException("Token has expired. Please log in again.");
+        }
     }
+
 
     public String generateToken(UserData user) {
         Map<String, Object> claims = new HashMap<>();
@@ -61,9 +66,16 @@ public class JWTUtil {
                 .compact();
     }
 
-    public Boolean validateToken(String token) {
-        return !isTokenExpired(token);
+
+
+    public void validateToken(String token) {
+        try {
+            isTokenExpired(token);
+        } catch (ExpiredJwtException e) {
+            throw new TokenExpiredException("Token has expired. Please log in again.");
+        }
     }
+
 
     private Key getSignInKey() {
         byte[] keyBytes = Decoders.BASE64.decode(secret);

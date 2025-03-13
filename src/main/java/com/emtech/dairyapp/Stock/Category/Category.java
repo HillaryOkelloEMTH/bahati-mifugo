@@ -14,7 +14,6 @@ import java.sql.Timestamp;
 
 @ToString
 @Data
-@EntityListeners(AuditListener.class)
 @EqualsAndHashCode(of = "{id}")
 @DynamicUpdate
 @Entity
@@ -36,6 +35,8 @@ public class Category {
 
     @Column(name = "status")
     private Integer status;
+    @Column(nullable = false)
+    private String deletedFlag = "ACTIVE";
 
     @CreationTimestamp
     @JsonFormat(pattern = "dd-MMM-yyyy HH:mm:ss")

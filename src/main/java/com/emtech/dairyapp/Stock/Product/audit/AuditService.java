@@ -1,67 +1,76 @@
 package com.emtech.dairyapp.Stock.Product.audit;
 
-import com.emtech.dairyapp.Auth.Utilities.JWTUtil;
+import com.emtech.dairyapp.Auth.Utilities.UserInfo;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.ReactiveSecurityContextHolder;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.Authentication;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 
+
+import java.lang.reflect.Method;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.time.ZonedDateTime;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.Properties;
+
+
+import static com.emtech.dairyapp.Auth.Utilities.UserInfo.username;
 
 @Service
+@Slf4j
 public class AuditService {
     @Autowired
      private AuditRepository auditRepository;
     @Autowired
     private ObjectMapper objectMapper;
-    @Autowired
-    private  JWTUtil jwtUtil;
 
-    public AuditService(AuditRepository auditRepository, ObjectMapper objectMapper, JWTUtil jwtUtil) {
+
+
+    public AuditService(AuditRepository auditRepository, ObjectMapper objectMapper) {
         this.auditRepository = auditRepository;
         this.objectMapper = objectMapper;
-        this.jwtUtil = jwtUtil;
+        this.objectMapper.setSerializationInclusion(JsonInclude.Include.ALWAYS);
     }
-
-    public String getCurrentUsername(String token) {
-        Logger logger = Logger.getLogger("UserLogger");
-
-        if (token == null || token.isEmpty()) {
-            logger.log(Level.INFO, "Token is missing, returning Anonymous");
-            return "Anonymous";
-        }
-
+    private String extractId(Object object) {
+        if (object == null) return "null";
         try {
-            String username = jwtUtil.getUsernameFromToken(token);
-            logger.log(Level.INFO, "Extracted username: " + username);
-            return username;
+            Method getIdMethod = object.getClass().getMethod("getId");
+            Object idValue = getIdMethod.invoke(object);
+            return (idValue != null) ? idValue.toString() : "null";
         } catch (Exception e) {
-            logger.log(Level.WARNING, "Error extracting username: " + e.getMessage());
-            return "Anonymous";
+            log.error("Could not extract ID from object: {}", e.getMessage());
+            return "null";
         }
     }
+
 
 
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void logAction(String action, String modelName, Object object, String details) {
+        String objectId = extractId(object);
+
+
         Audit audit = new Audit();
         audit.setAction(action);
         audit.setModelName(modelName);
         audit.setTimestamp(ZonedDateTime.now());
-        audit.setUsername("Staff");
+
+
+        audit.setMachineInfo(getMachineInfo());
+        audit.setObjectId(objectId);
 
         try {
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.setSerializationInclusion(JsonInclude.Include.ALWAYS);
             audit.setDetails(objectMapper.writeValueAsString(object));
+
+
         } catch (Exception e) {
             audit.setDetails("Error serializing object: " + e.getMessage());
         }
@@ -71,13 +80,17 @@ public class AuditService {
 
 
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void logUpdateAction(String modelName, Object before, Object after) {
+        String objectId = extractId(after);
+
         Audit audit = new Audit();
         audit.setAction("UPDATE");
         audit.setModelName(modelName);
         audit.setTimestamp(ZonedDateTime.now());
-        audit.setUsername("Staff");
+        audit.setMachineInfo(getMachineInfo());
+        audit.setObjectId(objectId);
+
+
         try {
             String beforeJson = (before != null) ? objectMapper.writeValueAsString(before) : "null";
             String afterJson = objectMapper.writeValueAsString(after);
@@ -87,5 +100,44 @@ public class AuditService {
         }
 
         auditRepository.save(audit);
+    }
+
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void logDeleteAction(String modelName, Object object) {
+        String objectId = extractId(object);
+
+        Audit audit = new Audit();
+        audit.setAction("DELETE");
+        audit.setModelName(modelName);
+        audit.setTimestamp(ZonedDateTime.now());
+        audit.setMachineInfo(getMachineInfo());
+        audit.setObjectId(objectId);
+
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.setSerializationInclusion(JsonInclude.Include.ALWAYS);
+            audit.setDetails(objectMapper.writeValueAsString(object));
+        } catch (Exception e) {
+            audit.setDetails("Error serializing object: " + e.getMessage());
+        }
+
+        auditRepository.save(audit);
+    }
+
+
+    public static String getMachineInfo() {
+        try {
+            InetAddress inetAddress = InetAddress.getLocalHost();
+            String hostname = inetAddress.getHostName();
+            String ipAddress = inetAddress.getHostAddress();
+
+            Properties properties = System.getProperties();
+            String osInfo = properties.getProperty("os.name") + " " + properties.getProperty("os.version");
+
+            return "Hostname: " + hostname + ", IP: " + ipAddress + ", OS: " + osInfo;
+        } catch (UnknownHostException e) {
+            return "Could not retrieve machine info: " + e.getMessage();
+        }
     }
 }

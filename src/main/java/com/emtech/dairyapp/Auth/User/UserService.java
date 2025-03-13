@@ -1,5 +1,6 @@
 package com.emtech.dairyapp.Auth.User;
 
+import com.emtech.dairyapp.Auth.Data.Http.Request.Auth.AuthRequest;
 import com.emtech.dairyapp.Auth.Data.Http.Response.Auth.AuthResponse;
 import com.emtech.dairyapp.Auth.Data.Http.Response.Auth.RecordCreateResponse;
 import com.emtech.dairyapp.Auth.Data.Http.Response.Auth.UserResponse;
@@ -60,19 +61,19 @@ public class UserService {
     EntityResponse<?> res= new EntityResponse<>();
 
 
-    public EntityResponse<AuthResponse> authenticateUser(@NonNull String username, @NonNull String password){
+    public EntityResponse<?> authenticateUser(AuthRequest authRequest){
         EntityResponse<AuthResponse> response = new EntityResponse<>();
 
         try {
             authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(username, password)
+                    new UsernamePasswordAuthenticationToken(authRequest.getPassword(), authRequest.getPassword())
             );
 
-            userRepository.findByUsername(username.trim()).ifPresentOrElse(user -> {
+            userRepository.findByUsername(authRequest.getUsername().trim()).ifPresentOrElse(user -> {
                 if (Objects.equals(user.getStatus(), "Active")){
 
-                    log.log(Level.INFO, String.format("Encoded Password: [credentials=%s] User Password: [ password=%s ]", passwordUtil.encode(password.trim()), user.getPassword()));
-                    if(passwordUtil.matches(password.trim(), user.getPassword())){
+                    log.log(Level.INFO, String.format("Encoded Password: [credentials=%s] User Password: [ password=%s ]", passwordUtil.encode(authRequest.getPassword().trim()), user.getPassword()));
+                    if(passwordUtil.matches(authRequest.getPassword().trim(), user.getPassword())){
                         log.log(Level.INFO, ("Inside password encryption]"));
                         UserData userData = getUserDetails(user.getId());
 
@@ -99,7 +100,7 @@ public class UserService {
                 }else{
                     response.setMessage("Account not found");
                     response.setStatusCode(HttpStatus.NOT_FOUND.value());
-                    log.log(Level.WARNING, String.format("Account for the provided username is not active [ username=%s ]", username));
+                    log.log(Level.WARNING, String.format("Account for the provided username is not active [ username=%s ]", authRequest.getUsername()));
 
                 }
             }, () -> {

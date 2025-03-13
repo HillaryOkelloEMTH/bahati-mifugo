@@ -1,8 +1,10 @@
 package com.emtech.dairyapp.Configurations.County;
 
+import com.emtech.dairyapp.Auth.Utilities.UserInfo;
 import com.emtech.dairyapp.Configurations.SubCounty.Subcounty;
 import com.emtech.dairyapp.Configurations.SubCounty.SubcountyRepo;
 import com.emtech.dairyapp.Response.EntityResponse;
+import com.emtech.dairyapp.Stock.Product.audit.AuditService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,6 +23,8 @@ public class CountyService {
     private CountyRepo countyRepo;
     @Autowired
     private SubcountyRepo subcountyRepo;
+    @Autowired
+    AuditService auditService;
 
 
     public EntityResponse addCounty(County county) {
@@ -65,12 +69,21 @@ public class CountyService {
     }
 
 
-    public EntityResponse updateCounty(County county) {
+    public EntityResponse updateCounty(County county, Long countyId) {
         EntityResponse response = new EntityResponse();
         try {
+            Optional<County>countyOptional=countyRepo.findById(countyId);
+            if (countyOptional.isEmpty()){
+                log.info("county not found");
+            }
+             String currentusername= UserInfo.username();
 
-            county.setCreatedAt(new Date());
+            County county1=countyOptional.get();
+            county1.setCode(county.getCode());
+            county1.setCreatedAt(county.getCreatedAt());
+//            auditService.logUpdateAction("Category", county, county1);
             countyRepo.save(county);
+
 
             response.setEntity(county);
             response.setMessage(HttpStatus.OK.getReasonPhrase());
