@@ -17,6 +17,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -95,10 +97,18 @@ public class CategoryService {
         AtomicReference<StockEntitiesResponse> response = new AtomicReference<>();
 
         this.categoryRepo.findById(categoryId).ifPresentOrElse(category -> {
+            // Clone the existing category to capture its state before update
             Category beforeUpdate = new Category();
+            beforeUpdate.setId(category.getId());
+            beforeUpdate.setName(category.getName());
+            beforeUpdate.setDescription(category.getDescription());
+            beforeUpdate.setStatus(category.getStatus());
             beforeUpdate.setDeletedFlag(category.getDeletedFlag());
+            beforeUpdate.setCreationDate(category.getCreationDate());
+            beforeUpdate.setUpdateDate(category.getUpdateDate());
 
             category.setDeletedFlag("Active");
+            category.setUpdateDate(Timestamp.from(ZonedDateTime.now().toInstant()));
 
             Category afterUpdate = this.categoryRepo.save(category);
 
@@ -121,7 +131,7 @@ public class CategoryService {
     }
 
 
-    public CategoryResponse findCategoryById(@NonNull Long id){
+    public CategoryResponse findCategoryById( Long id){
         AtomicReference<CategoryResponse> response = new AtomicReference<>();
 
         this.categoryRepo.findById(id).ifPresentOrElse(category -> {

@@ -22,7 +22,7 @@ public class Audit {
     private String action;
     private String modelName;
     private String objectId;
-    private String username = UserInfo.username();
+    private String username;
     private String machineInfo;
     @Column(length = 600)
     private String details;
