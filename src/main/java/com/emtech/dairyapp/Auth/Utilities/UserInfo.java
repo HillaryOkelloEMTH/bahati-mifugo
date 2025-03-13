@@ -7,6 +7,7 @@ import com.emtech.dairyapp.Auth.UserRole.UserRoleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -23,13 +24,28 @@ public class UserInfo {
         this.userRoleRepo = userRoleRepo;
     }
 
+//    public static String username() {
+//        String username = "";
+//        if (CurrentUserContext.getCurrentUserContext() != null) {
+//            return CurrentUserContext.getCurrentUserContext().getUsername();
+//        } else {
+//            return username;
+//        }
+//    }
+
+
     public static String username() {
-        String username = "";
-        if (CurrentUserContext.getCurrentUserContext() != null) {
-            return CurrentUserContext.getCurrentUserContext().getUsername();
-        } else {
-            return username;
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication != null && authentication.isAuthenticated()) {
+            if (authentication.getPrincipal() instanceof UserDetails) {
+                return ((UserDetails) authentication.getPrincipal()).getUsername();
+            } else {
+                return authentication.getPrincipal().toString();
+            }
         }
+
+        return "UNKNOWN_USER";
     }
 
     public String userRole() {

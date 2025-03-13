@@ -59,6 +59,7 @@ public class AuditService {
         audit.setAction(action);
         audit.setModelName(modelName);
         audit.setTimestamp(ZonedDateTime.now());
+        audit.setUsername(UserInfo.username());
 
 
         audit.setMachineInfo(getMachineInfo());
@@ -89,6 +90,7 @@ public class AuditService {
         audit.setTimestamp(ZonedDateTime.now());
         audit.setMachineInfo(getMachineInfo());
         audit.setObjectId(objectId);
+        audit.setUsername(UserInfo.username());
 
 
         try {
@@ -113,6 +115,7 @@ public class AuditService {
         audit.setTimestamp(ZonedDateTime.now());
         audit.setMachineInfo(getMachineInfo());
         audit.setObjectId(objectId);
+        audit.setUsername(UserInfo.username());
 
         try {
             ObjectMapper objectMapper = new ObjectMapper();
