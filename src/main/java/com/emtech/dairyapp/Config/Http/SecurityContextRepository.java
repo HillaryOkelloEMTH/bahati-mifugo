@@ -58,7 +58,7 @@ public class SecurityContextRepository implements ServerSecurityContextRepositor
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
         CurrentUserContext.setCurrentUserContext(userDetails);
 
-        log.log(Level.INFO, "User retrieved: {}. Authenticating...", userDetails.getUsername());
+        log.log(Level.INFO, "User retrieved: {}. Authenticating ...", userDetails.getUsername());
 
         Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, authToken, userDetails.getAuthorities());
 

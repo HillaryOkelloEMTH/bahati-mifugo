@@ -50,7 +50,7 @@ public class AuthenticationManager implements ReactiveAuthenticationManager {
 
             List<Role> roles = this.userService.validateUser(authToken);
             if (roles != null && !roles.isEmpty()) {
-                log.log(Level.WARNING, String.format("Authenticated user roles [ %s ] ", roles));
+                log.log(Level.WARNING, String.format("Authenticated user roles [ %s ] ", roles.size()));
                 return Mono.just(new UsernamePasswordAuthenticationToken(authentication.getPrincipal(),
                         authentication.getCredentials(),
                         roles.stream().map(Role::getAccessRights)

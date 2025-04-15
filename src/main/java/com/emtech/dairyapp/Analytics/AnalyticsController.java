@@ -65,9 +65,9 @@ public class AnalyticsController {
         return ResponseEntity.ok().body(response);
     }
 
-    @GetMapping("roleUsers")
-    public ResponseEntity<?> roleUsers(@RequestParam Long roleId){
-        var response = collectionService.getRoleusers(roleId);
+    @GetMapping("collectors")
+    public ResponseEntity<?> roleUsers(){
+        var response = collectionService.getCollectors();
         return ResponseEntity.ok().body(response);
     }
     @GetMapping("collection/month")

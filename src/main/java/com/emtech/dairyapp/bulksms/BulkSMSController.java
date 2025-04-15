@@ -36,15 +36,15 @@ public class BulkSMSController {
             log.info("Bulk SMS Code - {}", bulkCode);
             List<RecipientsItem> recipients = request.getRecipients();
             if (!recipients.isEmpty()) {
-                for (int i = 0; i < recipients.size(); i++) {
-                    if (stringIsPhoneNumber(recipients.get(i).getPhoneNumber())) {
+                for (RecipientsItem recipient : recipients) {
+                    if (stringIsPhoneNumber(recipient.getPhoneNumber())) {
                         String body = request.getTemplateBody();
-                        body = body.replace("[name]", recipients.get(i).getName()).replace("[memberNumber]", recipients.get(i).getMemberNumber()).replace("[idNumber]", recipients.get(i).getIdNumber());
-                        log.info("Sending SMS to - " + recipients.get(i).getPhoneNumber());
-                        log.info("Message - " + body);
-                        service.BulkSMSNotification(body, recipients.get(i).getPhoneNumber(), bulkCode, request.getTemplateName());
+                        body = body.replace("[name]", recipient.getName()).replace("[memberNumber]", recipient.getMemberNumber()).replace("[idNumber]", recipient.getIdNumber());
+                        log.info("Sending SMS to - {}", recipient.getPhoneNumber());
+                        log.info("Message - {}", body);
+                        service.BulkSMSNotification(body, recipient.getPhoneNumber(), bulkCode, request.getTemplateName());
                     } else {
-                        System.out.println("Phone Number - " + recipients.get(i).getPhoneNumber() + " is invalid!");
+                        System.out.println("Phone Number - " + recipient.getPhoneNumber() + " is invalid!");
                     }
                 }
             }

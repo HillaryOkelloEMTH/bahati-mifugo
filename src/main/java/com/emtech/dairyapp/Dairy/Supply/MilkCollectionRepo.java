@@ -86,7 +86,7 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
 
     @Query(value = "SELECT r.route as route, count(*) as count,COALESCE(ROUND(SUM(c.quantity),2),0.0)  as quantity,COALESCE(ROUND(SUM(c.amount),2),0.0) as amount FROM collections c join route r on r.id=c.route_fk where  c.event ='Collection' group by c.route_fk",nativeQuery = true)
     List<DailyRecords> getRouteSummary();
-    @Query(value = "SELECT count(*) as count,COALESCE(ROUND(SUM(c.quantity),2),0.0)  as quantity,COALESCE(ROUND(SUM(c.amount),2),0.0) as amount FROM collections c where c.event ='Collection'", nativeQuery = true)
+    @Query(value = "SELECT count(*) as count,COALESCE(ROUND(SUM(c.quantity), 2),0.0)  as quantity,COALESCE(ROUND(SUM(c.amount),2),0.0) as amount FROM collections c where c.event ='Collection' and month(c.collection_date)= month(now()) and year(c.collection_date)= year(now())", nativeQuery = true)
     List<DailyRecords> getAllColectionsRecord();
 
     @Query(value = "SELECT f.first_name ,f.last_name ,f.farmer_no ,c.updated_status as updateStatus,c.can_no as canNo,c.original_quantity as originalQuantity,c.session, c.id, c.collection_number as collectionCode ,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer,c.amount,c.quantity,c.collection_date,r.route as route ,p.name as pickUpLocation from collections c join users u on c.collector_id =u.id join farmer f on f.farmer_no=c.farmer_no join route r on r.id=c.route_fk join pick_up_locations p on p.id =r.location_id where DATE(c.collection_date) =:date order by c.collection_date", nativeQuery = true)
@@ -177,8 +177,8 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
     @Query(value = "SELECT c.latitude  ,c.longitude,c.quantity,r.route as route,CAST(c.collection_date as time) as time from collections c join route r on r.id=c.route_fk WHERE c.collector_id =:collectorId   and  DATE(c.collection_date)=:date", nativeQuery = true)
     List<RouteData> getCollectorRoutes(Long collectorId, String date);
 
-    @Query(value = "SELECT u.id,u.user_name as username,r.name as role  from users u join user_role ur on u.id=ur.user join roles r on r.id=ur.role where r.id=:roleId", nativeQuery = true)
-    List<Roleusers> getRoleUsers(Long roleId);
+    @Query(value = "SELECT u.id,u.user_name as username,r.name as role  from users u join user_role ur on u.id=ur.user join roles r on r.id=ur.role where r.name='MILK_COLLECTOR'", nativeQuery = true)
+    List<Roleusers> getCollectors();
 
     @Query(value = "SELECT ROUND(sum(c.amount),2) as amount , ROUND(SUM(c.quantity),2) as quantity ,MONTHNAME(c.collection_date) as month  from collections c where YEAR(c.collection_date)=:year  and c.collector_id=:collectorId GROUP BY MONTH(c.collection_date)", nativeQuery = true)
     List<AnalyticsData> getQuantityPerMonth(Integer year, Long collectorId);

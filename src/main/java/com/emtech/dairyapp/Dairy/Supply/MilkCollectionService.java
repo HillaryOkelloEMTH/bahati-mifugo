@@ -167,7 +167,7 @@ public class MilkCollectionService {
                         Optional<Route> r = routeRepo.findById(collections.getRouteFk());
 
                         if (r.isPresent()) {
-                            log.info("Price Configuration for " + r.get().getRoute() + " Not Found");
+                            log.info("Price Configuration for {} not found", r.get().getRoute());
                             response.setStatusCode(HttpStatus.BAD_REQUEST.value());
                             response.setMessage("Price Configuration for " + r.get().getRoute() + " Not Found");
                             return response;
@@ -737,13 +737,13 @@ public class MilkCollectionService {
         return response;
     }
 
-    public EntityResponse getDayRecords(String date) {
+    public EntityResponse<?> getDayRecords(String date) {
+        EntityResponse<List<DailyRecords>> response = new EntityResponse<>();
 
-        EntityResponse response = new EntityResponse();
         try {
 
             List<DailyRecords> todaysCollections = milkCollectionRepo.getSpecificDateRecord(date);
-            if (todaysCollections.size() > 0) {
+            if (!todaysCollections.isEmpty()) {
                 response.setStatusCode(HttpStatus.OK.value());
                 response.setEntity(todaysCollections);
                 response.setMessage(HttpStatus.OK.getReasonPhrase());
@@ -858,13 +858,12 @@ public class MilkCollectionService {
         }
         return response;
     }
-    public EntityResponse getAllCollectionsRecords() {
-
-        EntityResponse response = new EntityResponse();
+    public EntityResponse<?> getAllCollectionsRecords() {
+        EntityResponse<List<DailyRecords>> response = new EntityResponse<>();
         try {
 
             List<DailyRecords> todaysCollections = milkCollectionRepo.getAllColectionsRecord();
-            if (todaysCollections.size() > 0) {
+            if (!todaysCollections.isEmpty()) {
                 response.setStatusCode(HttpStatus.OK.value());
                 response.setEntity(todaysCollections);
                 response.setMessage(HttpStatus.OK.getReasonPhrase());
@@ -873,7 +872,6 @@ public class MilkCollectionService {
                 response.setEntity(todaysCollections);
                 response.setMessage(HttpStatus.NOT_FOUND.getReasonPhrase());
             }
-
 
         } catch (Exception e) {
             log.error(e.getMessage());
@@ -1009,13 +1007,13 @@ public class MilkCollectionService {
         return response;
     }
 
-    public EntityResponse getRoleusers(Long roleId) {
+    public EntityResponse<?> getCollectors() {
 
-        EntityResponse response = new EntityResponse();
+        EntityResponse<List<MilkCollectionRepo.Roleusers>> response = new EntityResponse<>();
         try {
 
-            List<MilkCollectionRepo.Roleusers> users = milkCollectionRepo.getRoleUsers(roleId);
-            if (users.size() > 0) {
+            List<MilkCollectionRepo.Roleusers> users = milkCollectionRepo.getCollectors();
+            if (!users.isEmpty()) {
                 response.setStatusCode(HttpStatus.OK.value());
                 response.setEntity(users);
                 response.setMessage(HttpStatus.OK.getReasonPhrase());

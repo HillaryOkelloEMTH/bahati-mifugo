@@ -219,8 +219,8 @@ public class MilkCollectionController {
         return ResponseEntity.ok().body(response);
     }
     @GetMapping("day/records")
-    public ResponseEntity<EntityResponse> getDateRecords(@RequestParam String date){
-        EntityResponse response = collectionService.getDayRecords(date);
+    public ResponseEntity<?> getDateRecords(@RequestParam String date){
+        var response = collectionService.getDayRecords(date);
         return ResponseEntity.ok().body(response);
     }
 
@@ -290,7 +290,7 @@ public class MilkCollectionController {
     }
     @GetMapping("records/all")
     public ResponseEntity<?> getAllRecords(){
-        EntityResponse response = collectionService.getAllCollectionsRecords();
+        var response = collectionService.getAllCollectionsRecords();
         return ResponseEntity.ok().body(response);
     }
     @GetMapping("summary/routes")

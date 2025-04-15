@@ -5,6 +5,7 @@ import com.emtech.dairyapp.Analytics.LinkedStringInteger;
 import com.emtech.dairyapp.Configurations.Utils.CONSTANTS;
 import com.emtech.dairyapp.Response.EntityResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,16 +16,11 @@ import org.springframework.web.bind.annotation.*;
 public class FarmerController {
 
 
-
-
     private final FarmerService farmerService;
 
     public FarmerController(FarmerService farmerService) {
         this.farmerService = farmerService;
     }
-
-
-
 
     @PostMapping("add")
     public ResponseEntity<EntityResponse<?>> addfarmer(@RequestBody Farmer farmer){
@@ -51,9 +47,15 @@ public class FarmerController {
     }
 
     @GetMapping("all")
-    public ResponseEntity<EntityResponse> getAllfarmers(){
-        EntityResponse response = farmerService.fetchFarmers();
+    public ResponseEntity<?> getAllFarmers(){
+        var response = farmerService.fetchFarmers();
         return ResponseEntity.ok().body(response);
+    }
+
+    @GetMapping("active")
+    public ResponseEntity<?> getActiveFarmers() {
+        var res = farmerService.getActiveFarmers();
+        return new ResponseEntity<>(res, HttpStatusCode.valueOf(res.getStatusCode()));
     }
 
     @GetMapping("mcc/{locationId}")

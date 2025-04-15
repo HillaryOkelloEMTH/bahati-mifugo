@@ -309,6 +309,33 @@ public class FarmerService {
         }
         return response;
     }
+
+    public EntityResponse<?> getActiveFarmers() {
+        log.info("Retrieving all active farmers within the last 2 months.");
+        EntityResponse<List<FarmerInfo>> response = new EntityResponse<>();
+
+        try {
+            List<FarmerInfo> farmers = farmerRepo.getActiveFarmers(2);
+
+            System.out.println("the farmer count is "+farmers.size());
+            if(!farmers.isEmpty()) {
+                response.setEntity(farmers);
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setMessage("Retrieved "+farmers.size()+" active farmers for bahati");
+            }else {
+                response.setEntity(farmers);
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setMessage(HttpStatus.NO_CONTENT.getReasonPhrase());
+            }
+            return response;
+        } catch (Exception e) {
+            log.error("Error is {}", e.getLocalizedMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+            return response;
+        }
+    }
+
     public EntityResponse fetchFarmers() {
         log.info("Fetching Farmers ...");
         EntityResponse response = new EntityResponse();
@@ -333,6 +360,7 @@ public class FarmerService {
             return response;
         }
     }
+
     public EntityResponse fetchFarmerByMemberNO(Integer memberNO) {
         log.info("Fetching Farmer with Farmer No. "+ memberNO );
         EntityResponse response = new EntityResponse();
