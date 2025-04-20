@@ -3,6 +3,7 @@ package com.emtech.dairyapp.Config.Http;
 import com.emtech.dairyapp.Auth.Utilities.CurrentUserContext;
 import com.emtech.dairyapp.Auth.Utilities.JWTUtil;
 import com.emtech.dairyapp.Auth.Utilities.TokenExpiredException;
+import io.jsonwebtoken.JwtException;
 import lombok.AllArgsConstructor;
 import lombok.extern.java.Log;
 import org.springframework.http.HttpHeaders;
@@ -51,6 +52,9 @@ public class SecurityContextRepository implements ServerSecurityContextRepositor
             jwtUtil.validateToken(authToken);
         } catch (TokenExpiredException e) {
             log.log(Level.WARNING, "Token expired: " + e.getMessage());
+            return Mono.empty();
+        } catch (JwtException e) {
+            log.log(Level.WARNING, "Authorization header missing or invalid format");
             return Mono.empty();
         }
 
