@@ -26,7 +26,7 @@ public class SmsController {
 
     @PostMapping("send/notification")
     public Mono<ResponseEntity<?>> sendSmsNotification(@RequestParam String message, @RequestParam String mobile){
-        EntityResponse response = new EntityResponse();
+        EntityResponse<Object> response = new EntityResponse<>();
 
         return smsServiceV2.sendSMSNotification(message, mobile)
                 .doOnSuccess(smsResponse -> {
@@ -44,28 +44,28 @@ public class SmsController {
                 .thenReturn(ResponseEntity.ok().body(response));
     }
 
-    @PostMapping("sms-not/callback")
+    @PostMapping("/callback")
     public void  receiveCallback(@RequestBody SMSCallback details){
         Gson gs = new Gson();
-        log.info("Tilil SMS Callback Received { " + gs.toJson(details) + " }");
+        log.info("Tilil SMS Callback Received {}. The body is", gs.toJson(details));
         String status = details.getDlrStatus();
         String origin = details.getOrigin();
-        String statusdesc = details.getDlrDesc();
+        String statusDesc = details.getDlrDesc();
         String messageId = details.getMessageId();
 
         //Update and status description in SMS Notifications Table
         Optional<SMSNotifications> sms = smsnOtificaionRepo.findByMessageId(messageId);
         if (sms.isPresent()) {
             log.info("SMS found");
-            log.info("Updating SMS...");
+            log.info("Updating SMS delivery status...");
             SMSNotifications sn = sms.get();
             sn.setStatus(status);
             sn.setOrigin(origin);
-            sn.setStatusDescription(statusdesc);
+            sn.setStatusDescription(statusDesc);
             sn.setDeliveryTime(details.getDlrTime());
             smsnOtificaionRepo.save(sn);
         }
-        log.info("Done");
+        log.info("Done updating.");
     }
 
 }
