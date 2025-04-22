@@ -310,18 +310,24 @@ public class FarmerService {
         return response;
     }
 
-    public EntityResponse<?> getActiveFarmers() {
-        log.info("Retrieving all active farmers within the last 2 months.");
+    public EntityResponse<?> getActiveFarmers(Integer months) {
+        log.info("Retrieving all active farmers within the last {} months.", months);
         EntityResponse<List<FarmerInfo>> response = new EntityResponse<>();
 
         try {
-            List<FarmerInfo> farmers = farmerRepo.getActiveFarmers(2);
+            if (months == null) {
+                response.setMessage("Number of months needed");
+                response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+                return response;
+            }
+
+            List<FarmerInfo> farmers = farmerRepo.getActiveFarmers(months);
 
             System.out.println("the farmer count is "+farmers.size());
             if(!farmers.isEmpty()) {
                 response.setEntity(farmers);
                 response.setStatusCode(HttpStatus.OK.value());
-                response.setMessage("Retrieved "+farmers.size()+" active farmers for bahati");
+                response.setMessage("Retrieved "+farmers.size()+" active farmers for "+months+" months.");
             }else {
                 response.setEntity(farmers);
                 response.setStatusCode(HttpStatus.OK.value());

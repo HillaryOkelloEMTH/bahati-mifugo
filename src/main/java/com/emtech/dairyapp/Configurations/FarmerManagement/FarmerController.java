@@ -53,8 +53,8 @@ public class FarmerController {
     }
 
     @GetMapping("active")
-    public ResponseEntity<?> getActiveFarmers() {
-        var res = farmerService.getActiveFarmers();
+    public ResponseEntity<?> getActiveFarmers(@RequestParam int months) {
+        var res = farmerService.getActiveFarmers(months);
         return new ResponseEntity<>(res, HttpStatusCode.valueOf(res.getStatusCode()));
     }
 
