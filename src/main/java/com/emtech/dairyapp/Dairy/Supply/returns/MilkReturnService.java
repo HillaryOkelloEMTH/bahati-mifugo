@@ -5,6 +5,7 @@ import com.emtech.dairyapp.Configurations.Interfaces.FarmerInfo;
 import com.emtech.dairyapp.Configurations.Utils.Formatter;
 import com.emtech.dairyapp.Dairy.Supply.MilkCollectionRepo;
 import com.emtech.dairyapp.Dairy.Supply.MilkCollections;
+import com.emtech.dairyapp.Notifications.SMS.smsv2.SmsReqDto;
 import com.emtech.dairyapp.Notifications.SMS.smsv2.SmsServiceV2;
 import com.emtech.dairyapp.Response.EntityResponse;
 import lombok.AllArgsConstructor;
@@ -77,7 +78,12 @@ public class MilkReturnService {
                 String message = "Dear " + farmerInfo.getName() + ", Farmer No. " + farmerInfo.getFarmer_no() + " we have returned " + collections.getQuantity() + "Kgs of milk. " +
                         session + " Session recorded on " + Formatter.formatDate(collections.getCollectionDate()) + ". Month Total: " + monthTotal + " Kgs. Helpline: 0726777884";
                 String phoneno = Formatter.formatPhone(farmerInfo.getMobile_no().trim());
-                smsServiceV2.SMSNotification(message, phoneno);
+
+                SmsReqDto reqDto = new SmsReqDto();
+                reqDto.setPhoneNumber(phoneno);
+                reqDto.setMessage(message);
+                reqDto.setBulk(false);
+                smsServiceV2.SMSNotification(reqDto);
             }
             
             response.setMessage("Delivery Returned Successfully");

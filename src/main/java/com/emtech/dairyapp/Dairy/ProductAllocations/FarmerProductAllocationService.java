@@ -14,6 +14,7 @@ import com.emtech.dairyapp.Configurations.Utils.Formatter;
 import com.emtech.dairyapp.Dairy.Interface.Allocations;
 import com.emtech.dairyapp.Dairy.ProductAllocations.dto.ProductRequestDto;
 import com.emtech.dairyapp.Dairy.Supply.MilkCollectionRepo;
+import com.emtech.dairyapp.Notifications.SMS.smsv2.SmsReqDto;
 import com.emtech.dairyapp.Notifications.SMS.smsv2.SmsServiceV2;
 import com.emtech.dairyapp.Response.EntityResponse;
 import com.emtech.dairyapp.Stock.MccAllocations.MccAllocation;
@@ -113,11 +114,16 @@ public class FarmerProductAllocationService {
                         ". We have received your request for "+productRequest.getQuantity()+
                         " units of "+productRequest.getProductName()+" on " + Formatter.formatDate(new Date());
 
-                smsServiceV2.SMSNotification(message, formattedPhone);
+                SmsReqDto reqDto = new SmsReqDto();
+                reqDto.setBulk(false);
+                reqDto.setMessage(message);
+                reqDto.setPhoneNumber(formattedPhone);
+
+                smsServiceV2.SMSNotification(reqDto);
             }
 
         } catch (Exception e) {
-            log.error("Error: " + e.getLocalizedMessage());
+            log.error("Error: {}", e.getLocalizedMessage());
             response.setStatusCode(HttpStatus.BAD_REQUEST.value());
             response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
             return response;
@@ -230,7 +236,7 @@ public class FarmerProductAllocationService {
                 FarmerProductAllocations f= farmerAllocation.get();
                 Optional<FarmerInfo> farmerInfo = farmerRepo.findByFarmerNo(f.getFarmerNo());
 
-                log.info("checking farmer existence for farmer no {} ........ ", f.getFarmerNo());
+                log.info("checking for farmer existence, farmer no {} ........ ", f.getFarmerNo());
                 if (farmerInfo.isEmpty()) {
                     response.setMessage("Farmer not found");
                     response.setStatusCode(HttpStatus.NOT_FOUND.value());
@@ -244,16 +250,18 @@ public class FarmerProductAllocationService {
                     f.setStatus(RequestStatus.REJECTED);
                 } else if (status.equalsIgnoreCase("Cancel")) {
                     log.info("delete product request for farmer, {}, farmerNo, {} , {} units, {}, added on {}", f.getFarmerName(), f.getFarmerNo(), f.getQuantity(), f.getProductName(), f.getRequestedOn());
-                    // create object to get sms details from
-                    FarmerProductAllocations ef = new FarmerProductAllocations();
-                    ef = f;
                     farmerProdAllocattionsRepo.delete(f);
                     if (farmerInfo.get().getMobile_no() != null) {
-                        String message = "Dear "+ef.getFarmerName()+" f.no "+ef.getFarmerNo()+
-                                ", your request for "+ef.getQuantity()+" units of "+ef.getProductName()+
+                        String message = "Dear "+f.getFarmerName()+" f.no "+f.getFarmerNo()+
+                                ", your request for "+f.getQuantity()+" units of "+f.getProductName()+
                                 " has been cancelled on "+Formatter.formatDate(new Date());
 
-                        smsServiceV2.SMSNotification(message, Formatter.formatPhone(farmerInfo.get().getMobile_no()));
+                        SmsReqDto reqDto = new SmsReqDto();
+                        reqDto.setBulk(false);
+                        reqDto.setPhoneNumber(Formatter.formatPhone(farmerInfo.get().getMobile_no()));
+                        reqDto.setMessage(message);
+
+                        smsServiceV2.SMSNotification(reqDto);
                     }
 
                     response.setMessage("Request cancelled successfully");
@@ -297,7 +305,12 @@ public class FarmerProductAllocationService {
                             ", your request for "+f.getQuantity()+
                             " units of "+f.getProductName()+" has been approved on " + Formatter.formatDate(new Date());
 
-                smsServiceV2.SMSNotification(message, formattedPhone);
+                    SmsReqDto reqDto = new SmsReqDto();
+                    reqDto.setBulk(false);
+                    reqDto.setPhoneNumber(formattedPhone);
+                    reqDto.setMessage(message);
+
+                smsServiceV2.SMSNotification(reqDto);
                 }
 
             } else {

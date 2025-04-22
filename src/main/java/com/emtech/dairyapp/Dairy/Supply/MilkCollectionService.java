@@ -20,6 +20,7 @@ import com.emtech.dairyapp.Configurations.Utils.CONSTANTS;
 import com.emtech.dairyapp.Dairy.FloatTracking.FloatManager;
 import com.emtech.dairyapp.Dairy.FloatTracking.FloatManagerRepo;
 import com.emtech.dairyapp.Dairy.Interface.*;
+import com.emtech.dairyapp.Notifications.SMS.smsv2.SmsReqDto;
 import com.emtech.dairyapp.Notifications.SMS.smsv2.SmsServiceV2;
 import com.emtech.dairyapp.Response.EntityResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -318,7 +319,12 @@ public class MilkCollectionService {
                             String message = "Dear "+farmerInfo.get().getName()+", M.No. "+farmerInfo.get().getFarmer_no()+"."+
                                     "\nDelivery for "+formatDate(collections.getCollectionDate())+" has been updated from "+collections.getOriginalQuantity()+" kgs to "+
                                     collections.getQuantity()+" kgs on "+formatDate(new Date())+". Monthly Total: "+monthTotal;
-                            smsServiceV2.SMSNotification(message,formatPhone(farmerInfo.get().getMobile_no().trim()));
+                            SmsReqDto reqDto = new SmsReqDto();
+                            reqDto.setBulk(false);
+                            reqDto.setPhoneNumber(formatPhone(farmerInfo.get().getMobile_no().trim()));
+                            reqDto.setMessage(message);
+
+                            smsServiceV2.SMSNotification(reqDto);
                             response.setMessage("Collection updated and sent notification to farmer.");
                             log.info("Collection updated and sent notification to farmer.");
                         }else {

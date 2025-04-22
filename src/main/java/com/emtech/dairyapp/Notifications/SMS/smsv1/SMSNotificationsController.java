@@ -41,7 +41,7 @@ public class SMSNotificationsController {
             log.info("Updating SMS...");
             SMSNotifications sn = sms.get();
             sn.setStatus(status);
-            sn.setStatusReason(statusreason);
+            sn.setStatusDescription(statusreason);
             sn.setStatusDescription(statusdesc);
             sn.setEventType(details.getEvent_type());
             sn.setDeliveryTime(details.getCreated_at());

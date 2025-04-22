@@ -53,16 +53,24 @@ public class SmsServiceV2 {
                    return clientResponse.bodyToFlux(SMSResponse.class)
                            .collectList()
                            .doOnSuccess(body-> {
+                               String phone = "";
+                               String msg = "";
+                               SmsReqDto reqDto = new SmsReqDto();
+                               reqDto.setBulk(false);
+                               reqDto.setPhoneNumber(phone);
+                               reqDto.setMessage(msg);
                                Double bal = body.get(0).getCredit_balance();
 
                                if (bal != null) {
                                    if (bal == 50.0 || bal == 100.0 || bal == 200.0 || bal == 1000.0 || bal == 500.0 || bal == 2000.0) {
-//                                   SMSNotification("The credit amount balance is at "+ bal+" units", "254708145423");
-                                       SMSNotification("The credit amount balance is at " + bal + " units", "254112209296");
-                                       SMSNotification("The credit amount balance is at " + bal + " units.", "254722585903");
+//                                   SMSNotification("The credit amount balance is at "+ bal+" units", "254708145423"); //
+                                       reqDto.setMessage("The credit amount balance is at " + bal + " units");
+                                       reqDto.setPhoneNumber("254112209296"); SMSNotification(reqDto);
+                                       reqDto.setPhoneNumber("254722585903"); SMSNotification(reqDto);
 
-                                       SMSNotification("The credit amount balance is at " + bal + " units.", "254719411709");
-                                       SMSNotification("The credit amt balance for Bahati Dairies is" + bal + " units.", "254715318204");
+                                       reqDto.setPhoneNumber("254719411709"); SMSNotification(reqDto);
+                                       reqDto.setMessage("The credit amt balance for Bahati Dairies is" + bal + " units.");
+                                       reqDto.setPhoneNumber("254715318204"); SMSNotification(reqDto);  // to bahati MD
                                    }
                                    log.info("The response is ::: {} and body is {}", clientResponse.statusCode(), body);
                                }
@@ -79,10 +87,9 @@ public class SmsServiceV2 {
             });
     }
 
-
-    public void SMSNotification(String message, String phoneNumber) {
+    public void SMSNotification(SmsReqDto dto) {
         //Create Message and Save In DB
-        Mono<List<SMSResponse>> sr = sendSMSNotification(message, phoneNumber);
+        Mono<List<SMSResponse>> sr = sendSMSNotification(dto.getMessage(), dto.getPhoneNumber());
         sr.subscribe(smsResponses -> {
             if (!smsResponses.isEmpty()){
                 SMSResponse response = smsResponses.get(0);
@@ -91,11 +98,21 @@ public class SmsServiceV2 {
                 sms.setResponseCode(Integer.parseInt(response.getStatus_code()));
                 sms.setEventType("-");
                 sms.setDeliveryTime("-");
+                sms.setStatusDescription(response.getStatus_desc());
                 sms.setMessageRef(generatecSystemCode(10));
                 sms.setMessageId(String.valueOf(response.getMessage_id()));
-                sms.setMessage(message);
+                sms.setMessage(dto.getMessage());
                 sms.setSentDate(new Date());
-                sms.setPhoneNumber(phoneNumber);
+                sms.setPhoneNumber(dto.getPhoneNumber());
+                sms.setNetworkId(response.getNetwork_id());
+
+                // saving bulk sms details
+                if (dto.isBulk()) {
+                    sms.setBulk('Y');
+                    sms.setBulkCode(dto.getBulkCode());
+                    sms.setSmsTemplate(dto.getBulkTemplate());
+                }
+
                 smsNotificationsRepository.save(sms);
             }
         });
@@ -105,11 +122,8 @@ public class SmsServiceV2 {
         Random rnd = new Random();
         StringBuilder sb = new StringBuilder(len);
         for (int i = 0; i < 12; i++)
-            sb.append(chars.charAt(rnd.nextInt(chars.length()))).toString();
-        log.info("RANDOM STRING :: " + sb);
+            sb.append(chars.charAt(rnd.nextInt(chars.length())));
+        log.info("RANDOM STRING :: {}", sb);
         return sb.toString();
     }
-
-
-
 }

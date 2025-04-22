@@ -1,6 +1,7 @@
 package com.emtech.dairyapp.Notifications.SMS.smsv1;
 
 
+import com.emtech.dairyapp.Notifications.SMS.smsv2.SmsReqDto;
 import com.emtech.dairyapp.Notifications.SMS.smsv2.SmsServiceV2;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
@@ -177,7 +178,14 @@ public class SMSService {
     }
 
     public void BulkSMSNotification(String message, String phoneNumber,String bulkCode,String smsTemplate) {
-        smsServiceV2.SMSNotification(message, phoneNumber);
+        SmsReqDto reqDto = new SmsReqDto();
+
+        reqDto.setPhoneNumber(phoneNumber);
+        reqDto.setMessage(message);
+        reqDto.setBulkCode(bulkCode);
+        reqDto.setBulk(true);
+        reqDto.setBulkTemplate(smsTemplate);
+        smsServiceV2.SMSNotification(reqDto);
         //Create Message and Save In DB
 ////        SMSResponse sr = sendSMS(message, phoneNumber);
 //        SMSNotifications sms = new SMSNotifications();
