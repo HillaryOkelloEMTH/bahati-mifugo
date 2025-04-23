@@ -2,6 +2,7 @@ package com.emtech.dairyapp.Configurations.FarmerManagement;
 
 import com.emtech.dairyapp.Analytics.LinkedStringInteger;
 import com.emtech.dairyapp.Configurations.Interfaces.*;
+import com.emtech.dairyapp.Configurations.PickUpLocations.PickUpLocations;
 import com.emtech.dairyapp.Configurations.PickUpLocations.PickUpLocationsRepo;
 import com.emtech.dairyapp.Configurations.Routes.Route;
 import com.emtech.dairyapp.Configurations.Routes.RouteRepo;
@@ -342,12 +343,83 @@ public class FarmerService {
         }
     }
 
-    public EntityResponse fetchFarmers() {
+    public EntityResponse<?> getRouteActiveFarmers(Integer months, Long routeId) {
+        EntityResponse<List<FarmerInfo>> response = new EntityResponse<>();
+
+        try {
+            if (months == null || routeId == null) {
+                response.setMessage("Number of months and routeId needed");
+                response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+                return response;
+            }
+
+            Optional<Route> routeOptional = routeRepo.findById(routeId);
+            if (routeOptional.isEmpty()){
+                response.setMessage("Route absent.");
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                return response;
+            }
+
+            log.info("Retrieving all active farmers for {} route within the last {} months.", routeOptional.get().getRoute(),months);
+
+            List<FarmerInfo> farmers = farmerRepo.getRouteActiveFarmers(months, routeId);
+
+            System.out.println("the farmer count is "+farmers.size());
+            response.setEntity(farmers);
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setMessage("Active farmers for "+routeOptional.get().getRoute()+" route are "+farmers.size()+" for "+months+" months.");
+
+            return response;
+        } catch (Exception e) {
+            log.error("Error caught is {}", e.toString());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+            return response;
+        }
+    }
+
+    public EntityResponse<?> getCenterActiveFarmers(Integer months, Long locationId) {
+        EntityResponse<List<FarmerInfo>> response = new EntityResponse<>();
+
+        try {
+            if (months == null || locationId == null) {
+                response.setMessage("Number of months and locationId needed");
+                response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+                return response;
+            }
+
+            Optional<PickUpLocations> optionalLocation = pickUpLocationsRepo.findById(locationId);
+            if (optionalLocation.isEmpty()){
+                response.setMessage("Milk collection location absent.");
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                return response;
+            }
+
+            log.info("Retrieving all active farmers for {} collection center within the last {} months.", optionalLocation.get().getName(),months);
+
+            List<FarmerInfo> farmers = farmerRepo.getCenterActiveFarmers(months, locationId);
+
+            System.out.println("the farmer count is "+farmers.size());
+            response.setEntity(farmers);
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setMessage("Active farmers for "+optionalLocation.get().getName()+" center are "+farmers.size()+" for "+months+" months.");
+
+            return response;
+        } catch (Exception e) {
+            log.error("Error caught in getting mcc active farmers is {}", e.toString());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+            return response;
+        }
+    }
+
+
+    public EntityResponse<?> fetchFarmers() {
         log.info("Fetching Farmers ...");
-        EntityResponse response = new EntityResponse();
+        EntityResponse<Object> response = new EntityResponse<>();
         try {
             List<FarmerInfo> farmers = farmerRepo.getAllfarmers();
-            if(farmers.size()>0) {
+            if(!farmers.isEmpty()) {
 //                log.info("Farmers Found "+ "("+farmer.get().getUsername()+")");
                 response.setEntity(farmers);
                 response.setStatusCode(HttpStatus.OK.value());
@@ -360,7 +432,7 @@ public class FarmerService {
             }
             return response;
         } catch (Exception e) {
-            log.error("Error: " + e.getLocalizedMessage());
+            log.error("Error: {}", e.getLocalizedMessage());
             response.setStatusCode(HttpStatus.BAD_REQUEST.value());
             response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
             return response;

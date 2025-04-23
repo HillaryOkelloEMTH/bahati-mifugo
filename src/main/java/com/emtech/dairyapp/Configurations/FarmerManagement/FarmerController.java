@@ -52,9 +52,21 @@ public class FarmerController {
         return ResponseEntity.ok().body(response);
     }
 
-    @GetMapping("active")
+    @GetMapping("active/all")
     public ResponseEntity<?> getActiveFarmers(@RequestParam int months) {
         var res = farmerService.getActiveFarmers(months);
+        return new ResponseEntity<>(res, HttpStatusCode.valueOf(res.getStatusCode()));
+    }
+
+    @GetMapping("active/route")
+    public ResponseEntity<?> getRouteActiveFarmers(@RequestParam int months, @RequestParam Long routeId) {
+        var res = farmerService.getRouteActiveFarmers(months, routeId);
+        return new ResponseEntity<>(res, HttpStatusCode.valueOf(res.getStatusCode()));
+    }
+
+    @GetMapping("active/location")
+    public ResponseEntity<?> getCenterActiveFarmers(@RequestParam int months, @RequestParam Long locationId) {
+        var res = farmerService.getCenterActiveFarmers(months, locationId);
         return new ResponseEntity<>(res, HttpStatusCode.valueOf(res.getStatusCode()));
     }
 
@@ -71,8 +83,8 @@ public class FarmerController {
     }
 
     @PutMapping("update")
-    public ResponseEntity<EntityResponse> updatefarmer(@RequestBody Farmer farmer){
-        EntityResponse response = farmerService.updateFarmer(farmer);
+    public ResponseEntity<?> updateFarmer(@RequestBody Farmer farmer){
+        EntityResponse<?> response = farmerService.updateFarmer(farmer);
         return ResponseEntity.ok().body(response);
     }
 
@@ -82,8 +94,8 @@ public class FarmerController {
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
     @DeleteMapping("delete/{id}")
-    public ResponseEntity<EntityResponse> deletefarmer(@PathVariable Long id){
-        EntityResponse response = farmerService.deleteFarmer(id);
+    public ResponseEntity<?> deleteFarmer(@PathVariable Long id){
+        EntityResponse<?> response = farmerService.deleteFarmer(id);
         return ResponseEntity.ok().body(response);
     }
 

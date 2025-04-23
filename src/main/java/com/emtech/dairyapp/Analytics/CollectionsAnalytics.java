@@ -1,8 +1,6 @@
 package com.emtech.dairyapp.Analytics;
 
 
-import com.emtech.dairyapp.Configurations.Interfaces.FarmersPerWard;
-import com.emtech.dairyapp.Dairy.Interface.CollectionsData;
 import com.emtech.dairyapp.Dairy.Supply.MilkCollectionRepo;
 import com.emtech.dairyapp.Response.EntityResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -79,7 +77,7 @@ public class CollectionsAnalytics {
                 quantity.add(c.getAmount());
 
             }
-            data.setQuantiy(quantity);
+            data.setQuantity(quantity);
             data.setNames(names);
             data.setAmount(amount);
 
