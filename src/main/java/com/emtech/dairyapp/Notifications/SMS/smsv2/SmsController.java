@@ -1,7 +1,7 @@
 package com.emtech.dairyapp.Notifications.SMS.smsv2;
 
 
-import com.emtech.dairyapp.Notifications.SMS.smsv1.SMSNOtificaionRepo;
+import com.emtech.dairyapp.Notifications.SMS.smsv1.SmsNotificationRepo;
 import com.emtech.dairyapp.Notifications.SMS.smsv1.SMSNotifications;
 import com.emtech.dairyapp.Response.EntityResponse;
 import com.google.gson.Gson;
@@ -22,7 +22,7 @@ public class SmsController {
     @Autowired
     private SmsServiceV2 smsServiceV2;
     @Autowired
-    private SMSNOtificaionRepo smsnOtificaionRepo;
+    private SmsNotificationRepo smsNotificationRepo;
 
     @PostMapping("send/notification")
     public Mono<ResponseEntity<?>> sendSmsNotification(@RequestParam String message, @RequestParam String mobile){
@@ -54,7 +54,7 @@ public class SmsController {
         String messageId = details.getMessageId();
 
         //Update and status description in SMS Notifications Table
-        Optional<SMSNotifications> sms = smsnOtificaionRepo.findByMessageId(messageId);
+        Optional<SMSNotifications> sms = smsNotificationRepo.findByMessageId(messageId);
         if (sms.isPresent()) {
             log.info("SMS found");
             log.info("Updating SMS delivery status...");
@@ -63,7 +63,7 @@ public class SmsController {
             sn.setOrigin(origin);
             sn.setStatusDescription(statusDesc);
             sn.setDeliveryTime(details.getDlrTime());
-            smsnOtificaionRepo.save(sn);
+            smsNotificationRepo.save(sn);
         }
         log.info("Done updating.");
     }

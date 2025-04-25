@@ -18,7 +18,7 @@ import java.util.Optional;
 public class SMSNotificationsController {
 
     @Autowired
-    private SMSNOtificaionRepo smsnOtificaionRepo;
+    private SmsNotificationRepo smsNotificationRepo;
     @Autowired
     private SMSService service;
 
@@ -35,7 +35,7 @@ public class SMSNotificationsController {
         String messageId = details.getData().getMessage_id();
 
         //Update and status description in SMS Notifications Table
-        Optional<SMSNotifications> sms = smsnOtificaionRepo.findByMessageId(messageId);
+        Optional<SMSNotifications> sms = smsNotificationRepo.findByMessageId(messageId);
         if (sms.isPresent()) {
             log.info("SMS found");
             log.info("Updating SMS...");
@@ -45,7 +45,7 @@ public class SMSNotificationsController {
             sn.setStatusDescription(statusdesc);
             sn.setEventType(details.getEvent_type());
             sn.setDeliveryTime(details.getCreated_at());
-            smsnOtificaionRepo.save(sn);
+            smsNotificationRepo.save(sn);
         }
         log.info("Done");
     }
@@ -58,7 +58,7 @@ public class SMSNotificationsController {
     @GetMapping("notifications")
     public ResponseEntity<?> getNotifications() {
         EntityResponse response = new EntityResponse();
-        List<SMSNotifications> not = smsnOtificaionRepo.findAll();
+        List<SMSNotifications> not = smsNotificationRepo.findAll();
         if (not.size()>0) {
             response.setEntity(not);
             response.setMessage(HttpStatus.OK.getReasonPhrase());
@@ -73,7 +73,7 @@ public class SMSNotificationsController {
     @GetMapping("notifications/messageId")
     public ResponseEntity<?> getNotificationsBYMSID(@RequestParam String messageId) {
         EntityResponse response = new EntityResponse();
-        Optional<SMSNotifications> not = smsnOtificaionRepo.findByMessageId(messageId);
+        Optional<SMSNotifications> not = smsNotificationRepo.findByMessageId(messageId);
         if (not.isPresent()) {
             response.setEntity(not);
             response.setMessage(HttpStatus.OK.getReasonPhrase());

@@ -1,10 +1,12 @@
 package com.emtech.dairyapp.Notifications.SMS.smsv2;
 
-import com.emtech.dairyapp.Notifications.SMS.smsv1.SMSNOtificaionRepo;
+import com.emtech.dairyapp.Notifications.SMS.smsv1.SmsNotificationRepo;
 import com.emtech.dairyapp.Notifications.SMS.smsv1.SMSNotifications;
+import com.emtech.dairyapp.Response.EntityResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -30,7 +32,7 @@ public class SmsServiceV2 {
     @Autowired
     private WebClient.Builder webClientBuilder;
     @Autowired
-    private SMSNOtificaionRepo smsNotificationsRepository;
+    private SmsNotificationRepo smsNotificationsRepository;
 
 
     public Mono<List<SMSResponse>> sendSMSNotification(String message, String mobile){
@@ -89,34 +91,64 @@ public class SmsServiceV2 {
 
     public void SMSNotification(SmsReqDto dto) {
         //Create Message and Save In DB
-        Mono<List<SMSResponse>> sr = sendSMSNotification(dto.getMessage(), dto.getPhoneNumber());
-        sr.subscribe(smsResponses -> {
-            if (!smsResponses.isEmpty()){
-                SMSResponse response = smsResponses.get(0);
+        try {
+            Mono<List<SMSResponse>> sr = sendSMSNotification(dto.getMessage(), dto.getPhoneNumber());
 
-                SMSNotifications sms = new SMSNotifications();
-                sms.setResponseCode(Integer.parseInt(response.getStatus_code()));
-                sms.setEventType("-");
-                sms.setDeliveryTime("-");
-                sms.setStatusDescription(response.getStatus_desc());
-                sms.setMessageRef(generatecSystemCode(10));
-                sms.setMessageId(String.valueOf(response.getMessage_id()));
-                sms.setMessage(dto.getMessage());
-                sms.setSentDate(new Date());
-                sms.setPhoneNumber(dto.getPhoneNumber());
-                sms.setNetworkId(response.getNetwork_id());
+            sr.subscribe(smsResponses -> {
+                if (!smsResponses.isEmpty()){
+                    SMSResponse response = smsResponses.get(0);
 
-                // saving bulk sms details
-                if (dto.isBulk()) {
-                    sms.setBulk('Y');
-                    sms.setBulkCode(dto.getBulkCode());
-                    sms.setSmsTemplate(dto.getBulkTemplate());
+                    SMSNotifications sms = new SMSNotifications();
+                    sms.setResponseCode(Integer.parseInt(response.getStatus_code()));
+                    sms.setEventType("-");
+                    sms.setDeliveryTime("-");
+                    sms.setStatusDescription(response.getStatus_desc());
+                    sms.setMessageRef(generatecSystemCode(10));
+                    sms.setMessageId(String.valueOf(response.getMessage_id()));
+                    sms.setMessage(dto.getMessage());
+                    sms.setSentDate(new Date());
+                    sms.setPhoneNumber(dto.getPhoneNumber());
+                    sms.setNetworkId(response.getNetwork_id());
+
+                    // saving bulk sms details
+                    if (dto.isBulk()) {
+                        sms.setBulk('Y');
+                        sms.setCategory("Bulk");
+                        sms.setBulkCode(dto.getBulkCode());
+                        sms.setSmsTemplate(dto.getBulkTemplate());
+                    }
+
+                    smsNotificationsRepository.save(sms);
                 }
-
-                smsNotificationsRepository.save(sms);
-            }
-        });
+            });
+        } catch (Exception e) {
+            log.error(e.toString());
+        }
     }
+
+    public EntityResponse<?> getMessagesByDateRange(String from, String to) {
+        EntityResponse<List<SMSNotifications>> res = new EntityResponse<>();
+
+        try {
+            if (from.isEmpty() || to.isEmpty()) {
+                res.setMessage("From and to date required");
+                res.setStatusCode(HttpStatus.NOT_FOUND.value());
+                return res;
+            }
+
+            List<SMSNotifications> notifications = smsNotificationsRepository.findByDateRange(from, to);
+
+            res.setMessage("Found "+notifications.size()+" messages sent between "+from+" and to "+to);
+            res.setStatusCode(HttpStatus.OK.value());
+            res.setEntity(notifications);
+        } catch (Exception e) {
+            log.error(e.toString());
+            res.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            res.setMessage("Failed to get records");
+        }
+        return res;
+    }
+
     public static String generatecSystemCode(int len) {
         String chars = "BAHATIDAIRYFARM1234567890";
         Random rnd = new Random();

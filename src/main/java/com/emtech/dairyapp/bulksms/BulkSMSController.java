@@ -1,8 +1,9 @@
 package com.emtech.dairyapp.bulksms;
 
-import com.emtech.dairyapp.Notifications.SMS.smsv1.SMSNOtificaionRepo;
+import com.emtech.dairyapp.Notifications.SMS.smsv1.SmsNotificationRepo;
 import com.emtech.dairyapp.Notifications.SMS.smsv1.SMSNotifications;
 import com.emtech.dairyapp.Notifications.SMS.smsv1.SMSService;
+import com.emtech.dairyapp.Notifications.SMS.smsv2.SmsServiceV2;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,18 +20,20 @@ import java.util.regex.Pattern;
 
 @CrossOrigin
 @RestController
-@RequestMapping("api/v1/bulkSMS")
+@RequestMapping("api/v1/bulk-sms")
 @Slf4j
 public class BulkSMSController {
     @Autowired
-    private SMSNOtificaionRepo smsnOtificaionRepo;
+    private SmsNotificationRepo smsNotificationRepo;
     @Autowired
     private SMSService service;
+    @Autowired
+    private SmsServiceV2 serviceV2;
 
     @PostMapping(path = "bulk")
     public ResponseEntity<?> sendBulkSMSToFarmers(@RequestBody BulkRequest request) throws JSONException {
         try {
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyymmddss");
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddss");
             String bulkCode = "BULKSMS" + sdf.format(new Date());
             log.info("Total Number of SMS to be sent - {}", request.getRecipients().size());
             log.info("Bulk SMS Code - {}", bulkCode);
@@ -48,26 +51,32 @@ public class BulkSMSController {
                     }
                 }
             }
-            return ResponseEntity.ok(new MessageResponse("Processed Successfully!" ));
+            return ResponseEntity.ok(new MessageResponse("Messages Processed Successfully!" ));
         } catch (Exception e) {
-            return new ResponseEntity<>(new MessageResponse("Error Encountered  -" +e.getLocalizedMessage()),HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new MessageResponse("Failed to send messages"),HttpStatus.BAD_REQUEST);
         }
     }
 
     //Fetch Bulk SMS
     @GetMapping("all/bulk")
     public ResponseEntity<?> fetchALlBulkSMS() {
-        return new ResponseEntity<>(smsnOtificaionRepo.findByCategory("Bulk"), HttpStatus.OK);
+        return new ResponseEntity<>(smsNotificationRepo.findByCategory("Bulk"), HttpStatus.OK);
     }
 
     @GetMapping("findBy")
     public ResponseEntity<?> fetchALlBulkSMSByCode(@RequestParam("bulkCode") String bulkCode) {
-        return new ResponseEntity<>(smsnOtificaionRepo.findByBulkCode(bulkCode), HttpStatus.OK);
+        return new ResponseEntity<>(smsNotificationRepo.findByBulkCode(bulkCode), HttpStatus.OK);
+    }
+
+    @GetMapping("find/date-range")
+    public ResponseEntity<?> getByDateRange(@RequestParam String from, @RequestParam String to) {
+        var res = serviceV2.getMessagesByDateRange(from, to);
+        return new ResponseEntity<>(res, HttpStatus.valueOf(res.getStatusCode()));
     }
 
     @GetMapping("bulkCodes")
     public ResponseEntity<?> fetchALlBulkSMSCodes() {
-        List<SMSNotifications> st = smsnOtificaionRepo.getBulkSMSCodes();
+        List<SMSNotifications> st = smsNotificationRepo.getBulkSMSCodes();
         List<String> codes = new ArrayList<>();
         for (SMSNotifications s : st) {
             codes.add(s.getBulkCode());
