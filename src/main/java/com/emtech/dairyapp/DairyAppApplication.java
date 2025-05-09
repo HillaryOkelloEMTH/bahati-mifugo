@@ -34,7 +34,7 @@ public class DairyAppApplication {
 
         log.info("Up and Running ...");
     }
-    @Component
+
     public class AdminData implements CommandLineRunner {
 
         @Autowired

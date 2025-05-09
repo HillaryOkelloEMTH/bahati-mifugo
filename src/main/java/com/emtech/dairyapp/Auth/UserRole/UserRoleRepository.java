@@ -2,6 +2,7 @@ package com.emtech.dairyapp.Auth.UserRole;
 
 import com.emtech.dairyapp.Auth.Role.Role;
 import com.emtech.dairyapp.Auth.User.User;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
@@ -20,5 +21,5 @@ public interface UserRoleRepository extends JpaRepository<UserRole, Long> {
 
  List<UserRole> findAllByUserAndStatus(@NonNull User user,  Integer s);
 
-
+ @NotNull List<UserRole> findAll();
 }

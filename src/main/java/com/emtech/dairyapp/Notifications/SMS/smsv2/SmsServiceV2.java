@@ -36,7 +36,6 @@ public class SmsServiceV2 {
 
 
     public Mono<List<SMSResponse>> sendSMSNotification(String message, String mobile){
-
         SMSRequest smsRequest = new SMSRequest();
         smsRequest.setApi_key(apiKey);
         smsRequest.setMessage(message);
@@ -45,48 +44,48 @@ public class SmsServiceV2 {
         smsRequest.setService_id(0);
         smsRequest.setResponse_type("json");
 
-    return webClientBuilder.build()
-            .post()
-            .uri(sendSmsUrl)
-            .body(Mono.just(smsRequest), SMSRequest.class)
-            .exchange()
-            .flatMap(clientResponse -> {
-               if (clientResponse.statusCode().is2xxSuccessful()){
-                   return clientResponse.bodyToFlux(SMSResponse.class)
-                           .collectList()
-                           .doOnSuccess(body-> {
-                               String phone = "";
-                               String msg = "";
-                               SmsReqDto reqDto = new SmsReqDto();
-                               reqDto.setBulk(false);
-                               reqDto.setPhoneNumber(phone);
-                               reqDto.setMessage(msg);
-                               Double bal = body.get(0).getCredit_balance();
+        return webClientBuilder.build()
+                .post()
+                .uri(sendSmsUrl)
+                .body(Mono.just(smsRequest), SMSRequest.class)
+                .exchange()
+                .flatMap(clientResponse -> {
+                   if (clientResponse.statusCode().is2xxSuccessful()){
+                       return clientResponse.bodyToFlux(SMSResponse.class)
+                               .collectList()
+                               .doOnSuccess(body-> {
+                                   String phone = "";
+                                   String msg = "";
+                                   SmsReqDto reqDto = new SmsReqDto();
+                                   reqDto.setBulk(false);
+                                   reqDto.setPhoneNumber(phone);
+                                   reqDto.setMessage(msg);
+                                   Double bal = body.get(0).getCredit_balance();
 
-                               if (bal != null) {
-                                   if (bal == 50.0 || bal == 100.0 || bal == 200.0 || bal == 1000.0 || bal == 500.0 || bal == 2000.0) {
-//                                   SMSNotification("The credit amount balance is at "+ bal+" units", "254708145423"); //
-                                       reqDto.setMessage("The credit amount balance is at " + bal + " units");
-                                       reqDto.setPhoneNumber("254112209296"); SMSNotification(reqDto);
-                                       reqDto.setPhoneNumber("254722585903"); SMSNotification(reqDto);
+                                   if (bal != null) {
+                                       if (bal == 50.0 || bal == 100.0 || bal == 200.0 || bal == 1000.0 || bal == 500.0 || bal == 2000.0) {
+    //                                   SMSNotification("The credit amount balance is at "+ bal+" units", "254708145423"); //
+                                           reqDto.setMessage("The credit amount balance is at " + bal + " units");
+                                           reqDto.setPhoneNumber("254112209296"); SMSNotification(reqDto);
+                                           reqDto.setPhoneNumber("254722585903"); SMSNotification(reqDto);
 
-                                       reqDto.setPhoneNumber("254719411709"); SMSNotification(reqDto);
-                                       reqDto.setMessage("The credit amt balance for Bahati Dairies is" + bal + " units.");
-                                       reqDto.setPhoneNumber("254715318204"); SMSNotification(reqDto);  // to bahati MD
+                                           reqDto.setPhoneNumber("254719411709"); SMSNotification(reqDto);
+                                           reqDto.setMessage("The credit amt balance for Bahati Dairies is" + bal + " units.");
+                                           reqDto.setPhoneNumber("254715318204"); SMSNotification(reqDto);  // to bahati MD
+                                       }
+                                       log.info("The response is ::: {} and body is {}", clientResponse.statusCode(), body);
                                    }
-                                   log.info("The response is ::: {} and body is {}", clientResponse.statusCode(), body);
-                               }
 
-                           });
-               }else {
-                   return clientResponse.bodyToFlux(SMSResponse.class)
-                           .collectList()
-                           .flatMap(body -> {
-                               log.error("Failed to send SMS with status code: {}, Response Body: {}", clientResponse.statusCode(), body);
-                               return Mono.error(new RuntimeException("Failed to send SMS"));
-                           });
-               }
-            });
+                               });
+                   }else {
+                       return clientResponse.bodyToFlux(SMSResponse.class)
+                               .collectList()
+                               .flatMap(body -> {
+                                   log.error("Failed to send SMS with status code: {}, Response Body: {}", clientResponse.statusCode(), body);
+                                   return Mono.error(new RuntimeException("Failed to send SMS"));
+                               });
+                   }
+                });
     }
 
     public void SMSNotification(SmsReqDto dto) {

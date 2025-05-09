@@ -226,6 +226,7 @@ public class FarmerProductAllocationService {
             return response;
         }
     }
+
     public EntityResponse<?> updateStatus(Long id,String status) {
         log.info("verify  product allocations ...");
         EntityResponse<FarmerProductAllocations> response = new EntityResponse<>();
@@ -248,6 +249,11 @@ public class FarmerProductAllocationService {
                     f.setApprovalDate(new Date());
                 }else if (status.equalsIgnoreCase("Rejected")){
                     f.setStatus(RequestStatus.REJECTED);
+                    farmerProdAllocattionsRepo.save(f);
+
+                    response.setMessage("Request rejected!");
+                    response.setStatusCode(HttpStatus.OK.value());
+                    return response;
                 } else if (status.equalsIgnoreCase("Cancel")) {
                     log.info("delete product request for farmer, {}, farmerNo, {} , {} units, {}, added on {}", f.getFarmerName(), f.getFarmerNo(), f.getQuantity(), f.getProductName(), f.getRequestedOn());
                     farmerProdAllocattionsRepo.delete(f);
@@ -278,7 +284,6 @@ public class FarmerProductAllocationService {
                 }
 
                 MccAllocation mccAllocation = allocationOptional.get();
-
 
                 log.info("checking if requested quantity is available in mcc stock");
                 if (mccAllocation.getStock() < f.getQuantity()) {
@@ -320,7 +325,7 @@ public class FarmerProductAllocationService {
             }
             return response;
         } catch (Exception e) {
-            log.error("Error: " + e.getLocalizedMessage());
+            log.error("Error {}", e.getMessage());
             response.setStatusCode(HttpStatus.BAD_REQUEST.value());
             response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
             return response;

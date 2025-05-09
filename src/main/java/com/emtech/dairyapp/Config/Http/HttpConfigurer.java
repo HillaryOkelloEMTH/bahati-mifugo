@@ -2,6 +2,8 @@ package com.emtech.dairyapp.Config.Http;
 
 
 import com.emtech.dairyapp.Auth.User.UserService;
+import com.emtech.dairyapp.Config.Http.handlers.AccessDeniedHandler;
+import com.emtech.dairyapp.Config.Http.handlers.AuthEntryPoint;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -57,46 +59,8 @@ public class HttpConfigurer {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint((swe, e) -> {
-                            swe.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-                            swe.getResponse().getHeaders().add("Content-Type", "application/json");
-
-                            Map<String, Object> errorResponse = Map.of(
-                                    "message", "Not Authorized. Request Blocked.",
-                                    "status", 401,
-                                    "error", "Unauthorized"
-                            );
-
-                            log.info("Not Authorized. Request Blocked. :: {}", HttpStatus.UNAUTHORIZED);
-                            byte[] jsonResponse = null;
-                            try {
-                                jsonResponse = objectMapper.writeValueAsBytes(errorResponse);
-                            } catch (JsonProcessingException ex) {
-                                throw new RuntimeException(ex);
-                            }
-
-                            return swe.getResponse().writeWith(Mono.just(swe.getResponse().bufferFactory().wrap(jsonResponse)));
-                        })
-                        .accessDeniedHandler((swe, e) -> {
-                            swe.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
-                            swe.getResponse().getHeaders().add("Content-Type", "application/json");
-
-                            Map<String, Object> errorResponse = Map.of(
-                                    "message", "Access Denied. Limited Rights.",
-                                    "status", 403,
-                                    "error", "Forbidden"
-                            );
-
-                            log.info("Access Denied. Doesn't have required rights. ::{}", HttpStatus.FORBIDDEN);
-                            byte[] jsonResponse = null;
-                            try {
-                                jsonResponse = objectMapper.writeValueAsBytes(errorResponse);
-                            } catch (JsonProcessingException ex) {
-                                throw new RuntimeException(ex);
-                            }
-
-                            return swe.getResponse().writeWith(Mono.just(swe.getResponse().bufferFactory().wrap(jsonResponse)));
-                        })
+                        .authenticationEntryPoint(new AuthEntryPoint())
+                        .accessDeniedHandler(new AccessDeniedHandler())
                 )
                 .securityContextRepository(securityContextRepository)
                 .authenticationManager(authenticationManager)

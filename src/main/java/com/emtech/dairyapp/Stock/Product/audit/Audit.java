@@ -30,6 +30,4 @@ public class Audit {
 
     @Column(name = "timestamp", nullable = false)
     private ZonedDateTime timestamp;
-
-
 }
