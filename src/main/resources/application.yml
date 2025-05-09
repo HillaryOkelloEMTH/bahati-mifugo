@@ -10,9 +10,9 @@ server:
 
 spring:
   datasource:
-    url: jdbc:mariadb://localhost:3306/bahati_test
-    username: jufred
-    password: Jufred@20
+    url: jdbc:mariadb://localhost:3307/bahati
+    username: root
+    password:
     driver-class-name: org.mariadb.jdbc.Driver
   jpa:
     properties:
@@ -21,6 +21,8 @@ spring:
         format_sql: true
     hibernate:
       ddl-auto: update
+      jdbc:
+        time_zone: Africa/Nairobi
     show-sql: false
 
   mvc:
