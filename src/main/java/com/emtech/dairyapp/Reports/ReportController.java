@@ -57,8 +57,6 @@ import java.util.Optional;
 @Slf4j
 @RequestMapping("api/v1/reports")
 public class ReportController {
-
-
     private final ReportService reportService;
     private final ProfileRepo profileRepo;
     private final MilkCollectionRepo collectionRepo;
@@ -108,7 +106,7 @@ public class ReportController {
             Optional<CollectionsData> record = reportService.fetcCollectionsbyCode(collectionCode);
             log.info("recieving request...");
             if (record.isPresent()) {
-                log.info("Data found");
+                log.info("Data found.");
                 Connection connection = DriverManager.getConnection(this.db, this.dbusername, this.dbpassword);
                 JasperReport compileReport = JasperCompileManager.compileReport(new FileInputStream(report_path + "/collection.jrxml"));
 

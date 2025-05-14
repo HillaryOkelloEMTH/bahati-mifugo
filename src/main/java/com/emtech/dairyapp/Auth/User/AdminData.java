@@ -9,6 +9,9 @@ import com.emtech.dairyapp.Auth.Utilities.PasswordUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Component;
 
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
@@ -19,13 +22,13 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Slf4j
+@Component
 public class AdminData implements CommandLineRunner {
 
     @Autowired
     private UserRepository repository;
     @Autowired
     private UserRoleRepository userRoleRepository;
-
 
     @Autowired
     private RoleRepository roleRepository;
@@ -56,14 +59,8 @@ public class AdminData implements CommandLineRunner {
         role.setAccessRights(roleService.getaccessRights());
         role.setStatus(1);
 //            role.setCreationDate(Timestamp.valueOf(formatter.format(ts)));
-
         roleRepository.save(role);
         log.info("Admin role created.");
-
-
-
-
-
     }
 
     //Default admin records
@@ -88,25 +85,20 @@ public class AdminData implements CommandLineRunner {
         userRole.setRole(adminRole);
 
         userRoleRepository.save(userRole);
-        log.info("admin user crated.");
-
-
+        log.info("admin user created.");
     }
 
     @Override
     public void run(String... args) throws Exception {
-        int countusers = repository.countUsers();
-        int countroles = roleRepository.countroles();
+        int userCount = repository.countUsers();
+        int roleCount = roleRepository.countroles();
 
-
-        if (countroles < 1) {
+        if (roleCount < 1) {
             addAdminRole();
-
         }
-        if (countusers < 1) {
+
+        if (userCount < 1) {
             addAdmin();
         }
-
-
     }
 }

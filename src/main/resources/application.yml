@@ -1,18 +1,18 @@
 server:
   error:
     include-message: always
-  port: 9700
-  ssl:
-    key-store: classpath:static/keystore.p12
-    key-alias: dairy
-    key-store-password: dairy-dev
-    key-password: dairy-dev
+  port: 9600
+#  ssl:
+#    key-store: classpath:static/keystore.p12
+#    key-alias: dairy
+#    key-store-password: dairy-dev
+#    key-password: dairy-dev
 
 spring:
   datasource:
-    url: jdbc:mariadb://localhost:3306/bahati_test
-    username: jufred
-    password: Jufred@20
+    url: jdbc:mariadb://localhost:3307/bahati_test
+    username: root
+    password:
     driver-class-name: org.mariadb.jdbc.Driver
   jpa:
     properties:

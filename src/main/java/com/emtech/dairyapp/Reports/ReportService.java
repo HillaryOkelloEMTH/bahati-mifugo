@@ -146,7 +146,6 @@ public class ReportService {
     }
     public List<FarmerProducts> getFarmerProducts(Integer farmerNo,String month) {
         try {
-
             return allocattionsRepo.getFarmerProduct(farmerNo, month);
         }catch (Exception exc){
             log.info(exc.getLocalizedMessage());
