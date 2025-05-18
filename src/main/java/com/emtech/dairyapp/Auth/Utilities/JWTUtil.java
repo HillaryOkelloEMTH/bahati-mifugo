@@ -3,18 +3,21 @@ package com.emtech.dairyapp.Auth.Utilities;
 
 import com.emtech.dairyapp.Auth.Data.User.UserData;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 @Component
+@Slf4j
 public class JWTUtil {
 
     @Value("${jwt.secret}")
@@ -23,15 +26,8 @@ public class JWTUtil {
     @Value("${jwt.jwtExpirationMs}")
     private String expirationTime;
 
-    private Key key;
-
-    @PostConstruct
-    public void init() {
-        this.key = Keys.hmacShaKeyFor(secret.getBytes());
-    }
-
     public Claims getAllClaimsFromToken(String token) {
-        return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
+            return Jwts.parserBuilder().setSigningKey(getSignInKey()).build().parseClaimsJws(token).getBody();
     }
 
     public String getUsernameFromToken(String token) {
@@ -41,10 +37,15 @@ public class JWTUtil {
         return getAllClaimsFromToken(token).getExpiration();
     }
 
-    private Boolean isTokenExpired(String token) {
+
+
+    private void isTokenExpired(String token) {
         final Date expiration = getExpirationDateFromToken(token);
-        return expiration.before(new Date());
+        if (expiration.before(new Date())) {
+            throw new TokenExpiredException("Token has expired. Please log in again.");
+        }
     }
+
 
     public String generateToken(UserData user) {
         Map<String, Object> claims = new HashMap<>();
@@ -55,19 +56,29 @@ public class JWTUtil {
     private String doGenerateToken(String username) {
         Long expirationTimeLong = Long.parseLong(expirationTime); //in second
         final Date createdDate = new Date();
-        final Date expirationDate = new Date(createdDate.getTime() + expirationTimeLong * 1000);
+        final Date expirationDate = new Date(createdDate.getTime() + 1000 * 60 * 30);
 
         return Jwts.builder()
                 .setSubject(username)
                 .setIssuedAt(createdDate)
                 .setExpiration(expirationDate)
-                .signWith(key)
+                .signWith(getSignInKey())
                 .compact();
     }
 
-    public Boolean validateToken(String token) {
-        return !isTokenExpired(token);
+
+
+    public void validateToken(String token) {
+        try {
+            isTokenExpired(token);
+        } catch (ExpiredJwtException e) {
+            throw new TokenExpiredException("Token has expired. Please log in again.");
+        }
     }
 
 
+    private Key getSignInKey() {
+        byte[] keyBytes = Decoders.BASE64.decode(secret);
+        return Keys.hmacShaKeyFor(keyBytes);
+    }
 }

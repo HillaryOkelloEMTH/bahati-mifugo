@@ -4,7 +4,7 @@ import lombok.Data;
 import org.springframework.http.HttpHeaders;
 
 @Data
-public class MccAllocationDto {
+public class ReportBodyDto {
     private HttpHeaders headers;
     private byte[] data;
 }

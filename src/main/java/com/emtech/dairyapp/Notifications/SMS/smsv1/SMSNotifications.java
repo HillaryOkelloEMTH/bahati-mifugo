@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.Date;
 
 @Data
@@ -21,7 +21,7 @@ public class SMSNotifications {
 
     private String messageId;
     private String phoneNumber;
-    private  Long farmerNo;
+    private Long farmerNo;
     private String farmerName;
     private String senderId;
     @Column(length = 5000)
@@ -31,11 +31,12 @@ public class SMSNotifications {
     private String messageRef;
     private String deliveryTime;
     private String status;
-    private String statusReason;
     private String origin;
+    private String networkId;
     private String statusDescription;
     private int responseCode;
     private String category = "One";
     private String bulkCode="NA";
+    private Character bulk = 'N';
     private String smsTemplate="NA";
 }

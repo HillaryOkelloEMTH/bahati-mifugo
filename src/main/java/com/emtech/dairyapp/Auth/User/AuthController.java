@@ -9,6 +9,7 @@ import com.emtech.dairyapp.Auth.Data.Http.Response.Auth.RecordCreateResponse;
 import com.emtech.dairyapp.Response.EntityResponse;
 import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -19,29 +20,18 @@ import java.util.Objects;
 import java.util.logging.Level;
 
 @Log
-@CrossOrigin("*")
 @RestController
-@RequestMapping(path = "/api/v1/authentication")
+@RequestMapping("/api/v1/authentication")
 public class AuthController {
     @Autowired
-    UserService userService;
+    @Lazy
+    private UserService userService;
 
 //    @CrossOrigin(value = { "http://localhost:4200"}, allowedHeaders = {"Access-Control-Allow-Origin: *"})
-    @RequestMapping(
-            path = "/login",
-            method = RequestMethod.POST,
-            consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
-    public Mono<ResponseEntity<EntityResponse<AuthResponse>>> login(@RequestBody AuthRequest body){
-        log.log(Level.WARNING, String.format("User Credentials [credentials=%s]", body));
-        EntityResponse<AuthResponse> authResponse = this.userService.authenticateUser(body.getUsername(), body.getPassword());
-
-        if(authResponse != null){
-            return Mono.just(ResponseEntity.status(authResponse.getStatusCode()).body(authResponse));
-        }else {
-            return Mono.just(ResponseEntity.badRequest().build());
-        }
+    @PostMapping("login")
+    public ResponseEntity<?> login(@RequestBody AuthRequest body){
+        var authResponse = this.userService.authenticateUser(body);
+        return ResponseEntity.status(authResponse.getStatusCode()).body(authResponse);
     }
 
 

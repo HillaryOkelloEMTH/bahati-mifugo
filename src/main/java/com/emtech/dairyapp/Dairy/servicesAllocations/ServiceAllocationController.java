@@ -13,7 +13,6 @@ import com.emtech.dairyapp.Dairy.ProductAllocations.FarmerProdAllocattionsRepo;
 import com.emtech.dairyapp.Dairy.ProductAllocations.FarmerProductAllocations;
 import com.emtech.dairyapp.Dairy.ProductAllocations.dto.ServiceApplicationUpdate;
 import com.emtech.dairyapp.Response.EntityResponse;
-import io.swagger.annotations.Api;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +26,6 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("api/v1/service-allocation")
-@Api(tags = "Service Allocation Controller")
 public class ServiceAllocationController {
 
     private final Logger LOG = LoggerFactory.getLogger(ServicesConfigController.class);

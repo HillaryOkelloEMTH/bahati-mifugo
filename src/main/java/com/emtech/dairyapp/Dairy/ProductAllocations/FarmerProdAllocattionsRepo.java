@@ -1,7 +1,9 @@
 package com.emtech.dairyapp.Dairy.ProductAllocations;
 
+import com.emtech.dairyapp.Dairy.Interface.AllocationDataInterface;
 import com.emtech.dairyapp.Dairy.Interface.Allocations;
 import com.emtech.dairyapp.Dairy.Interface.Services;
+import org.hibernate.bytecode.enhance.spi.interceptor.AbstractLazyLoadInterceptor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -27,8 +29,14 @@ public interface FarmerProdAllocattionsRepo extends JpaRepository<FarmerProductA
     @Query(value = "SELECT a.id,f.farmer_no,f.username,a.no_of_cows as noOfCows,a.heat_start_date as heatstartDate,a.type,a.status,p.name as product,a.requested_on as requestedOn, a.amount as amount,a.quantity as quantity,DATE(a.allocation_date) as allocationDate,CAST(a.allocation_date as time) as time ,a.allocatedby as allocatedBy ,a.payment_status as paymentStatus,a.revoke_status as  revokeStatus from farmer_product_allocations a join farmer f  on f.farmer_no=a.farmer_no join  product p on p.id =a.product_id",nativeQuery = true)
     List<Allocations> getAllocations(Character status);
 
-    @Query(value = "SELECT a.id,f.farmer_no,f.username,a.no_of_cows as noOfCows,a.heat_start_date as heatstartDate,a.type,a.status,a.requested_on as requestedOn, p.name as product,a.amount as amount,a.quantity as quantity,DATE(a.allocation_date) as allocationDate,CAST(a.allocation_date as time) as time ,a.allocatedby as allocatedBy ,a.payment_status as paymentStatus,a.revoke_status as  revokeStatus from farmer_product_allocations a join farmer f  on f.farmer_no=a.farmer_no join  product p on p.id =a.product_id where a.location_id= :locationId",nativeQuery = true)
-    List<Allocations> getMccAllocations(Long locationId);
+    @Query(value = "SELECT a.id,f.farmer_no,f.username,a.no_of_cows as noOfCows,a.heat_start_date as heatstartDate,a.type,a.status,a.requested_on as requestedOn, p.name as product,a.amount as amount,a.quantity as quantity, a.approval_date as approvalDate, DATE(a.allocation_date) as allocationDate,CAST(a.allocation_date as time) as time ,a.allocatedby as allocatedBy ,a.payment_status as paymentStatus,a.revoke_status as  revokeStatus from farmer_product_allocations a join farmer f  on f.farmer_no=a.farmer_no join  product p on p.id =a.product_id where a.location_id= :locationId and month(a.requested_on)= :month and year(a.requested_on)= :year",nativeQuery = true)
+    List<Allocations> getMccAllocations(Long locationId, Integer month, String year);
+
+    @Query(value = "SELECT a.id,f.farmer_no,f.username, a.no_of_cows as noOfCows,a.heat_start_date as heatstartDate,a.type,a.status,a.requested_on as requestedOn, p.name as product,r.route, a.amount as amount,a.quantity as quantity, a.approval_date as approvalDate, DATE(a.allocation_date) as allocationDate,CAST(a.allocation_date as time) as time ,a.allocatedby as allocatedBy ,a.payment_status as paymentStatus,a.revoke_status as  revokeStatus from farmer_product_allocations a join farmer f  on f.farmer_no=a.farmer_no join  product p on p.id =a.product_id join route r on r.id=f.route_fk where f.route_fk = :routeId and month(a.requested_on)= :month and year(a.requested_on)= :year", nativeQuery = true)
+    List<Allocations> getRouteAllocations(Long routeId, Integer month, String year);
+
+    @Query(value = "select fpa.farmer_no, fpa.farmer_name as farmer, date(fpa.requested_on) as requested_on, date(fpa.approval_date) as approval_date , fpa.product_name as product, fpa.quantity, fpa.amount, fpa.status, pul.name as mcc from farmer_product_allocations fpa join pick_up_locations pul on fpa.location_id = pul.id where month(requested_on)= :month and year(requested_on)= :year order by pul.id asc, fpa.product_id", nativeQuery = true)
+    List<AllocationDataInterface> getAllocationsByPeriod(Integer month, String year);
     @Query(value = "SELECT a.id,f.farmer_no,f.username,a.no_of_cows as noOfCows,a.heat_start_date as heatstartDate,a.type,p.name as product,a.status,a.amount as amount,a.quantity as quantity,DATE(a.allocation_date) as allocationDate,CAST(a.allocation_date as time) as time ,a.allocatedby as allocatedBy ,a.payment_status as paymentStatus,a.revoke_status as  revokeStatus from farmer_product_allocations a join farmer f  on f.farmer_no=a.farmer_no join  product p on p.id =a.product_id and a.type =:type",nativeQuery = true)
     List<Allocations> getAllocationsPerType(String type);
 

@@ -18,5 +18,5 @@ public class LinkedStringInteger {
     private List<Date> dates;
     private LinkedList<Integer> count;
     private LinkedList<Double> amount;
-    private LinkedList<Double> quantiy;
+    private LinkedList<Double> quantity;
 }

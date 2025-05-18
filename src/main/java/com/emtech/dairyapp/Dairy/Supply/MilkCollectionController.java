@@ -56,9 +56,9 @@ public class MilkCollectionController {
                 });
     }
 
-    @GetMapping("route-summary/{routeId}")
-    public ResponseEntity<?> getRouteSummary(@PathVariable Long routeId) {
-        var response = collectionService.getRouteSummary(routeId);
+    @GetMapping("route-summary/{routeId}/{month}/{year}")
+    public ResponseEntity<?> getRouteSummary(@PathVariable Long routeId, @PathVariable int month, @PathVariable String year) {
+        var response = collectionService.getRouteDeliverySummary(routeId, month, year);
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
@@ -157,7 +157,7 @@ public class MilkCollectionController {
         if (farmerNo.isEmpty()){
             farmerNo = "%%";
         }
-        if (session.isEmpty() || session.equalsIgnoreCase("All Sessions") || session == null){
+        if (session.isEmpty() || session.equalsIgnoreCase("All Sessions")){
             session = "%%";
         }
 
@@ -219,8 +219,8 @@ public class MilkCollectionController {
         return ResponseEntity.ok().body(response);
     }
     @GetMapping("day/records")
-    public ResponseEntity<EntityResponse> getDateRecords(@RequestParam String date){
-        EntityResponse response = collectionService.getDayRecords(date);
+    public ResponseEntity<?> getDateRecords(@RequestParam String date){
+        var response = collectionService.getDayRecords(date);
         return ResponseEntity.ok().body(response);
     }
 
@@ -290,7 +290,7 @@ public class MilkCollectionController {
     }
     @GetMapping("records/all")
     public ResponseEntity<?> getAllRecords(){
-        EntityResponse response = collectionService.getAllCollectionsRecords();
+        var response = collectionService.getAllCollectionsRecords();
         return ResponseEntity.ok().body(response);
     }
     @GetMapping("summary/routes")

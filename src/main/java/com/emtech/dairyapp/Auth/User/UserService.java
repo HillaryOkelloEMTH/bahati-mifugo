@@ -1,5 +1,6 @@
 package com.emtech.dairyapp.Auth.User;
 
+import com.emtech.dairyapp.Auth.Data.Http.Request.Auth.AuthRequest;
 import com.emtech.dairyapp.Auth.Data.Http.Response.Auth.AuthResponse;
 import com.emtech.dairyapp.Auth.Data.Http.Response.Auth.RecordCreateResponse;
 import com.emtech.dairyapp.Auth.Data.Http.Response.Auth.UserResponse;
@@ -15,11 +16,13 @@ import com.emtech.dairyapp.Auth.Utilities.PasswordUtil;
 import com.emtech.dairyapp.Auth.Utilities.SendCredentialToMail;
 import com.emtech.dairyapp.Auth.Utilities.ToolKit;
 import com.emtech.dairyapp.Response.EntityResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
+import org.springframework.security.authentication.*;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
@@ -29,10 +32,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
@@ -40,27 +40,88 @@ import java.util.stream.Collectors;
 
 @Log
 @Service
+@RequiredArgsConstructor
 public class UserService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private RoleRepository roleRepository;
+    private final RoleRepository roleRepository;
 
-    @Autowired
-    private UserRoleRepository userRoleRepository;
+    private final UserRoleRepository userRoleRepository;
 
-    @Autowired
-    private JWTUtil jwtUtil;
+    private final ReactiveAuthenticationManager authenticationManager;
 
-    @Autowired
-    private PasswordUtil passwordUtil;
+    private final JWTUtil jwtUtil;
+
+    private final PasswordUtil passwordUtil;
 
     @Value("${jwt.password.token.expirationMs}")
     private String resetPasswordTokenExpiration;
 
-    EntityResponse res= new EntityResponse<>();
+    EntityResponse<?> res= new EntityResponse<>();
+
+
+    public EntityResponse<?> authenticateUser(AuthRequest authRequest){
+        EntityResponse<AuthResponse> response = new EntityResponse<>();
+
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(authRequest.getPassword(), authRequest.getPassword())
+            );
+
+            userRepository.findByUsername(authRequest.getUsername().trim()).ifPresentOrElse(user -> {
+                if (Objects.equals(user.getStatus(), "Active")){
+
+                    log.log(Level.INFO, String.format("Encoded Password: [credentials=%s] User Password: [ password=%s ]", passwordUtil.encode(authRequest.getPassword().trim()), user.getPassword()));
+                    if(passwordUtil.matches(authRequest.getPassword().trim(), user.getPassword())){
+                        log.log(Level.INFO, ("Inside password encryption]"));
+                        UserData userData = getUserDetails(user.getId());
+
+                        String token = jwtUtil.generateToken(userData);
+
+                        AuthResponse authResponse = AuthResponse.builder()
+                                .token(token)
+                                .id(userData.getId())
+                                .username(userData.getUsername())
+                                .mobile(userData.getMobile())
+                                .roles(userData.getRoles())
+                                .build();
+
+                        response.setMessage("Login Successful");
+                        response.setStatusCode(HttpStatus.OK.value());
+                        response.setEntity(authResponse);
+                    }else{
+                        response.setMessage("Check your password");
+                        response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+                        log.log(Level.SEVERE, "Passwords do not match");
+
+                    }
+
+                }else{
+                    response.setMessage("Account not found");
+                    response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                    log.log(Level.WARNING, String.format("Account for the provided username is not active [ username=%s ]", authRequest.getUsername()));
+
+                }
+            }, () -> {
+                response.setMessage("User not found");
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                log.log(Level.WARNING, "User with the username not found");
+
+            });
+        } catch (InternalAuthenticationServiceException | BadCredentialsException e) {
+            log.log(Level.WARNING, "Auth Error {}", e.getMessage());
+
+            response.setMessage(e.getMessage());
+            response.setStatusCode(HttpStatus.UNAUTHORIZED.value());
+        } catch (Exception e) {
+            log.log(Level.WARNING, "An error occurred", e.getMessage());
+            response.setMessage(e.getMessage());
+            response.setStatusCode(HttpStatus.UNAUTHORIZED.value());
+        }
+
+        return response;
+    }
 
     public List<Role> validateUser(@NonNull String username) {
         List<Role> roles = new ArrayList<>();
@@ -70,7 +131,6 @@ public class UserService {
                 roles.addAll(this.userRoles(user, true));
             }
         });
-
         return roles;
     }
 
@@ -80,6 +140,32 @@ public class UserService {
         } else {
             return this.userRoleRepository.findAllByUserAndStatus(user, 1).stream().map(UserRole::getRole).collect(Collectors.toList());
         }
+    }
+
+
+    public EntityResponse<?> updateDetails() {
+        log.info("updating details");
+        for (int id=41; id<=65; id++) {
+            Optional<User> optionU = userRepository.findById((long) id);
+            Optional<Role> optR = roleRepository.findById((long) 5);
+
+            if (optionU.isEmpty()) {
+                return new EntityResponse<>();
+            }
+            if (optR.isEmpty()) {
+                return new EntityResponse<>();
+            }
+
+            User u = optionU.get();
+            Role r = optR.get();
+
+            if (this.assignRole(optionU.get(), optR.get(), true)) {
+                log.log(Level.INFO, String.format("User assigned role [ %s ]", optionU.get()));
+            }
+        }
+
+        log.info("done updating transporter roles");
+        return new EntityResponse<>();
     }
 
     public RecordCreateResponse createUser(@NonNull String userName, @NonNull String firstName, @NonNull String lastName, @NonNull String email, @NonNull String mobile, @NonNull Long roleId){
@@ -141,9 +227,8 @@ public class UserService {
 //                            } catch (Exception e) {
 //                                e.printStackTrace();
 //                            }
-//
                             response.set(RecordCreateResponse.builder().message("User created successfully !").statusCode(HttpStatus.CREATED.value()).build());
-                        }else {
+                        } else {
                             log.log(Level.SEVERE, String.format("Selected role with the id %s is not active !", roleId));
 
                             response.set(RecordCreateResponse.builder().message(String.format("Selected role with the id %s is not active !", roleId)).statusCode(HttpStatus.BAD_REQUEST.value()).build());
@@ -157,57 +242,7 @@ public class UserService {
                 });
             });
         });
-
         return response.get();
-    }
-
-    public EntityResponse<AuthResponse> authenticateUser(@NonNull String username, @NonNull String password){
-        EntityResponse<AuthResponse> response = new EntityResponse<>();
-
-        userRepository.findByUsername(username.trim()).ifPresentOrElse(user -> {
-            if (Objects.equals(user.getStatus(), "Active")){
-
-                log.log(Level.INFO, String.format("Encoded Password: [credentials=%s] User Password: [ password=%s ]", passwordUtil.encode(password.trim()), user.getPassword()));
-                if(passwordUtil.matches(password.trim(), user.getPassword())){
-                    log.log(Level.INFO, String.format("Inside password encryption]"));
-                    UserData userData = getUserDetails(user.getId());
-
-                    log.log(Level.INFO, String.format("User Data Details [ %s ]", userData.toString()));
-
-                    String token = jwtUtil.generateToken(userData);
-
-                    AuthResponse authResponse = AuthResponse.builder()
-                            .token(token)
-                            .id(userData.getId())
-                            .username(userData.getUsername())
-                            .mobile(userData.getMobile())
-                            .roles(userData.getRoles())
-                            .build();
-
-                    response.setMessage("Login Successful");
-                    response.setStatusCode(HttpStatus.OK.value());
-                    response.setEntity(authResponse);
-                }else{
-                    response.setMessage("Check your password");
-                    response.setStatusCode(HttpStatus.BAD_REQUEST.value());
-                    log.log(Level.SEVERE, "Passwords do not match");
-
-                }
-
-            }else{
-                response.setMessage("Account not found");
-                response.setStatusCode(HttpStatus.NOT_FOUND.value());
-                log.log(Level.WARNING, String.format("Account for the provided username is not active [ username=%s ]", username));
-
-            }
-        }, () -> {
-            response.setMessage("User not found");
-            response.setStatusCode(HttpStatus.NOT_FOUND.value());
-            log.log(Level.WARNING, "User with the username not found");
-
-        });
-
-        return response;
     }
 
     public RecordCreateResponse updateUser(@NonNull Long userId, @NonNull String firstName, @NonNull String lastName){
@@ -527,6 +562,44 @@ public class UserService {
         }
 
         return response.get();
+    }
+
+
+    public EntityResponse<?> getUsersByRole(Long roleId) {
+        EntityResponse<List<UserData>> response = new EntityResponse<>();
+
+        try {
+            List<User> users = userRepository.usersByRole(roleId);
+
+            List<UserData> usersData = new ArrayList<>();
+
+            users.forEach(user -> {
+                UserData userData = UserData.builder()
+                        .id(user.getId())
+                        .firstName(user.getFirstName())
+                        .lastName(user.getLastName())
+                        .username(user.getUsername())
+                        .email(user.getEmail())
+                        .mobile(user.getMobile())
+                        .status(user.getStatus())
+                        .pickUpLocation(user.getPickUpLocation())
+                        .creationDate(user.getCreationDate())
+                        .updateDate(user.getUpdateDate())
+                        .isLoggedIn(user.getIsLoggedIn())
+                .build();
+
+                usersData.add(userData);
+            });
+
+            response.setMessage("retrieved "+usersData.size()+" records");
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(usersData);
+        } catch (Exception e) {
+            log.log(Level.SEVERE, e.toString());
+            response.setMessage("an error occurred");
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        }
+        return response;
     }
 
     public UserData getUserDetails(@NonNull Long userId){

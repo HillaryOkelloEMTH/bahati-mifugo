@@ -11,7 +11,6 @@ import lombok.ToString;
 @NoArgsConstructor
 @ToString
 public class SMSEntity {
-
     private Double credit_balance;
     private Double message_cost;
     private Long message_id;
@@ -19,5 +18,4 @@ public class SMSEntity {
     private String network_id;
     private String status_code;
     private String status_desc;
-
 }

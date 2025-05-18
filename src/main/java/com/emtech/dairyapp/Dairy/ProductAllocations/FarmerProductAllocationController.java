@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+//import jakarta.swing.text.html.parser.Entity;
+
 @RestController
 @CrossOrigin
 @RequestMapping("api/v1/farmer/allocations")
@@ -21,50 +23,56 @@ public class FarmerProductAllocationController {
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
     @GetMapping("get")
-    public ResponseEntity<EntityResponse> getFarmerProductAllocations(){
-        EntityResponse response = service.fetchFarmerProductAllocations();
+    public ResponseEntity<?> getFarmerProductAllocations(){
+        var response = service.fetchFarmerProductAllocations();
         return ResponseEntity.ok().body(response);
     }
 
-    @GetMapping("get/{locationId}")
-    public ResponseEntity<EntityResponse> getMccFarmerProductAllocations(@PathVariable Long locationId){
-        EntityResponse response = service.fetchMccFarmerProductAllocations(locationId);
-        return ResponseEntity.ok().body(response);
+    @GetMapping("get/{locationId}/{month}/{year}")
+    public ResponseEntity<EntityResponse<?>> getMccFarmerProductAllocations(@PathVariable Long locationId, @PathVariable Integer month, @PathVariable String year){
+        var response = service.fetchMccFarmerProductAllocations(locationId, month, year);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
+    }
+
+    @GetMapping("get/route/{routeId}/{month}/{year}")
+    public ResponseEntity<?> fetchRouteFarmerProductAllocations(@PathVariable Long routeId, @PathVariable Integer month, @PathVariable String year) {
+        var response = service.fetchRouteFarmerProductAllocations(routeId, month, year);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
     @GetMapping("farmer")
-    public ResponseEntity<EntityResponse> getFarmerAllocations(@RequestParam Integer farmerNo){
-        EntityResponse response = service.fetchFarmerAllocations(farmerNo);
+    public ResponseEntity<EntityResponse<?>> getFarmerAllocations(@RequestParam Integer farmerNo){
+        EntityResponse<?> response = service.fetchFarmerAllocations(farmerNo);
         return ResponseEntity.ok().body(response);
     }
     @GetMapping("date")
-    public ResponseEntity<EntityResponse> getAllocationsByDate(@RequestParam String date){
-        EntityResponse response = service.fetchAllocationsByDate(date);
+    public ResponseEntity<?> getAllocationsByDate(@RequestParam String date){
+        var response = service.fetchAllocationsByDate(date);
         return ResponseEntity.ok().body(response);
     }
     @GetMapping("farmer/date")
-    public ResponseEntity<EntityResponse> getFarmerAllocationsyDate(@RequestParam Integer farmerNo,@RequestParam String date){
-        EntityResponse response = service.fetchFarmerAllocationsBYDate(farmerNo,date);
+    public ResponseEntity<?> getFarmerAllocationsyDate(@RequestParam Integer farmerNo,@RequestParam String date){
+        var response = service.fetchFarmerAllocationsBYDate(farmerNo,date);
         return ResponseEntity.ok().body(response);
     }
 
     @GetMapping("farmer/paymentstatus")
-    public ResponseEntity<EntityResponse> getFarmerAllocationsPerPaymentStatus(@RequestParam Integer farmerNo,@RequestParam Character paymentStatus){
-        EntityResponse response = service.fetchFarmerAllocationsByPaymentStatus(farmerNo,paymentStatus);
+    public ResponseEntity<?> getFarmerAllocationsPerPaymentStatus(@RequestParam Integer farmerNo,@RequestParam Character paymentStatus){
+        var response = service.fetchFarmerAllocationsByPaymentStatus(farmerNo,paymentStatus);
         return ResponseEntity.ok().body(response);
     }
     @GetMapping("type")
-    public ResponseEntity<EntityResponse> getFarmerAllocationsPertype(@RequestParam String type){
-        EntityResponse response = service.fetchFarmerProductAllocationsPerType(type);
+    public ResponseEntity<?> getFarmerAllocationsPertype(@RequestParam String type){
+        var response = service.fetchFarmerProductAllocationsPerType(type);
         return ResponseEntity.ok().body(response);
     }
     @PutMapping("verify")
-    public ResponseEntity<?> approveAllocation(@RequestParam Long id,@RequestParam String status){
+    private ResponseEntity<?> approveAllocation(@RequestParam Long id,@RequestParam String status){
         var  response = service.updateStatus(id,status);
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
     @PutMapping("update")
-    public ResponseEntity<EntityResponse> updateFarmerProductAllocations(@RequestBody FarmerProductAllocations allocations){
-        EntityResponse response = service.updateFarmerProductAllocations(allocations);
+    public ResponseEntity<?> updateFarmerProductAllocations(@RequestBody FarmerProductAllocations allocations){
+        var response = service.updateFarmerProductAllocations(allocations);
         return ResponseEntity.ok().body(response);
     }
     @DeleteMapping("delete/{id}")

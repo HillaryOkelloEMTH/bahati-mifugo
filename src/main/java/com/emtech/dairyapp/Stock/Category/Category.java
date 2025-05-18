@@ -1,5 +1,6 @@
 package com.emtech.dairyapp.Stock.Category;
 
+import com.emtech.dairyapp.Stock.Product.audit.AuditListener;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -8,7 +9,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.sql.Timestamp;
 
 @ToString
@@ -34,6 +35,8 @@ public class Category {
 
     @Column(name = "status")
     private Integer status;
+    @Column(nullable = false)
+    private String deletedFlag = "ACTIVE";
 
     @CreationTimestamp
     @JsonFormat(pattern = "dd-MMM-yyyy HH:mm:ss")

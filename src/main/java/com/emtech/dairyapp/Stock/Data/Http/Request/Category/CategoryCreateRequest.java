@@ -18,4 +18,5 @@ public class CategoryCreateRequest implements Serializable {
 
     @JsonProperty(value = "description")
     private String description;
+
 }

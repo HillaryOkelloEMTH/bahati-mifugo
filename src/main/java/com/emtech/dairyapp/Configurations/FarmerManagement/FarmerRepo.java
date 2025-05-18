@@ -34,12 +34,33 @@ public interface FarmerRepo extends JpaRepository<Farmer,Long> {
     @Query(value = "select * from farmer where route_fk= :routeId", nativeQuery = true)
     List<Farmer> getFarmersPerRoute(Long routeId);
 
+    @Query(value = " select case when count(*) > 0 then true else false end from farmer where id_number= :idNo", nativeQuery = true)
+    Integer farmerExistsById(String idNo);
+
+    @Query(value = " select case when count(*) > 0 then true else false end from farmer where mobile_no= :mobileNo", nativeQuery = true)
+    Integer farmerExistsByMobile(String mobileNo);
+
     @Query(value = "select count(*) from farmer",nativeQuery = true)
     Integer getCount();
     @Query(value = "SELECT f.id,f.username,f.payment_freequency,r.route as route ,r.id as routeId,f.first_name,b.account_name ,b.account_number,f.alternative_mobile_no   ,f.id_number ,f.created_at ,f.payment_mode ,f.deleted_flag,f.mobile_no ,f.member_type ,f.no_of_cows ,f.farmer_no ,s.name as subcounty,c.name as county,p.name as pickUpLocation from farmer f join ward w  on f.ward_fk =w.id join subcounty s on s.id =f.subcounty_fk join county c on c.id =s.county_fk join route r on r.id=f.route_fk join pick_up_locations p on p.id =r.location_id join bank_details b on b.id =f.bank_details_id where f.id=:farmerId",nativeQuery = true)
     Optional<FarmerInfo> getfarmerDetails(Long farmerId);
     @Query(value = "SELECT f.id,f.username,f.payment_freequency,r.route as route,r.id as routeId ,f.first_name as name,b.account_name ,b.account_number  ,f.alternative_mobile_no  ,f.id_number ,f.created_at ,f.payment_mode ,f.deleted_flag,f.mobile_no ,f.member_type ,f.no_of_cows ,f.farmer_no ,s.name as subcounty,c.name as county,p.name as pickUpLocation from farmer f left join ward w  on f.ward_fk =w.id left join subcounty s on s.id =f.subcounty_fk left join county c on c.id =s.county_fk left join route r on r.id=f.route_fk left join pick_up_locations p on p.id =r.location_id left join bank_details b on b.id =f.bank_details_id",nativeQuery = true)
     List<FarmerInfo> getAllfarmers();
+
+    @Query(value = "SELECT f.id,f.username,f.payment_freequency,r.route as route,r.id as routeId ,f.first_name as name,b.account_name ,b.account_number  ,f.alternative_mobile_no  ,f.id_number ,f.created_at ,f.payment_mode ,f.deleted_flag,f.mobile_no ,f.member_type ,f.no_of_cows ,f.farmer_no ,s.name as subcounty,c.name as county,p.name as pickUpLocation from farmer f join collections cl on f.farmer_no = cl.farmer_no left join ward w  on f.ward_fk =w.id left join subcounty s on s.id =f.subcounty_fk left join county c on c.id =s.county_fk left join route r on r.id=f.route_fk left join pick_up_locations p on p.id =r.location_id left join bank_details b on b.id =f.bank_details_id where cl.collection_date >= date_sub(now(), interval :months month) group by cl.farmer_no",nativeQuery = true)
+    List<FarmerInfo> getActiveFarmers(int months);
+
+    @Query(value = """
+            SELECT f.id,f.username,f.payment_freequency,r.route as route,r.id as routeId ,f.first_name as name,b.account_name ,b.account_number \s
+            ,f.alternative_mobile_no  ,f.id_number ,f.created_at ,f.payment_mode ,f.deleted_flag,f.mobile_no ,f.member_type ,f.no_of_cows ,f.farmer_no \s
+            ,s.name as subcounty,c.name as county,p.name as pickUpLocation from farmer f join collections cl on f.farmer_no = cl.farmer_no left join ward w  on f.ward_fk =w.id left join subcounty s on s.id =f.subcounty_fk left join county c on c.id =s.county_fk left join route r on r.id=f.route_fk left join pick_up_locations p on p.id =r.location_id left join bank_details b on b.id =f.bank_details_id where cl.collection_date >= date_sub(now(), interval :months month) and f.route_fk= :routeFk group by f.farmer_no""", nativeQuery = true)
+    List<FarmerInfo> getRouteActiveFarmers(int months, Long routeFk);
+
+    @Query(value = """
+            SELECT f.id,f.username,f.payment_freequency,r.route as route,r.id as routeId ,f.first_name as name,b.account_name ,b.account_number \s
+            ,f.alternative_mobile_no  ,f.id_number ,f.created_at ,f.payment_mode ,f.deleted_flag,f.mobile_no ,f.member_type ,f.no_of_cows ,f.farmer_no \s
+            ,s.name as subcounty,c.name as county,p.name as pickUpLocation from farmer f join collections cl on f.farmer_no = cl.farmer_no left join ward w  on f.ward_fk =w.id left join subcounty s on s.id =f.subcounty_fk left join county c on c.id =s.county_fk left join route r on r.id=f.route_fk left join pick_up_locations p on p.id =r.location_id left join bank_details b on b.id =f.bank_details_id where cl.collection_date >= date_sub(now(), interval :months month) and p.id= :locationId group by f.farmer_no""", nativeQuery = true)
+    List<FarmerInfo> getCenterActiveFarmers(int months, Long locationId);
 
     @Query(value = "SELECT f.id,f.username,r.route as routeName,r.id as routeFk ,f.first_name as name, f.alternative_mobile_no  ,f.id_number as idNumber,f.created_at ,f.payment_mode ,f.deleted_flag,f.mobile_no as mobileNo,f.farmer_no as farmerNo,p.name as pickUpLocation from farmer f left join route r on r.id=f.route_fk left join pick_up_locations p on p.id =r.location_id where r.location_id= :locationId", nativeQuery = true)
     List<FarmerInterface> getMccfarmers(Long locationId);
@@ -48,6 +69,9 @@ public interface FarmerRepo extends JpaRepository<Farmer,Long> {
             "left join county c on c.id =s.county_fk left JOIN pick_up_locations p on p.id=r.location_id join collector c2 on c2.location_id =p.id \n" +
             "join users u on u.user_name =c2.username where u.id =:collectorId group by f.id",nativeQuery = true)
     List<Farmer> getfarmersPerCollector(Long collectorId);
+
+    @Query(value = "SELECT DISTINCT  f.*  from farmer f left join route r on r.id=f.route_fk  left join subcounty s on s.id =f.subcounty_fk left join county c on c.id =s.county_fk left JOIN pick_up_locations p on p.id=r.location_id join transporter t on t.route_id =r.id join users u on u.user_name =t.username where u.id = :transporterId group by f.id", nativeQuery = true)
+    List<Farmer> getFarmersPerTransporter(Long transporterId);
 
     @Query(value = "select  max(farmer_no) from farmer",nativeQuery = true)
     Integer getMaxVaue();
@@ -73,30 +97,34 @@ FarmerAccruedAmount getFarmerAccruedAmount(Long id, Character paymentyStatus);
     @Query(value = "SELECT c.farmer_no AS fno, " +
             "ROUND(SUM(c.quantity), 2) AS qty, " +
             "ROUND(SUM(c.amount), 2) AS income, " +
-            "f.first_name AS fname, " +
-            "f.middle_name AS mname, " +
-            "f.last_name AS lname, " +
+            "concat(f.first_name,' ', ifnull(f.middle_name, ' '), ' ',f.last_name) as farmer, " +
             "f.mobile_no AS mobileNo, " +
             "r.route, " +
             "p.name AS mcc, " +
             "c.current_price as price, " +
+            "(select round(coalesce(sum(case when fpa2.product_name like 'dairy%' then fpa2.amount else 0 end), 0), 2) " +
+            "from farmer_product_allocations fpa2 WHERE MONTH(fpa2.approval_date) = :month " +
+            "AND YEAR(fpa2.approval_date) = :year and fpa2.farmer_no=c.farmer_no) as dairyMeal, " +
+            "(select round(coalesce(sum(case when fpa2.product_name not like 'dairy%' then fpa2.amount else 0 end), 0), 2) " +
+            "from farmer_product_allocations fpa2 WHERE MONTH(fpa2.approval_date) = :month " +
+            "AND YEAR(fpa2.approval_date) = :year and fpa2.farmer_no=c.farmer_no) as salts, " +
             "(SELECT ROUND(COALESCE(SUM(fpa.amount), 0.0), 2) " +
             " FROM farmer_product_allocations fpa " +
-            " WHERE MONTH(fpa.approval_date) = :month " +
-            "   AND YEAR(fpa.approval_date) = :year " +
+            " WHERE MONTH(fpa.requested_on) = :month " +
+            "   AND YEAR(fpa.requested_on) = :year " +
             "   AND fpa.farmer_no = c.farmer_no) AS expenses, " +
             "(ROUND(SUM(c.amount), 2) - " +
             " (SELECT ROUND(COALESCE(SUM(fpa.amount), 0.0), 2) " +
             "  FROM farmer_product_allocations fpa " +
-            "  WHERE MONTH(fpa.approval_date) = :month " +
-            "    AND YEAR(fpa.approval_date) = :year " +
+            "  WHERE MONTH(fpa.requested_on) = :month " +
+            "    AND YEAR(fpa.requested_on) = :year " +
             "    AND fpa.farmer_no = c.farmer_no)) AS netpay, " +
             "b.bank_name AS bname, " +
             "b.account_number AS accno, " +
             "b.branch " +
             "FROM collections c " +
             "LEFT JOIN farmer f ON c.farmer_no = f.farmer_no " +
-            "LEFT JOIN farmer_product_allocations fpa ON f.farmer_no = fpa.farmer_no " +
+//            "LEFT JOIN farmer_product_allocations fpa ON f.farmer_no = fpa.farmer_no " + almost f*ckd -- up join
             "LEFT JOIN route r ON c.route_fk = r.id " +
             "LEFT JOIN pick_up_locations p ON r.location_id = p.id " +
             "LEFT JOIN bank_details b ON f.bank_details_id = b.id " +

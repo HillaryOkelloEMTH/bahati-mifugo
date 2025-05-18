@@ -2,9 +2,7 @@ package com.emtech.dairyapp.Reports.Dto;
 
 public interface PayrollInterface {
     String getFno();
-    String getFname();
-    String getMname();
-    String getLname();
+    String getFarmer();
     Double getQty();
 
     Double getPrice();
@@ -12,13 +10,14 @@ public interface PayrollInterface {
     String getRoute();
     String getMcc();
 
+    Double getDairyMeal();
+    Double getSalts();
+
     Double getIncome();
     Double getExpenses();
     Double getNetpay();
     String getBname();
 
     String getAccno();
-
     String getBranch();
-
 }

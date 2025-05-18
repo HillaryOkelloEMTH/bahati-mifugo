@@ -14,6 +14,7 @@ import com.emtech.dairyapp.Configurations.Utils.CONSTANTS;
 import com.emtech.dairyapp.Dairy.Interface.CollectionsData;
 import com.emtech.dairyapp.Dairy.Interface.FarmerCollections;
 
+import com.emtech.dairyapp.Dairy.Interface.FarmerDelivery;
 import com.emtech.dairyapp.Dairy.PaymentComponent.PaymentFileData;
 import com.emtech.dairyapp.Dairy.ProductAllocations.FarmerProdAllocattionsRepo;
 import com.emtech.dairyapp.Dairy.ProductAllocations.FarmerProducts;
@@ -56,8 +57,6 @@ import java.util.Optional;
 @Slf4j
 @RequestMapping("api/v1/reports")
 public class ReportController {
-
-
     private final ReportService reportService;
     private final ProfileRepo profileRepo;
     private final MilkCollectionRepo collectionRepo;
@@ -107,7 +106,7 @@ public class ReportController {
             Optional<CollectionsData> record = reportService.fetcCollectionsbyCode(collectionCode);
             log.info("recieving request...");
             if (record.isPresent()) {
-                log.info("Data found");
+                log.info("Data found.");
                 Connection connection = DriverManager.getConnection(this.db, this.dbusername, this.dbpassword);
                 JasperReport compileReport = JasperCompileManager.compileReport(new FileInputStream(report_path + "/collection.jrxml"));
 
@@ -148,6 +147,48 @@ public class ReportController {
         var response = reportService.getMccAllocations(mccId, month, year);
         if (response.getEntity() != null) {
             return ResponseEntity.status(response.getStatusCode()).headers(response.getEntity().getHeaders()).contentType(MediaType.APPLICATION_PDF).body(response.getEntity().getData());
+        }
+        return ResponseEntity.status(response.getStatusCode()).body(response);
+    }
+
+    @GetMapping("bahati/daily-summary/{date}")
+    public ResponseEntity<?> getBahatiDailySummary(@PathVariable String date) {
+        var response = reportService.getBahatiDailySummary(date);
+
+        if (response.getEntity() != null) {
+            return ResponseEntity.ok().headers(response.getEntity().getHeaders()).contentType(MediaType.APPLICATION_PDF).body(response.getEntity().getData());
+        } else {
+            return ResponseEntity.status(response.getStatusCode()).body(response);
+        }
+    }
+
+    @GetMapping("bahati/monthly-summary/{month}/{year}")
+    public ResponseEntity<?> getBahatiMonthlySummary(@PathVariable Integer month, @PathVariable Integer year) {
+        var response = reportService.getBahatiMonthlySummary(month, year);
+
+        if (response.getEntity() != null) {
+            return ResponseEntity.ok().headers(response.getEntity().getHeaders()).contentType(MediaType.APPLICATION_PDF).body(response.getEntity().getData());
+        } else {
+            return ResponseEntity.status(response.getStatusCode()).body(response);
+        }
+    }
+
+    @GetMapping("mcc/daily-summary/{mccId}/{date}")
+    public ResponseEntity<?> getMccDailyRouteSummary(@PathVariable Long mccId, @PathVariable String date) {
+        var response = reportService.getMccDailyRouteSummary(mccId, date);
+
+        if (response.getEntity() != null) {
+            return ResponseEntity.ok().headers(response.getEntity().getHeaders()).contentType(MediaType.APPLICATION_PDF).body(response.getEntity().getData());
+        }
+        return ResponseEntity.status(response.getStatusCode()).body(response);
+    }
+
+    @GetMapping("mcc/monthly-summary/{mccId}/{month}/{year}")
+    public ResponseEntity<?> getMccMonthlyRouteSummary(@PathVariable Long mccId, @PathVariable Integer month, @PathVariable Integer year) {
+        var response = reportService.getMccMonthlyRouteSummary(mccId, month, year);
+
+        if (response.getEntity() != null) {
+            return ResponseEntity.ok().headers(response.getEntity().getHeaders()).contentType(MediaType.APPLICATION_PDF).body(response.getEntity().getData());
         }
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
@@ -198,9 +239,17 @@ public class ReportController {
 
     @GetMapping("farmer/statement")
     public ResponseEntity<?> getFarmerStatement(@RequestParam Integer farmerNo, @RequestParam String from, @RequestParam String to) {
+        EntityResponse<Object> response = new EntityResponse<>();
         try {
-
             FarmerDetails record = reportService.getFarmerStatement(farmerNo);
+            List<FarmerDelivery> deliveryList = collectionRepo.getFarmerDeliveries(farmerNo, from, to);
+
+            if (deliveryList.isEmpty()) {
+                response.setMessage("Found no deliveries");
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                return ResponseEntity.status(HttpStatus.NOT_FOUND.value()).body(response);
+            }
+
             if (record != null) {
                 log.info("Farmer found");
 
@@ -298,14 +347,12 @@ public class ReportController {
 //                    return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
 //                }
             } else {
-                EntityResponse response = new EntityResponse();
                 response.setMessage("No record found");
                 response.setStatusCode(HttpStatus.OK.value());
-                response.setEntity(record);
+                response.setEntity(null);
                 return new ResponseEntity<>(response, HttpStatus.OK);
             }
         } catch (Exception exc) {
-            EntityResponse response = new EntityResponse();
             response.setMessage(exc.getLocalizedMessage());
             response.setStatusCode(HttpStatus.BAD_REQUEST.value());
             response.setEntity(null);
@@ -443,12 +490,12 @@ public class ReportController {
     }
 
     @GetMapping("collections/pickuplocations/month")
-    public ResponseEntity<?> getCollectionsPerLocationsMonth(@RequestParam String month) {
+    public ResponseEntity<?> getCollectionsPerLocationsMonth(@RequestParam Integer month) {
         log.info("calling function to generate report "+ LocalDateTime.now()+ " for "+ month);
         try {
-
-            List<AnalyticsData> record = reportService.getCollectorperMccandmonth(month);
-            if (record.size() > 0) {
+            Month monthName = Month.of(month);
+            List<AnalyticsData> record = reportService.getCollectorperMccandmonth(monthName.toString());
+            if (!record.isEmpty()) {
                 log.info("Data found"+ record.size()) ;
 
                 Connection connection = DriverManager.getConnection(this.db, this.dbusername, this.dbpassword);
@@ -471,14 +518,13 @@ public class ReportController {
                 return ResponseEntity.ok().headers(headers).contentType(MediaType.APPLICATION_PDF).body(data);
 
             } else {
-                EntityResponse response = new EntityResponse();
+                EntityResponse<?> response = new EntityResponse<>();
                 response.setMessage("No record found");
                 response.setStatusCode(HttpStatus.OK.value());
-                response.setEntity(record);
                 return new ResponseEntity<>(response, HttpStatus.OK);
             }
         } catch (Exception exc) {
-            EntityResponse response = new EntityResponse();
+            EntityResponse<?> response = new EntityResponse<>();
             response.setMessage(exc.getLocalizedMessage());
             response.setStatusCode(HttpStatus.BAD_REQUEST.value());
             response.setEntity(null);

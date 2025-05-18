@@ -10,8 +10,6 @@ import lombok.ToString;
 @AllArgsConstructor
 @NoArgsConstructor
 public class EntityResponse <T>{
-
-
     private String message;
     private Integer statusCode;
     private T entity;

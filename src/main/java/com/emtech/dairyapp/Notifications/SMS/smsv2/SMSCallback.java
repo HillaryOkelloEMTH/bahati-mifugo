@@ -11,7 +11,6 @@ import lombok.ToString;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SMSCallback {
-
     private String destaddr;
     private String dlrDesc;
     private String dlrStatus;

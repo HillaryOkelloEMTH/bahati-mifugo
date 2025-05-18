@@ -5,6 +5,7 @@ import com.emtech.dairyapp.Dairy.Supply.MilkCollectionService;
 
 import com.emtech.dairyapp.Response.EntityResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,9 +13,11 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("api/v1/collections/analytics")
 public class AnalyticsController {
-
-    private final  CollectionsAnalytics analyticsService;
     @Autowired
+    private final  CollectionsAnalytics analyticsService;
+
+    @Autowired
+    @Lazy
     private MilkCollectionService collectionService;
 
 
@@ -23,50 +26,63 @@ public class AnalyticsController {
     }
 
 
+    @GetMapping("daily-summary/{month}/{year}")
+    public ResponseEntity<?> getBahatiDailySummary(@PathVariable Integer month, @PathVariable Integer year) {
+        var response = analyticsService.getBahatiDailySummary(month, year);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
+    }
+
+    @GetMapping("mcc-daily-summary/{locationId}/{month}/{year}")
+    public ResponseEntity<?> getMccDailySummary(@PathVariable Long locationId, @PathVariable Integer month, @PathVariable Integer year) {
+        var response = analyticsService.getMccDailySummary(locationId, month, year);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
+    }
+
+
     @GetMapping("date")
-    public ResponseEntity<EntityResponse> getCollectionsAnalysisPerDate(@RequestParam String date){
-        EntityResponse response = analyticsService.getCollectionByDate(date);
+    public ResponseEntity<?> getCollectionsAnalysisPerDate(@RequestParam String date){
+        var response = analyticsService.getCollectionByDate(date);
         return  ResponseEntity.ok().body(response);
     }
     @GetMapping("year")
-    public ResponseEntity<EntityResponse> getCollectionsAnalysisPerDate(@RequestParam Integer year){
-        EntityResponse response = analyticsService.getCollectionByYear(year);
+    public ResponseEntity<?> getCollectionsAnalysisPerDate(@RequestParam Integer year){
+        var response = analyticsService.getCollectionByYear(year);
         return  ResponseEntity.ok().body(response);
     }
     @GetMapping("quantity/location")
     public ResponseEntity<?> getquanityperLocation(){
-        EntityResponse response = analyticsService.getCollectionPerLocation();
+        var response = analyticsService.getCollectionPerLocation();
         return ResponseEntity.ok().body(response);
     }
     @GetMapping("collector/collections")
     public ResponseEntity<?> getCollectorData(@RequestParam Integer year,@RequestParam Integer month,@RequestParam Long collectorId){
-        EntityResponse response = analyticsService.getCollectionByMontheAndYear(year,month,collectorId);
+        var response = analyticsService.getCollectionByMontheAndYear(year,month,collectorId);
         return ResponseEntity.ok().body(response);
     }
     @GetMapping("collector/sessions")
     public ResponseEntity<?> getCollectorSessionsData(@RequestParam Integer year,@RequestParam Integer month,@RequestParam Long collectorId){
-        EntityResponse response = analyticsService.getCollectionByMonthAndYearandSesson(year,month,collectorId);
+        var response = analyticsService.getCollectionByMonthAndYearandSesson(year,month,collectorId);
         return ResponseEntity.ok().body(response);
     }
 
-    @GetMapping("roleUsers")
-    public ResponseEntity<?> roleUsers(@RequestParam Long roleId){
-        EntityResponse response = collectionService.getRoleusers(roleId);
+    @GetMapping("collectors")
+    public ResponseEntity<?> roleUsers(){
+        var response = collectionService.getCollectors();
         return ResponseEntity.ok().body(response);
     }
     @GetMapping("collection/month")
     public ResponseEntity<?> getCollectionsPerMonth(@RequestParam Integer year,@RequestParam Long collectorId){
-        EntityResponse response = analyticsService.getCollectionByMonth(year, collectorId);
+        var response = analyticsService.getCollectionByMonth(year, collectorId);
         return ResponseEntity.ok().body(response);
     }
     @GetMapping("collection/collector/month")
     public ResponseEntity<?> getCollectorCollectionsPerMonth(@RequestParam Integer year,@RequestParam Integer month){
-        EntityResponse response = analyticsService.getCollectorCollectionsPerMonth(year, month);
+        var response = analyticsService.getCollectorCollectionsPerMonth(year, month);
         return ResponseEntity.ok().body(response);
     }
     @GetMapping("collection/count/collector")
     public ResponseEntity<?> getCollectorCountPerCollector(@RequestParam Integer year,@RequestParam Long collectorId){
-        EntityResponse response = analyticsService.getCollectionCount(year,collectorId);
+        var response = analyticsService.getCollectionCount(year,collectorId);
         return ResponseEntity.ok().body(response);
     }
 

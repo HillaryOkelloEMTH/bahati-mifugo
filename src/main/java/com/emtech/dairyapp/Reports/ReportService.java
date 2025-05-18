@@ -12,7 +12,7 @@ import com.emtech.dairyapp.Dairy.ProductAllocations.FarmerProdAllocattionsRepo;
 import com.emtech.dairyapp.Dairy.ProductAllocations.FarmerProducts;
 import com.emtech.dairyapp.Dairy.Supply.MilkCollectionRepo;
 
-import com.emtech.dairyapp.Reports.Dto.MccAllocationDto;
+import com.emtech.dairyapp.Reports.Dto.ReportBodyDto;
 import com.emtech.dairyapp.Response.EntityResponse;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jasperreports.engine.*;
@@ -146,7 +146,6 @@ public class ReportService {
     }
     public List<FarmerProducts> getFarmerProducts(Integer farmerNo,String month) {
         try {
-
             return allocattionsRepo.getFarmerProduct(farmerNo, month);
         }catch (Exception exc){
             log.info(exc.getLocalizedMessage());
@@ -154,8 +153,8 @@ public class ReportService {
         }
     }
 
-    public EntityResponse<MccAllocationDto> getMccAllocations(Long locationId, Integer month, String year) {
-        EntityResponse<MccAllocationDto> response = new EntityResponse<>();
+    public EntityResponse<ReportBodyDto> getMccAllocations(Long locationId, Integer month, String year) {
+        EntityResponse<ReportBodyDto> response = new EntityResponse<>();
         Map<String, Object> params = new HashMap<>(getCompanyProfile());
 
         try {
@@ -196,7 +195,7 @@ public class ReportService {
             HttpHeaders headers = new HttpHeaders();
             headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename="+mccName+"-"+monthName);
 
-            MccAllocationDto body = new MccAllocationDto();
+            ReportBodyDto body = new ReportBodyDto();
             body.setHeaders(headers);
             body.setData(data);
 
@@ -211,6 +210,183 @@ public class ReportService {
         }
         return response;
     }
+
+    public EntityResponse<ReportBodyDto> getBahatiDailySummary(String date) {
+        EntityResponse<ReportBodyDto> response = new EntityResponse<>();
+        Map<String, Object> params = new HashMap<>(getCompanyProfile());
+
+        try {
+            String reportName = date+"_summary";
+
+            //setting report parameters
+            params.put("date", date);
+
+            // connect to datasource
+            Connection connection = DriverManager.getConnection(this.db, this.dbusername, this.dbpassword);
+            JasperReport report = JasperCompileManager.compileReport(new FileInputStream(report_path+"/mccDailySummary.jrxml"));
+
+            // fill report with data
+            JasperPrint print = JasperFillManager.fillReport(report, params, connection);
+            byte[] data = JasperExportManager.exportReportToPdf(print);
+
+            //set http headers
+            HttpHeaders headers = new HttpHeaders();
+            headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename="+reportName);
+
+            ReportBodyDto body = new ReportBodyDto();
+            body.setData(data);
+            body.setHeaders(headers);
+
+            response.setMessage("report generated successfully");
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(body);
+        } catch (Exception e) {
+            log.error(e.toString());
+            response.setMessage("Unable to retrieve report");
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        }
+        return response;
+    }
+
+    public EntityResponse<ReportBodyDto> getBahatiMonthlySummary(Integer month, Integer year) {
+        EntityResponse<ReportBodyDto> response = new EntityResponse<>();
+        Map<String, Object> params = new HashMap<>(getCompanyProfile());
+
+        try {
+            String monthName = Month.of(month).toString();
+            String reportName = "bahati_"+monthName+"_ summary";
+
+            //setting report parameters
+            params.put("month", monthName);
+            params.put("year", year);
+
+            // connect to datasource
+            Connection connection = DriverManager.getConnection(this.db, this.dbusername, this.dbpassword);
+            JasperReport report = JasperCompileManager.compileReport(new FileInputStream(report_path+"/mccMonthSummary.jrxml"));
+
+            // fill report with data
+            JasperPrint print = JasperFillManager.fillReport(report, params, connection);
+            byte[] data = JasperExportManager.exportReportToPdf(print);
+
+            //set http headers
+            HttpHeaders headers = new HttpHeaders();
+            headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename="+reportName);
+
+            ReportBodyDto body = new ReportBodyDto();
+            body.setData(data);
+            body.setHeaders(headers);
+
+            response.setMessage("report generated successfully");
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(body);
+        } catch (Exception e) {
+            log.error(e.toString());
+            response.setMessage("Unable to retrieve report");
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        }
+        return response;
+    }
+
+
+    public EntityResponse<ReportBodyDto> getMccDailyRouteSummary(Long mccId, String date) {
+        EntityResponse<ReportBodyDto> response = new EntityResponse<>();
+        Map<String, Object> params = new HashMap<>(getCompanyProfile());
+
+        try {
+            Optional<PickUpLocations> locationsOptional = pickUpLocationsRepo.findById(mccId);
+
+            if (locationsOptional.isEmpty()) {
+                response.setMessage("Pickup location with id "+mccId+" not found.");
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                return response;
+            }
+
+            PickUpLocations location = locationsOptional.get();
+            String reportName = location.getName()+"_"+date+"_routesummary";
+
+            // set report params
+            params.put("mcc", location.getName());
+            params.put("mccId", mccId);
+            params.put("date", date);
+
+            // connect to a datasource
+            Connection connection = DriverManager.getConnection(this.db, this.dbusername, this.dbpassword);
+            JasperReport report = JasperCompileManager.compileReport(new FileInputStream(report_path+"/mccDailyRouteSummary.jrxml"));
+
+            // fill report with data
+            JasperPrint print = JasperFillManager.fillReport(report, params, connection);
+            byte[] data = JasperExportManager.exportReportToPdf(print);
+
+            // set report http headers
+            HttpHeaders headers = new HttpHeaders();
+            headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename="+reportName);
+
+            ReportBodyDto body = new ReportBodyDto();
+            body.setHeaders(headers);
+            body.setData(data);
+
+            response.setMessage("report retrieved successfully");
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(body);
+        } catch (Exception e) {
+            log.error(e.toString());
+            response.setMessage("failed to retrieve report");
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        }
+        return response;
+    }
+
+    public EntityResponse<ReportBodyDto> getMccMonthlyRouteSummary(Long mccId, Integer month, Integer year) {
+        EntityResponse<ReportBodyDto> response = new EntityResponse<>();
+        Map<String, Object> params = new HashMap<>(getCompanyProfile());
+
+        try {
+            Optional<PickUpLocations> locationsOptional = pickUpLocationsRepo.findById(mccId);
+
+            if (locationsOptional.isEmpty()) {
+                response.setMessage("Pickup location with id "+mccId+" not found.");
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                return response;
+            }
+
+            PickUpLocations location = locationsOptional.get();
+            String monthName = Month.of(month).toString();
+            String reportName = location.getName()+"_"+monthName+"_routesummary";
+
+            // set report params
+            params.put("mcc", location.getName());
+            params.put("mccId", mccId);
+            params.put("month", monthName);
+            params.put("year", year);
+
+            // connect to a datasource
+            Connection connection = DriverManager.getConnection(this.db, this.dbusername, this.dbpassword);
+            JasperReport report = JasperCompileManager.compileReport(new FileInputStream(report_path+"/mccMonthlyRouteSummary.jrxml"));
+
+            // fill report with data
+            JasperPrint print = JasperFillManager.fillReport(report, params, connection);
+            byte[] data = JasperExportManager.exportReportToPdf(print);
+
+            // set report http headers
+            HttpHeaders headers = new HttpHeaders();
+            headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename="+reportName);
+
+            ReportBodyDto body = new ReportBodyDto();
+            body.setHeaders(headers);
+            body.setData(data);
+
+            response.setMessage("report retrieved successfully");
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(body);
+        } catch (Exception e) {
+            log.error(e.toString());
+            response.setMessage("failed to retrieve report");
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        }
+        return response;
+    }
+
+
 
     private Map<String, String> getCompanyProfile() {
         Map<String, String> parameters = new HashMap<>();

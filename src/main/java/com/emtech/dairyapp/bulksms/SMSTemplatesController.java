@@ -37,6 +37,6 @@ public class SMSTemplatesController {
 
     @GetMapping("all")
     public ResponseEntity<?> getTemplates() {
-        return new ResponseEntity<>(smsTemplatesRepository.findAll(), HttpStatus.OK);
+        return new ResponseEntity<>(smsTemplatesRepository.findTop5ByOrderByIdDesc(), HttpStatus.OK);
     }
 }

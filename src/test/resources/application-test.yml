@@ -1,0 +1,63 @@
+server:
+  error:
+    include-message: always
+  port: 9600
+
+spring:
+  datasource:
+    url: jdbc:mariadb://localhost:3307/bahati
+    username: root
+    password:
+    driver-class-name: org.mariadb.jdbc.Driver
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MariaDBDialect
+        format_sql: true
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+  banner:
+    location: classpath:static/banner.txt
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size:  10MB
+      max-request-size: 10MB
+
+dairy:
+  company_logo_path: /home/ubuntu/prod/bahati/resources/dairy_logo.jpg
+  report-path: /home/ubuntu/prod/bahati/resources/reports
+#  company_logo_path: C:\\Users\\michael\\Documents\\springboot projects\\DAIRY_APP_BE\\src\\main\\resources\\dairy_logo.jpg
+#  report-path: C:\\Users\\michael\\Documents\\springboot projects\\DAIRY_APP_BE\\src\\main\\resources\\reports
+
+
+pagination:
+  pageSize: 10
+
+google:
+  location:
+    API-KEY: AIzaSyCtDO1QdXGeEnX5LA1qOQlpuChPkZJJb1I
+
+ebs:
+  url: https://sms.crossgatesolutions.com:18095/v1/bulksms/messages
+  callbackurl:
+    one: http://18.219.121.50:9400/api/v1/sms-notifications/callback
+  messagetype: promotional
+  apiKey : NDU4MThmODAxMzM2ODk3MUlELTQ2MmU4Y2QwZDA4YjQxOGU5ZjZjMTQ0ZGM0MmE4NDY5
+  #ebs.apiKey = ZmMyYWRkYjEyMTkxY2Y4ZklELWZkODFhMGM3YjA1NjQwNGFhMDc1OGNiZmQ1MTA1MTVi
+  profileCode: 2208021
+##ebs.profileCode = 2211301
+
+
+sms:
+  enable: false
+
+
+
+
+

@@ -10,8 +10,13 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+
 import java.sql.Timestamp;
+import java.util.Collection;
+import java.util.stream.Collectors;
 
 @ToString
 @Data
@@ -52,4 +57,8 @@ public class UserRole {
     @JsonFormat(pattern = "dd-MMM-yyyy HH:mm:ss")
     @Column(name = "update_date", nullable = false)
     private Timestamp update_date;
+
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return role.getAccessRights().stream().map((r) -> new SimpleGrantedAuthority(role.getName())).collect(Collectors.toList());
+    }
 }

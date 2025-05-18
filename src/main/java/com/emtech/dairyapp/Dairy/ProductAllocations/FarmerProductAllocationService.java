@@ -7,11 +7,14 @@ import com.emtech.dairyapp.Configurations.Interfaces.FarmerInfo;
 import com.emtech.dairyapp.Configurations.Interfaces.PickUpLocation;
 import com.emtech.dairyapp.Configurations.PickUpLocations.PickUpLocations;
 import com.emtech.dairyapp.Configurations.PickUpLocations.PickUpLocationsRepo;
+import com.emtech.dairyapp.Configurations.Routes.Route;
+import com.emtech.dairyapp.Configurations.Routes.RouteRepo;
 import com.emtech.dairyapp.Configurations.Utils.CONSTANTS;
 import com.emtech.dairyapp.Configurations.Utils.Formatter;
 import com.emtech.dairyapp.Dairy.Interface.Allocations;
 import com.emtech.dairyapp.Dairy.ProductAllocations.dto.ProductRequestDto;
 import com.emtech.dairyapp.Dairy.Supply.MilkCollectionRepo;
+import com.emtech.dairyapp.Notifications.SMS.smsv2.SmsReqDto;
 import com.emtech.dairyapp.Notifications.SMS.smsv2.SmsServiceV2;
 import com.emtech.dairyapp.Response.EntityResponse;
 import com.emtech.dairyapp.Stock.MccAllocations.MccAllocation;
@@ -37,6 +40,9 @@ public class FarmerProductAllocationService {
 
     @Autowired
     private FarmerProdAllocattionsRepo farmerProdAllocattionsRepo;
+
+    @Autowired
+    private RouteRepo routeRepo;
     @Autowired
     private ProductRepository productRepository;
     @Autowired
@@ -108,11 +114,16 @@ public class FarmerProductAllocationService {
                         ". We have received your request for "+productRequest.getQuantity()+
                         " units of "+productRequest.getProductName()+" on " + Formatter.formatDate(new Date());
 
-                smsServiceV2.SMSNotification(message, formattedPhone);
+                SmsReqDto reqDto = new SmsReqDto();
+                reqDto.setBulk(false);
+                reqDto.setMessage(message);
+                reqDto.setPhoneNumber(formattedPhone);
+
+                smsServiceV2.SMSNotification(reqDto);
             }
 
         } catch (Exception e) {
-            log.error("Error: " + e.getLocalizedMessage());
+            log.error("Error: {}", e.getLocalizedMessage());
             response.setStatusCode(HttpStatus.BAD_REQUEST.value());
             response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
             return response;
@@ -147,12 +158,46 @@ public class FarmerProductAllocationService {
         }
     }
 
-    public EntityResponse<?> fetchMccFarmerProductAllocations(Long locationId) {
+    public EntityResponse<?> fetchRouteFarmerProductAllocations(Long routeId, Integer month, String year) {
+        log.info("Fetching Mcc Farmer Product Allocations ........");
+        EntityResponse<List<Allocations>> response = new EntityResponse<>();
+        try {
+            Optional<Route> optionalRoute = routeRepo.findById(routeId);
+            List<Allocations> mccAllocations = farmerProdAllocattionsRepo.getRouteAllocations(routeId, month, year);
+
+            if (optionalRoute.isEmpty()) {
+                log.info("Route data Not Found for id " + routeId);
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                response.setMessage("Route Not Found for id " + routeId);
+                return response;
+            }
+
+
+            if (!mccAllocations.isEmpty()) {
+                log.info("FarmerProductAllocations Found " + "(" + mccAllocations.size() + ")");
+                response.setEntity(mccAllocations);
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setMessage(HttpStatus.FOUND.getReasonPhrase());
+            } else {
+                log.info("FarmerProductAllocations Not Found ");
+                response.setEntity(mccAllocations);
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setMessage("Product Allocations Not Found for "+optionalRoute.get().getRoute());
+            }
+            return response;
+        } catch (Exception e) {
+            log.error("Error: " + e.getLocalizedMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+            return response;
+        }
+    }
+    public EntityResponse<?> fetchMccFarmerProductAllocations(Long locationId, Integer month, String year) {
         log.info("Fetching Mcc Farmer Product Allocations ........");
         EntityResponse<List<Allocations>> response = new EntityResponse<>();
         try {
             Optional<PickUpLocations> pickUpLocation = pickUpLocationsRepo.findById(locationId);
-            List<Allocations> mccAllocations = farmerProdAllocattionsRepo.getMccAllocations(locationId);
+            List<Allocations> mccAllocations = farmerProdAllocattionsRepo.getMccAllocations(locationId, month, year);
 
             if (pickUpLocation.isEmpty()) {
                 log.info("Pick Up Location Not Found for id " + locationId);
@@ -181,6 +226,7 @@ public class FarmerProductAllocationService {
             return response;
         }
     }
+
     public EntityResponse<?> updateStatus(Long id,String status) {
         log.info("verify  product allocations ...");
         EntityResponse<FarmerProductAllocations> response = new EntityResponse<>();
@@ -191,7 +237,7 @@ public class FarmerProductAllocationService {
                 FarmerProductAllocations f= farmerAllocation.get();
                 Optional<FarmerInfo> farmerInfo = farmerRepo.findByFarmerNo(f.getFarmerNo());
 
-                log.info("checking farmer existence for farmer no {} ........ ", f.getFarmerNo());
+                log.info("checking for farmer existence, farmer no {} ........ ", f.getFarmerNo());
                 if (farmerInfo.isEmpty()) {
                     response.setMessage("Farmer not found");
                     response.setStatusCode(HttpStatus.NOT_FOUND.value());
@@ -203,18 +249,25 @@ public class FarmerProductAllocationService {
                     f.setApprovalDate(new Date());
                 }else if (status.equalsIgnoreCase("Rejected")){
                     f.setStatus(RequestStatus.REJECTED);
+                    farmerProdAllocattionsRepo.save(f);
+
+                    response.setMessage("Request rejected!");
+                    response.setStatusCode(HttpStatus.OK.value());
+                    return response;
                 } else if (status.equalsIgnoreCase("Cancel")) {
                     log.info("delete product request for farmer, {}, farmerNo, {} , {} units, {}, added on {}", f.getFarmerName(), f.getFarmerNo(), f.getQuantity(), f.getProductName(), f.getRequestedOn());
-                    // create object to get sms details from
-                    FarmerProductAllocations ef = new FarmerProductAllocations();
-                    ef = f;
                     farmerProdAllocattionsRepo.delete(f);
                     if (farmerInfo.get().getMobile_no() != null) {
-                        String message = "Dear "+ef.getFarmerName()+" f.no "+ef.getFarmerNo()+
-                                ", your request for "+ef.getQuantity()+" units of "+ef.getProductName()+
+                        String message = "Dear "+f.getFarmerName()+" f.no "+f.getFarmerNo()+
+                                ", your request for "+f.getQuantity()+" units of "+f.getProductName()+
                                 " has been cancelled on "+Formatter.formatDate(new Date());
 
-                        smsServiceV2.SMSNotification(message, Formatter.formatPhone(farmerInfo.get().getMobile_no()));
+                        SmsReqDto reqDto = new SmsReqDto();
+                        reqDto.setBulk(false);
+                        reqDto.setPhoneNumber(Formatter.formatPhone(farmerInfo.get().getMobile_no()));
+                        reqDto.setMessage(message);
+
+                        smsServiceV2.SMSNotification(reqDto);
                     }
 
                     response.setMessage("Request cancelled successfully");
@@ -231,7 +284,6 @@ public class FarmerProductAllocationService {
                 }
 
                 MccAllocation mccAllocation = allocationOptional.get();
-
 
                 log.info("checking if requested quantity is available in mcc stock");
                 if (mccAllocation.getStock() < f.getQuantity()) {
@@ -258,7 +310,12 @@ public class FarmerProductAllocationService {
                             ", your request for "+f.getQuantity()+
                             " units of "+f.getProductName()+" has been approved on " + Formatter.formatDate(new Date());
 
-                smsServiceV2.SMSNotification(message, formattedPhone);
+                    SmsReqDto reqDto = new SmsReqDto();
+                    reqDto.setBulk(false);
+                    reqDto.setPhoneNumber(formattedPhone);
+                    reqDto.setMessage(message);
+
+                smsServiceV2.SMSNotification(reqDto);
                 }
 
             } else {
@@ -268,7 +325,7 @@ public class FarmerProductAllocationService {
             }
             return response;
         } catch (Exception e) {
-            log.error("Error: " + e.getLocalizedMessage());
+            log.error("Error {}", e.getMessage());
             response.setStatusCode(HttpStatus.BAD_REQUEST.value());
             response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
             return response;

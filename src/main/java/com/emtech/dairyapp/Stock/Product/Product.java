@@ -3,6 +3,7 @@ package com.emtech.dairyapp.Stock.Product;
 
 import com.emtech.dairyapp.Stock.Category.Category;
 import com.emtech.dairyapp.Stock.CategoryProduct.CategoryProduct;
+import com.emtech.dairyapp.Stock.Product.audit.AuditListener;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -11,7 +12,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.List;
@@ -19,6 +20,7 @@ import java.util.List;
 
 @ToString
 @Data
+@EntityListeners(AuditListener.class)
 @EqualsAndHashCode
 @DynamicUpdate
 @Entity

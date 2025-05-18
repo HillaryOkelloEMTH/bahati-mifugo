@@ -1,7 +1,5 @@
 package com.emtech.dairyapp.Dairy.ProductAllocations;
 
-import io.swagger.models.auth.In;
-
 import java.util.Date;
 
 public interface FarmerProducts {

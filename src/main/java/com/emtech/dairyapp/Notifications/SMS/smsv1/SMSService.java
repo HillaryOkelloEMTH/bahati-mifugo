@@ -1,6 +1,7 @@
 package com.emtech.dairyapp.Notifications.SMS.smsv1;
 
 
+import com.emtech.dairyapp.Notifications.SMS.smsv2.SmsReqDto;
 import com.emtech.dairyapp.Notifications.SMS.smsv2.SmsServiceV2;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
@@ -44,7 +45,7 @@ public class SMSService {
     private String apiKey = "NDU4MThmODAxMzM2ODk3MUlELTQ2MmU4Y2QwZDA4YjQxOGU5ZjZjMTQ0ZGM0MmE4NDY5";
 
     @Autowired
-    private SMSNOtificaionRepo smsNotificationsRepository;
+    private SmsNotificationRepo smsNotificationsRepository;
 
     @Autowired
     SmsServiceV2 smsServiceV2;
@@ -110,10 +111,10 @@ public class SMSService {
         String storetype = "JKS";
 
         String[][] props = {
-                {"javax.net.ssl.trustStore", keystore,},
-                {"javax.net.ssl.keyStore", keystore,},
-                {"javax.net.ssl.keyStorePassword", storepass,},
-                {"javax.net.ssl.keyStoreType", storetype,},
+                {"jakarta.net.ssl.trustStore", keystore,},
+                {"jakarta.net.ssl.keyStore", keystore,},
+                {"jakarta.net.ssl.keyStorePassword", storepass,},
+                {"jakarta.net.ssl.keyStoreType", storetype,},
         };
         for (int i = 0; i < props.length; i++) {
             System.getProperties().setProperty(props[i][0], props[i][1]);
@@ -177,24 +178,14 @@ public class SMSService {
     }
 
     public void BulkSMSNotification(String message, String phoneNumber,String bulkCode,String smsTemplate) {
-        smsServiceV2.SMSNotification(message, phoneNumber);
-        //Create Message and Save In DB
-////        SMSResponse sr = sendSMS(message, phoneNumber);
-//        SMSNotifications sms = new SMSNotifications();
-////      sms.setResponseCode(sr.getResponseCode());
-//        sms.setResponseCode(200);
-//        sms.setEventType("-");
-//        sms.setDeliveryTime("-");
-//        sms.setMessageRef(generatecSystemCode(10));
-////      sms.setMessageId(sr.getMessageId());
-//        sms.setMessageId("-");
-//        sms.setMessage(message);
-//        sms.setCategory("Bulk");
-//        sms.setSentDate(new Date());
-//        sms.setPhoneNumber(phoneNumber);
-//        sms.setBulkCode(bulkCode);
-//        sms.setSmsTemplate(smsTemplate);
-//        smsNotificationsRepository.save(sms);
+        SmsReqDto reqDto = new SmsReqDto();
+
+        reqDto.setPhoneNumber(phoneNumber);
+        reqDto.setMessage(message);
+        reqDto.setBulkCode(bulkCode);
+        reqDto.setBulk(true);
+        reqDto.setBulkTemplate(smsTemplate);
+        smsServiceV2.SMSNotification(reqDto);
     }
 
 

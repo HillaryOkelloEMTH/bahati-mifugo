@@ -62,11 +62,18 @@ public class PickUpLocationController {
         EntityResponse response = service.getPickUpLocationsByColectorIdandWard(collectorId,wardId);
         return  ResponseEntity.ok().body(response);
     }
-    @GetMapping("collector")
-    public ResponseEntity<?> GetLocationscollector(@RequestParam Long collectorId){
-        EntityResponse response = service.getPickUpLocationsByCollector(collectorId);
+    @GetMapping("collector/{collectorId}")
+    public ResponseEntity<?> GetLocationscollector(@PathVariable Long collectorId){
+        EntityResponse<?> response = service.getPickUpLocationsByCollector(collectorId);
         return  ResponseEntity.ok().body(response);
     }
+
+    @GetMapping("transporter/{transporterId}")
+    public ResponseEntity<?> getTransporterLocations(@PathVariable Long transporterId) {
+        var response = service.getTransporterPickUpLocations(transporterId);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
+    }
+
 
 
 }

@@ -13,6 +13,7 @@ import com.emtech.dairyapp.Configurations.Utils.Formatter;
 import com.emtech.dairyapp.Dairy.Supply.Codenerator;
 import com.emtech.dairyapp.Dairy.Supply.MilkCollectionRepo;
 import com.emtech.dairyapp.Dairy.Supply.MilkCollections;
+import com.emtech.dairyapp.Notifications.SMS.smsv2.SmsReqDto;
 import com.emtech.dairyapp.Notifications.SMS.smsv2.SmsServiceV2;
 import com.emtech.dairyapp.Response.EntityResponse;
 import lombok.AllArgsConstructor;
@@ -73,6 +74,8 @@ public class BulkSupplyService {
         EntityResponse<List<Object>> response = new EntityResponse<>();
         List<Object> failed = new ArrayList<>();
         List<BulkDelivery> bulkDeliveries = new ArrayList<>();
+        SmsReqDto reqDto = new SmsReqDto();
+        reqDto.setBulk(false);
          AtomicInteger success = new AtomicInteger();
          AtomicInteger failures = new AtomicInteger();
          AtomicReference<String> farmer = new AtomicReference<>();
@@ -209,9 +212,17 @@ public class BulkSupplyService {
                                 success.getAndIncrement();
                                 milkCollectionRepo.save(milkSupply);
 
+                                // get month and year
+                                SimpleDateFormat formatMonth = new SimpleDateFormat("MM");
+                                SimpleDateFormat formatYear = new SimpleDateFormat("yyyy");
+                                int monthNo = Integer.parseInt(formatMonth.format(row.getDate()));
+                                String year = formatYear.format(row.getDate());
+
                                 //retrieve updated monthly total
-                                Double monthTotal = milkCollectionRepo.getMonthyAccumulation(farmerInfo.getFarmer_no());
+                                Double monthTotal = milkCollectionRepo.getMonthyAccumulation(farmerInfo.getFarmer_no(), monthNo, year);
                                 String session = row.getSession().equalsIgnoreCase("Session 1") ? "Morning" : (row.getSession().equalsIgnoreCase("Session 2") ? "Afternoon" : "Evening");
+
+                                log.info("new month total for {} , farmer no {}, month {} , updated qty: {} .......", farmerInfo.getName(), farmerInfo.getFarmer_no(), monthNo, monthTotal);
                                 //send sms if farmer phone no exists
                                 String message = "Dear "+farmerInfo.getName()+", farmer no "+farmerInfo.getFarmer_no()+", delivery of " +
                                         row.getQuantity()+" kgs, "+session+" Session for "+ Formatter.formatDate(row.getDate()) +
@@ -219,17 +230,25 @@ public class BulkSupplyService {
 
                                 if (farmerInfo.getMobile_no() != null) {
                                     log.info("sending sms .......to {} .....farmer number {}", farmerInfo.getName(), farmerInfo.getFarmer_no());
-//                                    smsServiceV2.SMSNotification(message, Formatter.formatPhone(farmerInfo.getMobile_no()));
+                                    reqDto.setMessage(message);
+                                    reqDto.setPhoneNumber(Formatter.formatPhone(farmerInfo.getMobile_no()));
+                                    smsServiceV2.SMSNotification(reqDto);
                                 }
                             }
 
                             //notify staff member on status of delivery uploads
-                            String message = "Hello Silvia, successful uploads: "+success+", failed uploads: "+failures+". on "+Formatter.formatDate(new Date());
-                            smsServiceV2.SMSNotification(message, Formatter.formatPhone("0112209296"));
-                            smsServiceV2.SMSNotification(message, Formatter.formatPhone("0715318204"));
+                            String message = "Hello "+postedBy+", successful uploads: "+success+", failed uploads: "+failures+". on "+Formatter.formatDate(new Date());
+                            reqDto.setMessage(message);
+
+                            reqDto.setPhoneNumber(Formatter.formatPhone("0112209296"));
+                            smsServiceV2.SMSNotification(reqDto);
+
+                            reqDto.setPhoneNumber(Formatter.formatPhone("0715318204"));
+                            smsServiceV2.SMSNotification(reqDto);
 
                             if (mobile != null && !mobile.equalsIgnoreCase("0715318204")) {
-                                smsServiceV2.SMSNotification(message, Formatter.formatPhone(mobile));
+                                reqDto.setPhoneNumber(Formatter.formatPhone(mobile));
+                                smsServiceV2.SMSNotification(reqDto);
                             }
 
 
