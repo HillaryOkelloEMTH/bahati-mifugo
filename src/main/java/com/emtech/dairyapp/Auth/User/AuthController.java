@@ -27,7 +27,7 @@ public class AuthController {
     @Lazy
     private UserService userService;
 
-//    @CrossOrigin(value = { "http://localhost:4200"}, allowedHeaders = {"Access-Control-Allow-Origin: *"})
+    //    @CrossOrigin(value = { "http://localhost:4200"}, allowedHeaders = {"Access-Control-Allow-Origin: *"})
     @PostMapping("login")
     public ResponseEntity<?> login(@RequestBody AuthRequest body){
         var authResponse = this.userService.authenticateUser(body);
