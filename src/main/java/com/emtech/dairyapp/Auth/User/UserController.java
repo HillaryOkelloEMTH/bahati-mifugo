@@ -27,7 +27,7 @@ public class UserController {
     @Lazy
     UserService userService;
 
-//    @PreAuthorize(value = "hasAuthority('CREATE_USER')")
+    //    @PreAuthorize(value = "hasAuthority('CREATE_USER')")
     @RequestMapping(
             path = "/create-user",
             method = RequestMethod.POST,
@@ -44,7 +44,7 @@ public class UserController {
         }
     }
 
-//    @PreAuthorize(value = "hasAuthority('UPDATE_USER')")
+    //    @PreAuthorize(value = "hasAuthority('UPDATE_USER')")
     @RequestMapping(
             path = "/update-user/{userId}",
             method = RequestMethod.PUT,
@@ -92,7 +92,7 @@ public class UserController {
         }
     }
 
-//    @PreAuthorize(value = "hasAuthority('UPDATE_USER')")
+    //    @PreAuthorize(value = "hasAuthority('UPDATE_USER')")
     @RequestMapping(
             path = "/lock-user/{userId}",
             method = RequestMethod.PUT,
@@ -108,7 +108,7 @@ public class UserController {
         }
     }
 
-//    @PreAuthorize(value = "hasAuthority('UPDATE_USER')")
+    //    @PreAuthorize(value = "hasAuthority('UPDATE_USER')")
     @RequestMapping(
             path = "/unlock-user/{userId}",
             method = RequestMethod.PUT,
@@ -123,7 +123,7 @@ public class UserController {
         }
     }
 
-//    @PreAuthorize(value = "hasAuthority('DELETE_ROLE')")
+    //    @PreAuthorize(value = "hasAuthority('DELETE_ROLE')")
     @RequestMapping(
             path = "/delete-user/{userId}",
             method = RequestMethod.PUT,
@@ -139,7 +139,7 @@ public class UserController {
         }
     }
 
-//    @PreAuthorize(value = "hasAuthority('UPDATE_USER')")
+    //    @PreAuthorize(value = "hasAuthority('UPDATE_USER')")
     @RequestMapping(
             path = "/restore-user/{userId}",
             method = RequestMethod.PUT,
@@ -155,7 +155,7 @@ public class UserController {
         }
     }
 
-//    @PreAuthorize(value = "hasAuthority('VIEW_USERS')")
+    //    @PreAuthorize(value = "hasAuthority('VIEW_USERS')")
     @RequestMapping(
             path = "/all-accounts",
             method = RequestMethod.GET,
@@ -179,7 +179,7 @@ public class UserController {
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
-//    @PreAuthorize(value = "hasAuthority('VIEW_USERS')")
+    //    @PreAuthorize(value = "hasAuthority('VIEW_USERS')")
     @RequestMapping(
             path = "{userId}",
             method = RequestMethod.GET,
@@ -196,7 +196,7 @@ public class UserController {
 
     }
 
-//    @PreAuthorize(value = "hasAuthority('VIEW_USERS')")
+    //    @PreAuthorize(value = "hasAuthority('VIEW_USERS')")
     @RequestMapping(
             path = "/active-accounts",
             method = RequestMethod.GET,
@@ -213,7 +213,7 @@ public class UserController {
 
     }
 
-//    @PreAuthorize(value = "hasAuthority('VIEW_USERS')")
+    //    @PreAuthorize(value = "hasAuthority('VIEW_USERS')")
     @RequestMapping(
             path = "/locked-accounts",
             method = RequestMethod.GET,
@@ -230,7 +230,7 @@ public class UserController {
         }
     }
 
-//    @PreAuthorize(value = "hasAuthority('VIEW_USERS')")
+    //    @PreAuthorize(value = "hasAuthority('VIEW_USERS')")
     @RequestMapping(
             path = "/deleted-accounts",
             method = RequestMethod.GET,
