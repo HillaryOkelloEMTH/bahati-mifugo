@@ -83,7 +83,7 @@ public class HttpConfigurer {
         configuration.setAllowCredentials(true);
         configuration.setAllowedOrigins(Arrays.asList("http://18.219.121.50:4500",
                 "https://dairy.emtechhouse.co.ke",
-                "http://localhost:8082","http://localhost:4200"));
+                "http://localhost:8082","https://7abe-197-155-71-138.ngrok-free.app","http://7abe-197-155-71-138.ngrok-free.app","http://localhost:4200"));
         configuration.setAllowedMethods(Arrays.asList("GET","POST", "PATCH", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("X-Requested-With","Origin", "Content-Type", "Accept", "Authorization"));
         configuration.setExposedHeaders(List.of("X-Get-Header"));
