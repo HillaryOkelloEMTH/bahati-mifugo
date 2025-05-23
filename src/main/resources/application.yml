@@ -2,11 +2,11 @@ server:
   error:
     include-message: always
   port: 9600
-#  ssl:
-#    key-store: classpath:static/keystore.p12
-#    key-alias: dairy
-#    key-store-password: dairy-dev
-#    key-password: dairy-dev
+  ssl:
+    key-store: classpath:static/keystore.p12
+    key-alias: dairy
+    key-store-password: dairy-dev
+    key-password: dairy-dev
 
 spring:
   datasource:
