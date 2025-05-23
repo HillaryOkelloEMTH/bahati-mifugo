@@ -2,6 +2,7 @@ package com.emtech.dairyapp.Auth.Utilities;
 
 
 import com.emtech.dairyapp.Auth.Data.User.UserData;
+import com.emtech.dairyapp.Auth.User.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
@@ -50,18 +51,36 @@ public class JWTUtil {
     public String generateToken(UserData user) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", user.getRoles());
-        return doGenerateToken(user.getUsername());
+        return doGenerateToken(claims,user.getUsername());
     }
 
-    private String doGenerateToken(String username) {
+    // generate token with user details only
+    public String generateRefreshToken(User user) {
+        return generateRefreshToken(new HashMap<>(), user);
+    }
+
+    private String doGenerateToken(Map<String, Object> claims,String username) {
         Long expirationTimeLong = Long.parseLong(expirationTime); //in second
         final Date createdDate = new Date();
-        final Date expirationDate = new Date(createdDate.getTime() + 1000 * 60 * 30);
+        final Date expirationDate = new Date(createdDate.getTime() + 1000 * 60 * 30); // expire after 30 min
 
         return Jwts.builder()
+                .setClaims(claims)
                 .setSubject(username)
                 .setIssuedAt(createdDate)
                 .setExpiration(expirationDate)
+                .signWith(getSignInKey())
+                .compact();
+    }
+
+    //    generate refresh token with extra claims
+    public String generateRefreshToken(Map<String, Object> extraClaims, User userDetails) {
+        return Jwts
+                .builder()
+                .setClaims(extraClaims)
+                .setSubject(userDetails.getFirstName()+userDetails.getLastName())
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 72)) // 3 days minutes exp
                 .signWith(getSignInKey())
                 .compact();
     }

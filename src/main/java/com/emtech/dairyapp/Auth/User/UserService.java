@@ -7,6 +7,7 @@ import com.emtech.dairyapp.Auth.Data.Http.Response.Auth.UserResponse;
 import com.emtech.dairyapp.Auth.Data.Role.RoleAccessRights;
 import com.emtech.dairyapp.Auth.Data.User.UserData;
 import com.emtech.dairyapp.Auth.Data.User.UserRoleData;
+import com.emtech.dairyapp.Auth.RefreshToken.RefreshTokenService;
 import com.emtech.dairyapp.Auth.Role.Role;
 import com.emtech.dairyapp.Auth.Role.RoleRepository;
 import com.emtech.dairyapp.Auth.UserRole.UserRole;
@@ -59,69 +60,6 @@ public class UserService {
     private String resetPasswordTokenExpiration;
 
     EntityResponse<?> res= new EntityResponse<>();
-
-
-    public EntityResponse<?> authenticateUser(AuthRequest authRequest){
-        EntityResponse<AuthResponse> response = new EntityResponse<>();
-
-        try {
-            authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(authRequest.getPassword(), authRequest.getPassword())
-            );
-
-            userRepository.findByUsername(authRequest.getUsername().trim()).ifPresentOrElse(user -> {
-                if (Objects.equals(user.getStatus(), "Active")){
-
-                    log.log(Level.INFO, String.format("Encoded Password: [credentials=%s] User Password: [ password=%s ]", passwordUtil.encode(authRequest.getPassword().trim()), user.getPassword()));
-                    if(passwordUtil.matches(authRequest.getPassword().trim(), user.getPassword())){
-                        log.log(Level.INFO, ("Inside password encryption]"));
-                        UserData userData = getUserDetails(user.getId());
-
-                        String token = jwtUtil.generateToken(userData);
-
-                        AuthResponse authResponse = AuthResponse.builder()
-                                .token(token)
-                                .id(userData.getId())
-                                .username(userData.getUsername())
-                                .mobile(userData.getMobile())
-                                .roles(userData.getRoles())
-                                .build();
-
-                        response.setMessage("Login Successful");
-                        response.setStatusCode(HttpStatus.OK.value());
-                        response.setEntity(authResponse);
-                    }else{
-                        response.setMessage("Check your password");
-                        response.setStatusCode(HttpStatus.BAD_REQUEST.value());
-                        log.log(Level.SEVERE, "Passwords do not match");
-
-                    }
-
-                }else{
-                    response.setMessage("Account not found");
-                    response.setStatusCode(HttpStatus.NOT_FOUND.value());
-                    log.log(Level.WARNING, String.format("Account for the provided username is not active [ username=%s ]", authRequest.getUsername()));
-
-                }
-            }, () -> {
-                response.setMessage("User not found");
-                response.setStatusCode(HttpStatus.NOT_FOUND.value());
-                log.log(Level.WARNING, "User with the username not found");
-
-            });
-        } catch (InternalAuthenticationServiceException | BadCredentialsException e) {
-            log.log(Level.WARNING, "Auth Error {}", e.getMessage());
-
-            response.setMessage(e.getMessage());
-            response.setStatusCode(HttpStatus.UNAUTHORIZED.value());
-        } catch (Exception e) {
-            log.log(Level.WARNING, "An error occurred", e.getMessage());
-            response.setMessage(e.getMessage());
-            response.setStatusCode(HttpStatus.UNAUTHORIZED.value());
-        }
-
-        return response;
-    }
 
     public List<Role> validateUser(@NonNull String username) {
         List<Role> roles = new ArrayList<>();
@@ -864,7 +802,7 @@ public class UserService {
                                 data.get().setResetPasswordToken(null);
                                 data.get().setResetPasswordTokenExpire(null);
 
-                                log.log(Level.SEVERE, String.format("Reset password token has expired ", username));
+                                log.log(Level.SEVERE, "Reset password token has expired ");
 
                                 response.set(RecordCreateResponse.builder().message("Reset password token has expired, please request for a new token").statusCode(HttpStatus.BAD_REQUEST.value()).build());
                             }else{
