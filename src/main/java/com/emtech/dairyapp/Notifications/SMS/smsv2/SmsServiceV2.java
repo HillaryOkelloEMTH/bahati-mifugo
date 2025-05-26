@@ -100,7 +100,7 @@ public class SmsServiceV2 {
                     SMSNotifications sms = new SMSNotifications();
                     sms.setResponseCode(Integer.parseInt(response.getStatus_code()));
                     sms.setEventType("-");
-                    sms.setDeliveryTime("-");
+                    sms.setDeliveryTime("");
                     sms.setStatusDescription(response.getStatus_desc());
                     sms.setMessageRef(generatecSystemCode(10));
                     sms.setMessageId(String.valueOf(response.getMessage_id()));
