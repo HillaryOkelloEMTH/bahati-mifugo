@@ -2,17 +2,22 @@ package com.emtech.dairyapp.Reports.ExcelReports;
 
 import com.emtech.dairyapp.Analytics.AnalyticsData;
 import com.emtech.dairyapp.Configurations.FarmerManagement.FarmerRepo;
+import com.emtech.dairyapp.Configurations.PickUpLocations.PickUpLocationsRepo;
 import com.emtech.dairyapp.Dairy.Interface.AllocationDataInterface;
 import com.emtech.dairyapp.Dairy.Interface.CollectionsData;
 import com.emtech.dairyapp.Dairy.PaymentComponent.PaymentFileData;
 import com.emtech.dairyapp.Dairy.ProductAllocations.FarmerProdAllocattionsRepo;
 import com.emtech.dairyapp.Dairy.Supply.MilkCollectionRepo;
 import com.emtech.dairyapp.Dairy.Supply.MilkCollectionService;
+import com.emtech.dairyapp.Reports.Dto.ExcelReportDto;
 import com.emtech.dairyapp.Reports.Dto.PayrollInterface;
 import com.emtech.dairyapp.Response.EntityResponse;
+import com.lowagie.text.exceptions.BadPasswordException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -37,11 +42,14 @@ public class ExelReportService {
 
     private final FarmerProdAllocattionsRepo allocattionsRepo;
 
-    public ExelReportService(MilkCollectionRepo collectionRepo, MilkCollectionService milkCollectionService, FarmerRepo farmerRepo, FarmerProdAllocattionsRepo allocattionsRepo) {
+    private final PickUpLocationsRepo locationsRepo;
+
+    public ExelReportService(MilkCollectionRepo collectionRepo, MilkCollectionService milkCollectionService, FarmerRepo farmerRepo, FarmerProdAllocattionsRepo allocattionsRepo, PickUpLocationsRepo locationsRepo) {
         this.collectionRepo = collectionRepo;
         this.milkCollectionService = milkCollectionService;
         this.farmerRepo = farmerRepo;
         this.allocattionsRepo = allocattionsRepo;
+        this.locationsRepo = locationsRepo;
     }
 
     public static String TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
@@ -89,6 +97,50 @@ public class ExelReportService {
         } catch (IOException e) {
             throw new RuntimeException("fail to import data to Excel file: " + e.getMessage());
         }
+    }
+
+    public EntityResponse<ExcelReportDto> centerDeliveryPerDateRange(Integer locationId, String from , String to) {
+        EntityResponse<ExcelReportDto> response = new EntityResponse<>();
+        HttpHeaders httpHeaders = new HttpHeaders();
+        String filename = "collections_"+from+"-"+to+".xlsx";
+        httpHeaders.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename);
+
+        try (Workbook workbook = new XSSFWorkbook();ByteArrayOutputStream out = new ByteArrayOutputStream();) {
+            log.info("Checking if location exists");
+            if (!locationsRepo.existsById((long) locationId)) {
+                response.setMessage("Location with id "+locationId+" not found");
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                return response;
+            }
+
+            Sheet sheet = workbook.createSheet(SHEET);
+            String[] headers = { "Farmer No", "Farmer", "Quantity", "Collection Date" , "Session", "Route", "Pickup Location"};
+
+            List<CollectionsData> data = collectionRepo.locationDeliveryPerDateRange(locationId, from, to); // Fetch data from the database
+
+            int rowNum = 0;
+            Row headerRow = sheet.createRow(rowNum++);
+            createHeaderRow(headerRow,headers); // Create header row
+
+            for (CollectionsData entity : data) {
+                Row row = sheet.createRow(rowNum++);
+                fillDataRow(row, entity); // Fill data rows
+            }
+            workbook.write(out);
+            InputStreamResource resource = new InputStreamResource(new ByteArrayInputStream(out.toByteArray()));
+            ExcelReportDto dto = new ExcelReportDto();
+            dto.setHeaders(httpHeaders);
+            dto.setResource(resource);
+
+            response.setMessage("Report generated successfully");
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(dto);
+        } catch (Exception e) {
+            response.setMessage("fail to import data to Excel file: " + e.getMessage());
+            response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            return response;
+        }
+        return response;
     }
 
     public EntityResponse<ByteArrayInputStream> farmerPayroll(Integer month, String year) {

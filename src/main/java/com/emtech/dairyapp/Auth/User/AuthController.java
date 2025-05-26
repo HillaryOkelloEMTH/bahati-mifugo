@@ -6,13 +6,16 @@ import com.emtech.dairyapp.Auth.Data.Http.Request.Auth.ResetPasswordRequest;
 import com.emtech.dairyapp.Auth.Data.Http.Request.Auth.UpdateUserPasswordRequest;
 import com.emtech.dairyapp.Auth.Data.Http.Response.Auth.AuthResponse;
 import com.emtech.dairyapp.Auth.Data.Http.Response.Auth.RecordCreateResponse;
+import com.emtech.dairyapp.Auth.RefreshToken.RefreshTokenService;
 import com.emtech.dairyapp.Response.EntityResponse;
 import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.token.TokenService;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
@@ -27,11 +30,26 @@ public class AuthController {
     @Lazy
     private UserService userService;
 
+    @Autowired private AuthService authService;
+    @Autowired private RefreshTokenService tokenService;
+
 //    @CrossOrigin(value = { "http://localhost:4200"}, allowedHeaders = {"Access-Control-Allow-Origin: *"})
     @PostMapping("login")
     public ResponseEntity<?> login(@RequestBody AuthRequest body){
-        var authResponse = this.userService.authenticateUser(body);
+        var authResponse = this.authService.authenticateUser(body);
         return ResponseEntity.status(authResponse.getStatusCode()).body(authResponse);
+    }
+
+    @PostMapping("refresh-token")
+    public ResponseEntity<?> refreshToken(@RequestParam String token) {
+        var res = tokenService.refreshToken(token);
+        return  new ResponseEntity<>(res, HttpStatus.valueOf(res.getStatusCode()));
+    }
+
+    @PostMapping("logout")
+    public Mono<ResponseEntity<?>> logout(@RequestParam String token) {
+        var res = authService.logout(token);
+        return Mono.just(new ResponseEntity<>(res, HttpStatus.valueOf(res.getStatusCode())));
     }
 
 
