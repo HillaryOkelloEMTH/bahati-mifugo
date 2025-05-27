@@ -12,12 +12,36 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long> {
+//milk collection by routeId and date range
+List<MilkCollections> findByRouteFk(Long routeFk);
+    List<MilkCollections> findByRouteFkAndCollectionDate(Long routeFk, Date collectionDate);
+    List<MilkCollections> findByRouteFkAndCollectionDateBetweenOrderByCollectionDateDesc(Long routeFk, Date start, Date end);
 
+    List<MilkCollections> findByFarmerNoOrderByCollectionDateDesc(Integer farmerNo);
+    List<MilkCollections> findByFarmerNoAndCollectionDateBetweenOrderByCollectionDateDesc(Integer farmerNo, Date startDate, Date endDate);
+
+//farmer status per year and month
+@Query("SELECT DISTINCT m.farmerNo FROM MilkCollections m WHERE FUNCTION('MONTH', m.collectionDate) = :month AND FUNCTION('YEAR', m.collectionDate) = :year")
+List<Integer> findActiveFarmersByMonthAndYear(@Param("month") int month, @Param("year") int year);
+
+    @Query("SELECT DISTINCT m.farmerNo FROM MilkCollections m")
+    List<Integer> findAllFarmersFromCollections();
+
+@Query("SELECT DISTINCT m.farmerNo FROM MilkCollections m " +
+        "WHERE m.routeFk = :routeId " +
+        "AND FUNCTION('MONTH', m.collectionDate) = :month " +
+        "AND FUNCTION('YEAR', m.collectionDate) = :year")
+List<Integer> findActiveFarmerNosByRouteAndMonthYear(@Param("routeId") Long routeId,
+                                                     @Param("month") int month,
+                                                     @Param("year") int year);
+
+//farmer status per year and month per route
 
     List<MilkCollections> findByFarmerNo(Integer farmer_noId);
     Optional<MilkCollections> findByCollectionNumber(String deliveryNo);

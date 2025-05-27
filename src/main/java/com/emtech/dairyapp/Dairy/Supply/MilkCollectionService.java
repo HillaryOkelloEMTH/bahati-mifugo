@@ -7,6 +7,7 @@ import com.emtech.dairyapp.Auth.User.UserRepository;
 import com.emtech.dairyapp.Auth.User.UserService;
 import com.emtech.dairyapp.Configurations.CanManagement.Can;
 import com.emtech.dairyapp.Configurations.CanManagement.CanRepo;
+import com.emtech.dairyapp.Configurations.FarmerManagement.Farmer;
 import com.emtech.dairyapp.Configurations.FarmerManagement.FarmerRepo;
 import com.emtech.dairyapp.Configurations.Interfaces.FarmerInfo;
 import com.emtech.dairyapp.Configurations.Interfaces.Locations;
@@ -34,6 +35,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.emtech.dairyapp.Configurations.Utils.Formatter.*;
 
@@ -57,6 +59,207 @@ public class MilkCollectionService {
 
     @Value("${sms.enable}")
     private boolean sms;
+
+
+    //colection with route id and date range
+    public EntityResponse getCollectionsByRouteAndDate(Long routeId, Date startDate, Date endDate) {
+        EntityResponse response = new EntityResponse();
+        try {
+            List<MilkCollections> collections;
+
+            if (startDate != null && endDate != null) {
+                // Check if startDate and endDate are the same day
+                Calendar cal1 = Calendar.getInstance();
+                Calendar cal2 = Calendar.getInstance();
+                cal1.setTime(startDate);
+                cal2.setTime(endDate);
+
+                boolean isSameDay = cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR)
+                        && cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR);
+
+                if (isSameDay) {
+                    // Filter for that specific day
+                    collections = milkCollectionRepo.findByRouteFkAndCollectionDateBetweenOrderByCollectionDateDesc(
+                            routeId,
+                            getStartOfDay(startDate),
+                            getEndOfDay(startDate)
+                    );
+                } else {
+                    // Filter by date range
+                    collections = milkCollectionRepo.findByRouteFkAndCollectionDateBetweenOrderByCollectionDateDesc(
+                            routeId,
+                            getStartOfDay(startDate),
+                            getEndOfDay(endDate)
+                    );
+                }
+
+            } else if (startDate != null) {
+                // Only start date provided, filter for that day
+                collections = milkCollectionRepo.findByRouteFkAndCollectionDateBetweenOrderByCollectionDateDesc(
+                        routeId,
+                        getStartOfDay(startDate),
+                        getEndOfDay(startDate)
+                );
+            } else {
+                // No dates provided, return all for the route
+                collections = milkCollectionRepo.findByRouteFk(routeId);
+            }
+
+            if (!collections.isEmpty()) {
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setEntity(collections);
+                response.setMessage("Collections fetched successfully");
+            } else {
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                response.setEntity(collections);
+                response.setMessage("No collections found");
+            }
+
+        } catch (Exception e) {
+            log.error("Error fetching collections: ", e);
+            response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            response.setMessage("Server error occurred");
+        }
+
+        return response;
+    }
+
+    // Helper method to get start of the day
+    private Date getStartOfDay(Date date) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        return cal.getTime();
+    }
+
+    //  Helper method to get end of the day
+    private Date getEndOfDay(Date date) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        cal.set(Calendar.HOUR_OF_DAY, 23);
+        cal.set(Calendar.MINUTE, 59);
+        cal.set(Calendar.SECOND, 59);
+        cal.set(Calendar.MILLISECOND, 999);
+        return cal.getTime();
+    }
+
+
+//filtering farmers by farmerNo and date range
+
+    public EntityResponse getCollectionsByMember(Integer farmerNo, Date startDate, Date endDate) {
+        EntityResponse response = new EntityResponse();
+        try {
+            List<MilkCollections> collections;
+
+            if (startDate != null && endDate != null) {
+                Date start = getStartOfDay(startDate);
+                Date end = getEndOfDay(endDate);
+                collections = milkCollectionRepo.findByFarmerNoAndCollectionDateBetweenOrderByCollectionDateDesc(farmerNo, start, end);
+
+            } else if (startDate != null) {
+                Date start = getStartOfDay(startDate);
+                Date end = getEndOfDay(startDate);
+                collections = milkCollectionRepo.findByFarmerNoAndCollectionDateBetweenOrderByCollectionDateDesc(farmerNo, start, end);
+
+            } else {
+                collections = milkCollectionRepo.findByFarmerNo(farmerNo);
+            }
+
+            if (!collections.isEmpty()) {
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setEntity(collections);
+                response.setMessage("Collections fetched successfully.");
+            } else {
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                response.setEntity(Collections.emptyList());
+                response.setMessage("No collections found.");
+            }
+
+        } catch (Exception e) {
+            response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            response.setMessage("Error: " + e.getMessage());
+        }
+
+        return response;
+    }
+
+
+//finding status of farmers per route
+public Map<String, Object> getFarmerStatusByRoute(Long routeId, int month, int year) {
+    List<Integer> activeFarmerNos = milkCollectionRepo.findActiveFarmerNosByRouteAndMonthYear(routeId, month, year);
+    List<Farmer> allFarmersInRoute = farmerRepo.findAllByRouteFk(routeId);
+
+    Set<Integer> activeSet = new HashSet<>(activeFarmerNos);
+
+    List<Map<String, Object>> activeFarmers = new ArrayList<>();
+    List<Map<String, Object>> inactiveFarmers = new ArrayList<>();
+
+    for (Farmer farmer : allFarmersInRoute) {
+        Map<String, Object> farmerMap = new HashMap<>();
+        farmerMap.put("farmerNo", farmer.getFarmerNo());
+        farmerMap.put("fullName", buildFullName(farmer));
+
+        if (activeSet.contains(farmer.getFarmerNo())) {
+            activeFarmers.add(farmerMap);
+        } else {
+            inactiveFarmers.add(farmerMap);
+        }
+    }
+
+    Map<String, Object> response = new HashMap<>();
+    response.put("activeCount", activeFarmers.size());
+    response.put("inactiveCount", inactiveFarmers.size());
+    response.put("activeFarmers", activeFarmers);
+    response.put("inactiveFarmers", inactiveFarmers);
+
+    return response;
+}
+
+    private String buildFullName(Farmer farmer) {
+        return String.join(" ",
+                Optional.ofNullable(farmer.getFirstName()).orElse(""),
+                Optional.ofNullable(farmer.getMiddleName()).orElse(""),
+                Optional.ofNullable(farmer.getLastName()).orElse("")
+        ).trim().replaceAll(" +", " ");
+    }
+
+    //filtering stsus of farmers
+    public Map<String, Object> getFarmerStatusByMonth(int month, int year) {
+        List<Integer> activeFarmerNos = milkCollectionRepo.findActiveFarmersByMonthAndYear(month, year);
+        List<Integer> allFarmerNos = milkCollectionRepo.findAllFarmersFromCollections();
+
+        List<Integer> inactiveFarmerNos = allFarmerNos.stream()
+                .filter(farmerNo -> !activeFarmerNos.contains(farmerNo))
+                .collect(Collectors.toList());
+
+        List<Farmer> activeFarmers = farmerRepo.findByFarmerNoIn(activeFarmerNos);
+        List<Farmer> inactiveFarmers = farmerRepo.findByFarmerNoIn(inactiveFarmerNos);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("activeCount", activeFarmers.size());
+        response.put("inactiveCount", inactiveFarmers.size());
+        response.put("activeFarmers", activeFarmers.stream().map(this::mapFarmer).collect(Collectors.toList()));
+        response.put("inactiveFarmers", inactiveFarmers.stream().map(this::mapFarmer).collect(Collectors.toList()));
+        return response;
+    }
+
+    private Map<String, Object> mapFarmer(Farmer farmer) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("farmerNo", farmer.getFarmerNo());
+        map.put("fullName", buildName(farmer));
+        return map;
+    }
+
+    private String buildName(Farmer farmer) {
+        StringBuilder fullName = new StringBuilder();
+        if (farmer.getFirstName() != null) fullName.append(farmer.getFirstName()).append(" ");
+        if (farmer.getMiddleName() != null) fullName.append(farmer.getMiddleName()).append(" ");
+        if (farmer.getLastName() != null) fullName.append(farmer.getLastName());
+        return fullName.toString().trim();
+    }
 
 
     public MilkCollectionService(MilkCollectionRepo milkCollectionRepo, ProductConfigRepo productConfigRepo, FloatManagerRepo floatManagerRepo, Codenerator codenerator, SmsServiceV2 smsServiceV2, FarmerRepo farmerRepo, CanRepo canRepo, RouteRepo routeRepo, PickUpLocationsRepo pickUpLocationsRepo, UserService userService) {
