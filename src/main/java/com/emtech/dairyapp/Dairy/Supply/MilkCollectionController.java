@@ -195,11 +195,11 @@ public class MilkCollectionController {
         EntityResponse response = collectionService.collectionsTodayRecords();
         return ResponseEntity.ok().body(response);
     }
-    @GetMapping("per/farmer")
-    public ResponseEntity<EntityResponse> getFarmerCollections(@RequestParam Long farmerId){
-        EntityResponse response = collectionService.getCollectionByFarmer(farmerId);
-        return ResponseEntity.ok().body(response);
-    }
+//    @GetMapping("per/farmer")
+//    public ResponseEntity<EntityResponse> getFarmerCollections(@RequestParam Long farmerId){
+//        EntityResponse response = collectionService.getCollectionByFarmer(farmerId);
+//        return ResponseEntity.ok().body(response);
+//    }
 
     @GetMapping("per/collector")
     public ResponseEntity<EntityResponse> getCollectorCollections(@RequestParam Long collectorId){
@@ -288,7 +288,7 @@ public class MilkCollectionController {
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 //filter farmer by date range
-@GetMapping("farmer")
+@GetMapping("/per/farmer")
 public ResponseEntity<EntityResponse> getMemberCollections(
         @RequestParam Integer farmerNo,
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date startDate,
