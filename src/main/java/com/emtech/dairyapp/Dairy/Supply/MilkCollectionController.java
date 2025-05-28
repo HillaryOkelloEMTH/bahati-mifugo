@@ -309,7 +309,7 @@ public ResponseEntity<Map<String, Object>> getFarmersStatusByRoute(
     return ResponseEntity.ok(result);
 }
 
-//farmer ststus
+//farmer status
 @GetMapping("/farmer-status/monthly")
 public ResponseEntity<Map<String, Object>> getMonthlyFarmerStatus(
         @RequestParam int month,
