@@ -46,7 +46,7 @@ public class MccAllocationController {
 //        if (month < 1 || month > 12){
 //
 //        }
-        var response = mccAllocationService.getFilterMccProducts(locationId, productId, startDate, endDate, month, year);
+        var response = mccAllocationService.getFilterMccProducts(locationId, productId, startDate, endDate);
 
         return ResponseEntity.status(response.getStatusCode()).body(response);
 

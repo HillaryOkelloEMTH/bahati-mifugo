@@ -312,12 +312,12 @@ public class MccAllocationService {
     }
 
 //    Filter by Collection Centre, productId and Date Range.
-    public ProductsResponse getFilterMccProducts(Long locationId, Long productId, Date startDate, Date endDate, Integer month, Integer year){
+    public ProductsResponse getFilterMccProducts(Long locationId, Long productId, Date startDate, Date endDate){
 
-        if (month < 1 || month > 12){
-
-        }
-        List<MccAllocation> allocations = mccAllocationRepo.findAllByFilters(locationId, productId, startDate, endDate, month, year);
+//        if (month < 1 || month > 12){
+//
+//        }
+        List<MccAllocation> allocations = mccAllocationRepo.findAllByFilters(locationId, productId, startDate, endDate);
         return toProductsResponse(allocations);
     }
 //   Fil

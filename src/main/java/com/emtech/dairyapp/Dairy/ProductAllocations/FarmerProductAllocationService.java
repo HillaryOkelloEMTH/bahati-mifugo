@@ -25,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -357,28 +358,53 @@ public class FarmerProductAllocationService {
         }
     }
 
-    public EntityResponse fetchFarmerAllocations(Integer farmerNo) {
+//    public EntityResponse fetchFarmerAllocations(Integer farmerNo) {
+//        log.info("Fetching FarmerProductAllocationss ...");
+//        EntityResponse response = new EntityResponse();
+//        try {
+//            List<Allocations> FarmerProductAllocationss = farmerProdAllocattionsRepo.getAllocationsByFarmer(farmerNo);
+//            if (FarmerProductAllocationss.size() > 0) {
+//                log.info("FarmerProductAllocationss Found " + "(" + FarmerProductAllocationss.size() + ")");
+//                response.setEntity(FarmerProductAllocationss);
+//                response.setStatusCode(HttpStatus.OK.value());
+//                response.setMessage(HttpStatus.FOUND.getReasonPhrase());
+//            } else {
+//                log.info("FarmerProductAllocationss Not Found " + "(" + FarmerProductAllocationss.size() + ")");
+//                response.setEntity(FarmerProductAllocationss);
+//                response.setStatusCode(HttpStatus.OK.value());
+//                response.setMessage(HttpStatus.NO_CONTENT.getReasonPhrase());
+//            }
+//            return response;
+//        } catch (Exception e) {
+//            log.error("Error: " + e.getLocalizedMessage());
+//            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+//            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+//            return response;
+//        }
+//    }
+
+//    Switched from Entity Response to ResponseEntity.
+    public ResponseEntity<AllocationsResponse> fetchFarmerAllocations(Integer farmerNo) {
         log.info("Fetching FarmerProductAllocationss ...");
-        EntityResponse response = new EntityResponse();
         try {
-            List<Allocations> FarmerProductAllocationss = farmerProdAllocattionsRepo.getAllocationsByFarmer(farmerNo);
-            if (FarmerProductAllocationss.size() > 0) {
-                log.info("FarmerProductAllocationss Found " + "(" + FarmerProductAllocationss.size() + ")");
-                response.setEntity(FarmerProductAllocationss);
-                response.setStatusCode(HttpStatus.OK.value());
-                response.setMessage(HttpStatus.FOUND.getReasonPhrase());
-            } else {
-                log.info("FarmerProductAllocationss Not Found " + "(" + FarmerProductAllocationss.size() + ")");
-                response.setEntity(FarmerProductAllocationss);
-                response.setStatusCode(HttpStatus.OK.value());
-                response.setMessage(HttpStatus.NO_CONTENT.getReasonPhrase());
-            }
-            return response;
+            List<Allocations> farmerProductAllocations = farmerProdAllocattionsRepo.getAllocationsByFarmer(farmerNo);
+
+            AllocationsResponse  response = AllocationsResponse.builder()
+                    .statusCode(HttpStatus.OK.value())
+                    .message(farmerProductAllocations.isEmpty() ? "No Content" : "Allcoations Found")
+                    .allocations(farmerProductAllocations)
+                    .build();
+
+            HttpStatus status = farmerProductAllocations.isEmpty()? HttpStatus.NO_CONTENT : HttpStatus.OK;
+            return  new ResponseEntity<>(response, status);
         } catch (Exception e) {
-            log.error("Error: " + e.getLocalizedMessage());
-            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
-            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
-            return response;
+            log.error("Error fetching FarmerProductAllocations: " + e.getLocalizedMessage());
+            AllocationsResponse errorResponse = AllocationsResponse.builder()
+                    .statusCode(HttpStatus.BAD_REQUEST.value())
+                    .message(HttpStatus.BAD_REQUEST.getReasonPhrase())
+                    .allocations(null)
+                    .build();
+            return new ResponseEntity<>(errorResponse,HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

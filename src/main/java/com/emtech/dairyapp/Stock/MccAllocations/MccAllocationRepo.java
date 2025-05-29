@@ -33,9 +33,9 @@ public interface MccAllocationRepo extends JpaRepository<MccAllocation, Long> {
     List<MccAllocation> findAllByFilters(@Param("locationId") Long locationId,
                                          @Param("productId") Long productId,
                                          @Param("startDate") Date startDate,
-                                         @Param("endDate") Date endDate,
-                                         @Param("month") Integer month,
-                                         @Param("year") Integer year
+                                         @Param("endDate") Date endDate
+//                                         @Param("month") Integer month,
+//                                         @Param("year") Integer year
      );
 //By Month
     @Query("SELECT m FROM MccAllocation m WHERE FUNCTION('MONTH', m.allocatedOn) = :month AND (:locationId IS NULL OR m.locationId = :locationId) AND (:productId IS NULL OR m.productId = :productId)")
