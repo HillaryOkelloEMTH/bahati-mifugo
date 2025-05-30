@@ -105,9 +105,10 @@ public class MilkCollectionService {
     }
 
 
+
 //filtering farmers by farmerNo and date range
 
-    public EntityResponse getCollectionsByMember(Integer farmerNo, Date startDate, Date endDate) {
+    public EntityResponse getCollectionsByMemberPer(Integer farmerNo, Date startDate, Date endDate) {
         EntityResponse response = new EntityResponse();
         try {
             List<CollectionsData> collections = milkCollectionRepo.getCollectionsByFarmerAndDate(farmerNo, startDate, endDate);
@@ -126,7 +127,7 @@ public class MilkCollectionService {
     }
 
     //finding status of farmers per route
-public Map<String, Object> getFarmerStatusByRoute(Long routeId, int month, int year) {
+public Map<String, Object> getFarmerStatusByRoute(Long routeId, int month, int year,Integer status) {
     List<Integer> activeFarmerNos = milkCollectionRepo.findActiveFarmerNosByRouteAndMonthYear(routeId, month, year);
     List<Farmer> allFarmersInRoute = farmerRepo.findAllByRouteFk(routeId);
 
@@ -139,6 +140,22 @@ public Map<String, Object> getFarmerStatusByRoute(Long routeId, int month, int y
         Map<String, Object> farmerMap = new HashMap<>();
         farmerMap.put("farmerNo", farmer.getFarmerNo());
         farmerMap.put("fullName", buildFullName(farmer));
+        farmerMap.put("id", farmer.getId());
+        farmerMap.put("username", farmer.getUsername());
+        farmerMap.put("firstName", farmer.getFirstName());
+        farmerMap.put("lastName", farmer.getLastName());
+        farmerMap.put("middleName", farmer.getMiddleName());
+        farmerMap.put("idNumber", farmer.getIdNumber());
+        farmerMap.put("mobileNo", farmer.getMobileNo());
+        farmerMap.put("alternativeMobileNo", farmer.getAlternativeMobileNo());
+        farmerMap.put("memberType", farmer.getMemberType());
+        farmerMap.put("address", farmer.getAddress());
+        farmerMap.put("paymentMode", farmer.getPaymentMode());
+        farmerMap.put("location", farmer.getLocation());
+        farmerMap.put("subLocation", farmer.getSubLocation());
+        farmerMap.put("village", farmer.getVillage());
+        farmerMap.put("createdAt", farmer.getCreatedAt());
+        farmerMap.put("updatedOn", farmer.getUpdatedOn());
 
         if (activeSet.contains(farmer.getFarmerNo())) {
             activeFarmers.add(farmerMap);
@@ -148,10 +165,20 @@ public Map<String, Object> getFarmerStatusByRoute(Long routeId, int month, int y
     }
 
     Map<String, Object> response = new HashMap<>();
-    response.put("activeCount", activeFarmers.size());
-    response.put("inactiveCount", inactiveFarmers.size());
-    response.put("activeFarmers", activeFarmers);
-    response.put("inactiveFarmers", inactiveFarmers);
+    if(status==null) {
+        response.put("activeCount", activeFarmers.size());
+        response.put("inactiveCount", inactiveFarmers.size());
+        response.put("activeFarmers", activeFarmers);
+        response.put("inactiveFarmers", inactiveFarmers);
+    }else if(status==1){
+        response.put("activeCount", activeFarmers.size());
+        response.put("activeFarmers", activeFarmers);
+    }else if(status==0){
+        response.put("inactiveCount", inactiveFarmers.size());
+        response.put("inactiveFarmers", inactiveFarmers);
+
+    }
+
 
     return response;
 }
@@ -165,7 +192,7 @@ public Map<String, Object> getFarmerStatusByRoute(Long routeId, int month, int y
     }
 
     //filtering status of farmers
-    public Map<String, Object> getFarmerStatusByMonth(int month, int year) {
+    public Map<String, Object> getFarmerStatusByMonth(int month, int year, Integer status) {
         List<Integer> activeFarmerNos = milkCollectionRepo.findActiveFarmersByMonthAndYear(month, year);
         List<Integer> allFarmerNos = milkCollectionRepo.findAllFarmersFromCollections();
 
@@ -177,17 +204,43 @@ public Map<String, Object> getFarmerStatusByRoute(Long routeId, int month, int y
         List<Farmer> inactiveFarmers = farmerRepo.findByFarmerNoIn(inactiveFarmerNos);
 
         Map<String, Object> response = new HashMap<>();
-        response.put("activeCount", activeFarmers.size());
-        response.put("inactiveCount", inactiveFarmers.size());
-        response.put("activeFarmers", activeFarmers.stream().map(this::mapFarmer).collect(Collectors.toList()));
-        response.put("inactiveFarmers", inactiveFarmers.stream().map(this::mapFarmer).collect(Collectors.toList()));
+        if (status == null) {
+            response.put("activeCount", activeFarmers.size());
+            response.put("inactiveCount", inactiveFarmers.size());
+            response.put("activeFarmers", activeFarmers.stream().map(this::mapFarmer).collect(Collectors.toList()));
+            response.put("inactiveFarmers", inactiveFarmers.stream().map(this::mapFarmer).collect(Collectors.toList()));
+        } else if (status == 1) {
+            response.put("activeCount", activeFarmers.size());
+            response.put("activeFarmers", activeFarmers.stream().map(this::mapFarmer).collect(Collectors.toList()));
+        } else if (status == 0) {
+            response.put("inactiveCount", inactiveFarmers.size());
+            response.put("inactiveFarmers", inactiveFarmers.stream().map(this::mapFarmer).collect(Collectors.toList()));
+        } else {
+            response.put("message", "Invalid status value. Use 1 for active, 0 for inactive.");
+        }
         return response;
     }
 
     private Map<String, Object> mapFarmer(Farmer farmer) {
         Map<String, Object> map = new HashMap<>();
+        map.put("id", farmer.getId());
+        map.put("username", farmer.getUsername());
+        map.put("firstName", farmer.getFirstName());
+        map.put("lastName", farmer.getLastName());
+        map.put("middleName", farmer.getMiddleName());
         map.put("farmerNo", farmer.getFarmerNo());
         map.put("fullName", buildName(farmer));
+        map.put("gender", farmer.getGender());
+        map.put("idNumber", farmer.getIdNumber());
+        map.put("mobileNo", farmer.getMobileNo());
+        map.put("alternativeMobileNo", farmer.getAlternativeMobileNo());
+        map.put("memberType", farmer.getMemberType());
+        map.put("address", farmer.getAddress());
+        map.put("paymentMode", farmer.getPaymentMode());
+        map.put("location", farmer.getLocation());
+        map.put("subLocation", farmer.getSubLocation());
+        map.put("createdAt", farmer.getCreatedAt());
+        map.put("updatedOn", farmer.getUpdatedOn());
         return map;
     }
 
@@ -981,6 +1034,32 @@ public Map<String, Object> getFarmerStatusByRoute(Long routeId, int month, int y
         }
         return response;
     }
+
+    //count route records with date range
+    public EntityResponse getRouteRecordsByDateRange(Long routeId, String startDate, String endDate) {
+        EntityResponse response = new EntityResponse();
+        try {
+            List<DailyRecords> collections = milkCollectionRepo.getRouteRecordBetweenDates(routeId, startDate, endDate);
+
+            if (!collections.isEmpty()) {
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setEntity(collections);
+                response.setMessage("Records found for route ID " + routeId + " between " + startDate + " and " + endDate);
+            } else {
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                response.setEntity(collections);
+                response.setMessage("No records found for route ID " + routeId + " between " + startDate + " and " + endDate);
+            }
+
+        } catch (Exception e) {
+            log.error("Error retrieving route records: {}", e.getMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage("Failed to retrieve route records.");
+        }
+        return response;
+    }
+
+
     public EntityResponse getRouteSummary() {
 
         EntityResponse response = new EntityResponse();

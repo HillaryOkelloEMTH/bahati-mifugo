@@ -53,6 +53,7 @@ public class ProductController {
         }
     }
 
+
     @RequestMapping(
             path = "/move-to-recycle-bin/{productId}",
             method = RequestMethod.PUT,

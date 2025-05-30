@@ -73,6 +73,7 @@ List<Integer> findActiveFarmersByMonthAndYear(@Param("month") int month, @Param(
     @Query("SELECT DISTINCT m.farmerNo FROM MilkCollections m")
     List<Integer> findAllFarmersFromCollections();
 
+    //farmer status per year and month per route
 @Query("SELECT DISTINCT m.farmerNo FROM MilkCollections m " +
         "WHERE m.routeFk = :routeId " +
         "AND FUNCTION('MONTH', m.collectionDate) = :month " +
@@ -81,7 +82,9 @@ List<Integer> findActiveFarmerNosByRouteAndMonthYear(@Param("routeId") Long rout
                                                      @Param("month") int month,
                                                      @Param("year") int year);
 
-//farmer status per year and month per route
+//farmers status per year and center
+
+
 
     List<MilkCollections> findByFarmerNo(Integer farmer_noId);
     Optional<MilkCollections> findByCollectionNumber(String deliveryNo);
@@ -148,6 +151,25 @@ List<Integer> findActiveFarmerNosByRouteAndMonthYear(@Param("routeId") Long rout
     List<DailyRecords> getPickUpLocationRecord(Long locationid, String from, String to);
     @Query(value = "SELECT count(*) as count,COALESCE(ROUND(SUM(c.quantity),2),0.0)  as quantity,COALESCE(ROUND(SUM(c.amount),2),0.0) as amount FROM collections c join route r on r.id=c.route_fk  where r.id =:routeId and  c.event ='Collection'", nativeQuery = true)
     List<DailyRecords> getRouteRecord(Long routeId);
+
+    //count route records with date range
+    @Query(value = """
+    SELECT 
+        COUNT(*) as count,
+        COALESCE(ROUND(SUM(c.quantity), 2), 0.0) as quantity,
+        COALESCE(ROUND(SUM(c.amount), 2), 0.0) as amount
+    FROM collections c 
+    JOIN route r ON r.id = c.route_fk  
+    WHERE r.id = :routeId 
+      AND c.event = 'Collection'
+      AND DATE(c.collection_date) BETWEEN :startDate AND :endDate
+    """, nativeQuery = true)
+    List<DailyRecords> getRouteRecordBetweenDates(
+            @Param("routeId") Long routeId,
+            @Param("startDate") String startDate,
+            @Param("endDate") String endDate
+    );
+
 
     @Query(value = "SELECT r.route as route, count(*) as count,COALESCE(ROUND(SUM(c.quantity),2),0.0)  as quantity,COALESCE(ROUND(SUM(c.amount),2),0.0) as amount FROM collections c join route r on r.id=c.route_fk where  c.event ='Collection' group by c.route_fk",nativeQuery = true)
     List<DailyRecords> getRouteSummary();
