@@ -1,11 +1,5 @@
 package com.emtech.dairyapp.Stock.Product.bulk;
 
-import com.emtech.dairyapp.Auth.User.User;
-import com.emtech.dairyapp.Configurations.Interfaces.FarmerInfo;
-import com.emtech.dairyapp.Configurations.ProductPriceConfiguration.ProductConfig;
-import com.emtech.dairyapp.Configurations.Utils.Formatter;
-import com.emtech.dairyapp.Dairy.Supply.MilkCollections;
-import com.emtech.dairyapp.Dairy.Supply.bulkuploads.BulkDto;
 import com.emtech.dairyapp.Response.EntityResponse;
 import com.emtech.dairyapp.Stock.Product.ProductService;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +17,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Service

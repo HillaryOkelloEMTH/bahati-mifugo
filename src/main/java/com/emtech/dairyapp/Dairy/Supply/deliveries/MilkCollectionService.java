@@ -1,16 +1,13 @@
-package com.emtech.dairyapp.Dairy.Supply;
+package com.emtech.dairyapp.Dairy.Supply.deliveries;
 
 import com.emtech.dairyapp.Analytics.AnalyticsData;
 import com.emtech.dairyapp.Auth.Data.User.UserData;
-import com.emtech.dairyapp.Auth.User.User;
-import com.emtech.dairyapp.Auth.User.UserRepository;
 import com.emtech.dairyapp.Auth.User.UserService;
 import com.emtech.dairyapp.Configurations.CanManagement.Can;
 import com.emtech.dairyapp.Configurations.CanManagement.CanRepo;
 import com.emtech.dairyapp.Configurations.FarmerManagement.FarmerRepo;
 import com.emtech.dairyapp.Configurations.Interfaces.FarmerInfo;
 import com.emtech.dairyapp.Configurations.Interfaces.Locations;
-import com.emtech.dairyapp.Configurations.PickUpLocations.PickUpLocations;
 import com.emtech.dairyapp.Configurations.PickUpLocations.PickUpLocationsRepo;
 import com.emtech.dairyapp.Configurations.ProductPriceConfiguration.ProductConfig;
 import com.emtech.dairyapp.Configurations.ProductPriceConfiguration.ProductConfigRepo;
@@ -20,6 +17,9 @@ import com.emtech.dairyapp.Configurations.Utils.CONSTANTS;
 import com.emtech.dairyapp.Dairy.FloatTracking.FloatManager;
 import com.emtech.dairyapp.Dairy.FloatTracking.FloatManagerRepo;
 import com.emtech.dairyapp.Dairy.Interface.*;
+import com.emtech.dairyapp.Dairy.Supply.Codenerator;
+import com.emtech.dairyapp.Dairy.Supply.TotalCollectionsFarmers;
+import com.emtech.dairyapp.Dairy.Supply.UpdateMilkCollectiorequest;
 import com.emtech.dairyapp.Notifications.SMS.smsv2.SmsReqDto;
 import com.emtech.dairyapp.Notifications.SMS.smsv2.SmsServiceV2;
 import com.emtech.dairyapp.Response.EntityResponse;
@@ -32,7 +32,6 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.time.Month;
 import java.util.*;
 
 import static com.emtech.dairyapp.Configurations.Utils.Formatter.*;

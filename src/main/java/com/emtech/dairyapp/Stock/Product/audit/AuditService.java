@@ -1,5 +1,7 @@
 package com.emtech.dairyapp.Stock.Product.audit;
 
+import com.emtech.dairyapp.Auth.User.User;
+import com.emtech.dairyapp.Auth.Utilities.CurrentUserContext;
 import com.emtech.dairyapp.Auth.Utilities.UserInfo;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,6 +17,7 @@ import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.ZonedDateTime;
+import java.util.Objects;
 import java.util.Properties;
 
 
@@ -90,13 +93,12 @@ public class AuditService {
         audit.setTimestamp(ZonedDateTime.now());
         audit.setMachineInfo(getMachineInfo());
         audit.setObjectId(objectId);
-        audit.setUsername(UserInfo.username());
-
+        audit.setUsername(CurrentUserContext.getCurrentUserContext().getUsername());
 
         try {
             String beforeJson = (before != null) ? objectMapper.writeValueAsString(before) : "null";
             String afterJson = objectMapper.writeValueAsString(after);
-            audit.setDetails("Before: " + beforeJson + " | After: " + afterJson);
+//            audit.setDetails("Before: " + beforeJson + " | After: " + afterJson);
         } catch (Exception e) {
             audit.setDetails("Error serializing objects: " + e.getMessage());
         }

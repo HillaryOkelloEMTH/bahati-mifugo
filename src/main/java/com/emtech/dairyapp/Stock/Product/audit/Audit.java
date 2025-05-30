@@ -24,7 +24,7 @@ public class Audit {
     private String objectId;
     private String username;
     private String machineInfo;
-    @Column(length = 600)
+    @Column(length = 1000000)
     private String details;
 
 

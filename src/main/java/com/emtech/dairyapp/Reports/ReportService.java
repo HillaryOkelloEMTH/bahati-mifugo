@@ -10,7 +10,7 @@ import com.emtech.dairyapp.Dairy.Interface.FarmerCollections;
 
 import com.emtech.dairyapp.Dairy.ProductAllocations.FarmerProdAllocattionsRepo;
 import com.emtech.dairyapp.Dairy.ProductAllocations.FarmerProducts;
-import com.emtech.dairyapp.Dairy.Supply.MilkCollectionRepo;
+import com.emtech.dairyapp.Dairy.Supply.deliveries.MilkCollectionRepo;
 
 import com.emtech.dairyapp.Reports.Dto.ReportBodyDto;
 import com.emtech.dairyapp.Response.EntityResponse;

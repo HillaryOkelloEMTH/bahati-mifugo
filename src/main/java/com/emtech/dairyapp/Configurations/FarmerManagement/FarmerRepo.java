@@ -26,9 +26,9 @@ public interface FarmerRepo extends JpaRepository<Farmer,Long> {
     @Query(value = "select * from farmer where farmer_no = :farmer_no limit 1", nativeQuery = true)
     Optional<Farmer> getByFarmerNo(Integer farmer_no);
 
-    @Query(value = "select f.username, f.farmer_no as fno, f.mobile_no, f.id_number as idno, r.route, pul.name as mcc, b.bank_name as bank, \n"
+    @Query(value = "select f.username, f.farmer_no as fno, f.mobile_no, f.id_number as idno, r.route, t.username as collector,pul.name as mcc, b.bank_name as bank, \n"
             + " b.account_number as accno, b.account_name as accname, b.branch, sc.name as subcounty, c.name as county, \n"
-            +" f.gender from farmer f join route r on f.route_fk=r.id join pick_up_locations pul on r.location_id=pul.id left join bank_details b on f.bank_details_id=b.id left join subcounty sc on f.subcounty_fk=sc.id left join county c on sc.county_fk=c.id where f.farmer_no= :farmerNo", nativeQuery = true)
+            +" f.gender from farmer f join route r on f.route_fk=r.id join pick_up_locations pul on r.location_id=pul.id join collector t on r.location_id=t.location_id left join bank_details b on f.bank_details_id=b.id left join subcounty sc on f.subcounty_fk=sc.id left join county c on sc.county_fk=c.id where f.farmer_no= :farmerNo", nativeQuery = true)
     Optional<FarmerData> getFarmerData(Integer farmerNo);
 
     @Query(value = "select * from farmer where route_fk= :routeId", nativeQuery = true)

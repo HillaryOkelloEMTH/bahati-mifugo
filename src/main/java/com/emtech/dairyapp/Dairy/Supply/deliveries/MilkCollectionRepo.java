@@ -1,4 +1,4 @@
-package com.emtech.dairyapp.Dairy.Supply;
+package com.emtech.dairyapp.Dairy.Supply.deliveries;
 
 import com.emtech.dairyapp.Analytics.AnalyticsData;
 import com.emtech.dairyapp.Dairy.Interface.*;

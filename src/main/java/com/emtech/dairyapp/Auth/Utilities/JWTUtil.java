@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
+import java.security.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,7 +41,6 @@ public class JWTUtil {
     }
 
 
-
     private void isTokenExpired(String token) {
         final Date expiration = getExpirationDateFromToken(token);
         if (expiration.before(new Date())) {
@@ -50,13 +51,15 @@ public class JWTUtil {
 
     public String generateToken(UserData user) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("role", user.getRoles());
+        claims.put("username", user.getUsername());
         return doGenerateToken(claims,user.getUsername());
     }
 
     // generate token with user details only
     public String generateRefreshToken(User user) {
-        return generateRefreshToken(new HashMap<>(), user);
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("now", new Date().toInstant().toString());
+        return generateRefreshToken(claims, user);
     }
 
     private String doGenerateToken(Map<String, Object> claims,String username) {
@@ -73,7 +76,7 @@ public class JWTUtil {
                 .compact();
     }
 
-    //    generate refresh token with extra claims
+    // generate refresh token with extra claims
     public String generateRefreshToken(Map<String, Object> extraClaims, User userDetails) {
         return Jwts
                 .builder()
@@ -84,7 +87,6 @@ public class JWTUtil {
                 .signWith(getSignInKey())
                 .compact();
     }
-
 
 
     public void validateToken(String token) {

@@ -1,4 +1,4 @@
-package com.emtech.dairyapp.Dairy.Supply;
+package com.emtech.dairyapp.Dairy.Supply.deliveries;
 
 import com.emtech.dairyapp.Configurations.Utils.CONSTANTS;
 import lombok.AllArgsConstructor;
@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
+
 import java.util.Date;
 
 

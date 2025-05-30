@@ -2,7 +2,6 @@ package com.emtech.dairyapp.Reports;
 
 
 import com.emtech.dairyapp.Analytics.AnalyticsData;
-import com.emtech.dairyapp.Auth.User.User;
 import com.emtech.dairyapp.Auth.User.UserRepository;
 import com.emtech.dairyapp.Configurations.FarmerManagement.FarmerRepo;
 import com.emtech.dairyapp.Configurations.Interfaces.FarmerInfo;
@@ -18,17 +17,14 @@ import com.emtech.dairyapp.Dairy.Interface.FarmerDelivery;
 import com.emtech.dairyapp.Dairy.PaymentComponent.PaymentFileData;
 import com.emtech.dairyapp.Dairy.ProductAllocations.FarmerProdAllocattionsRepo;
 import com.emtech.dairyapp.Dairy.ProductAllocations.FarmerProducts;
-import com.emtech.dairyapp.Dairy.Supply.MilkCollectionRepo;
+import com.emtech.dairyapp.Dairy.Supply.deliveries.MilkCollectionRepo;
 //import com.emtech.dairyapp.Reports.ExcelReports.ExcelExporterService;
 //import com.emtech.dairyapp.Reports.ExcelReports.ExelReportService;
 import com.emtech.dairyapp.Reports.ExcelReports.ExelReportService;
 import com.emtech.dairyapp.Response.EntityResponse;
-import io.netty.channel.ChannelHandlerContext;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jasperreports.engine.*;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.InputStreamResource;
-import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -39,7 +35,6 @@ import org.springframework.web.bind.annotation.*;
 import java.io.FileInputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 

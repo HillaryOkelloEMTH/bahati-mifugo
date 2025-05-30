@@ -1,5 +1,6 @@
 package com.emtech.dairyapp.Dairy.Supply;
 
+import com.emtech.dairyapp.Dairy.Supply.deliveries.MilkCollectionRepo;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;

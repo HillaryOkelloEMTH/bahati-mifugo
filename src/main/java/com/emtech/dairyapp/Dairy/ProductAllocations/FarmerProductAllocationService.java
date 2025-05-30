@@ -1,10 +1,8 @@
 package com.emtech.dairyapp.Dairy.ProductAllocations;
 
 import com.emtech.dairyapp.Auth.Utilities.RequestStatus;
-import com.emtech.dairyapp.Configurations.FarmerManagement.Farmer;
 import com.emtech.dairyapp.Configurations.FarmerManagement.FarmerRepo;
 import com.emtech.dairyapp.Configurations.Interfaces.FarmerInfo;
-import com.emtech.dairyapp.Configurations.Interfaces.PickUpLocation;
 import com.emtech.dairyapp.Configurations.PickUpLocations.PickUpLocations;
 import com.emtech.dairyapp.Configurations.PickUpLocations.PickUpLocationsRepo;
 import com.emtech.dairyapp.Configurations.Routes.Route;
@@ -13,13 +11,12 @@ import com.emtech.dairyapp.Configurations.Utils.CONSTANTS;
 import com.emtech.dairyapp.Configurations.Utils.Formatter;
 import com.emtech.dairyapp.Dairy.Interface.Allocations;
 import com.emtech.dairyapp.Dairy.ProductAllocations.dto.ProductRequestDto;
-import com.emtech.dairyapp.Dairy.Supply.MilkCollectionRepo;
+import com.emtech.dairyapp.Dairy.Supply.deliveries.MilkCollectionRepo;
 import com.emtech.dairyapp.Notifications.SMS.smsv2.SmsReqDto;
 import com.emtech.dairyapp.Notifications.SMS.smsv2.SmsServiceV2;
 import com.emtech.dairyapp.Response.EntityResponse;
 import com.emtech.dairyapp.Stock.MccAllocations.MccAllocation;
 import com.emtech.dairyapp.Stock.MccAllocations.MccAllocationRepo;
-import com.emtech.dairyapp.Stock.Product.Product;
 import com.emtech.dairyapp.Stock.Product.ProductRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
