@@ -46,5 +46,15 @@ public class PaymentRecordsContoller {
         return ResponseEntity.ok().body(response);
     }
 
+    @GetMapping("filter/date/{from}/{to}")
+    public ResponseEntity<EntityResponse> getFilterPaymentDataByDateRange(
+            @PathVariable String from,
+            @PathVariable String to
+    ){
+
+        EntityResponse response = paymentRecordsService.getFilterPaymentDataByDateRange(from, to);
+
+        return ResponseEntity.ok().body(response);
+    }
 
 }

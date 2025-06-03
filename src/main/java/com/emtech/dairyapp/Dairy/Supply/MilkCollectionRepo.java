@@ -433,7 +433,7 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
     GROUP BY f.farmer_no, f.username
     HAVING NetPay > 0
 """)
-    List<PaymentFileData> getPaymentByDateRange(String from, String to);
+    List<PaymentFileData> getFilteredPaymentByDateRange(String from, String to);
 
 // Multiple Filters: Specific Farmer, Date Range, Collection Center
     @Query(nativeQuery = true, value = """

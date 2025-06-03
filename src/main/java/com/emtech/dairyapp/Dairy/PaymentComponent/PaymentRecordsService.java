@@ -115,5 +115,29 @@ public class PaymentRecordsService {
         return response;
     }
 
+    public EntityResponse getFilterPaymentDataByDateRange(String from, String to){
+
+        EntityResponse response = new EntityResponse();
+
+        try {
+            List<PaymentFileData> paymentData = collectionRepo.getFilteredPaymentByDateRange(from, to);
+
+            if (paymentData.size() > 0) {
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setEntity(paymentData);
+                response.setMessage(HttpStatus.OK.getReasonPhrase());
+            } else {
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                response.setEntity(paymentData);
+                response.setMessage(HttpStatus.NOT_FOUND.getReasonPhrase());
+            }
+        } catch (Exception e){
+            log.error(e.getMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+        }
+
+        return response;
+    }
 
 }
