@@ -40,7 +40,8 @@ dairy:
   company_logo_path: /home/ubuntu/prod/bahati/resources/dairy_logo.jpg
   report-path: /home/ubuntu/prod/bahati/resources/reports
   private-key: classpath:keys/private_key.pem
-  quality-test-url: https://yourdomain.com
+  lactovate-secret: secret123456
+  quality-test-url: https://devcub.com/lactovate
 #  company_logo_path: C:\\Users\\michael\\Documents\\springboot projects\\DAIRY_APP_BE\\src\\main\\resources\\dairy_logo.jpg
 #  report-path: C:\\Users\\michael\\Documents\\springboot projects\\DAIRY_APP_BE\\src\\main\\resources\\reports
 

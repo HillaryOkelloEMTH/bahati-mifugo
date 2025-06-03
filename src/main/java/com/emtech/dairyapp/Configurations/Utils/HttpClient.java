@@ -28,6 +28,7 @@ public class HttpClient {
             Headers headers = new Headers.Builder()
                     .addAll(reHeaders)
                     .add("Content-Type", "application/json")
+                    .add("x-signature", "testserviceid123456")
                     .build();
 
             Request request = new Request.Builder()

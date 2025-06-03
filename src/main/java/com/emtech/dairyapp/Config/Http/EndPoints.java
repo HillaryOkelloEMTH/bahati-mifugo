@@ -10,6 +10,7 @@ public class EndPoints {
             "/webjars/**",
             "/api/v1/authentication/**",
             "api/v1/sms-notifications/callback",
-            "/bahati-*/**"
+            "/bahati-*/**",
+            "/api/v1/quality/**"
     );
 }
