@@ -371,7 +371,102 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
         Integer getDay();
     }
 
+//  Filter Payment Records for a specific farmer only!
+    @Query(nativeQuery = true, value = """
+    SELECT f.farmer_no, f.payment_mode, f.mobile_no, f.username, f.payment_freequency,
+           p.name AS CollectionCenter, r.route AS route, bd.branch, bd.account_number, bd.account_name,
+           COALESCE(SUM(c.amount), 0.0) AS collectionAmount,
+           COALESCE((SELECT SUM(fa.amount) FROM farmer_product_allocations fa
+                    WHERE fa.farmer_no = f.farmer_no AND fa.payment_status = 'N' AND fa.status = 'Y'), 0.0) AS allocationAmount,
+           (COALESCE(SUM(c.amount), 0.0) -
+            COALESCE((SELECT SUM(fa.amount) FROM farmer_product_allocations fa
+                      WHERE fa.farmer_no = f.farmer_no AND fa.payment_status = 'N' AND fa.status = 'Y'), 0.0)) AS NetPay
+    FROM farmer f
+    LEFT JOIN collections c ON f.farmer_no = c.farmer_no AND c.payment_status = 'N'
+    JOIN route r ON f.route_fk = r.id
+    JOIN pick_up_locations p ON p.id = r.location_id
+    JOIN bank_details bd ON bd.id = f.bank_details_id
+    WHERE f.farmer_no = :farmerNo
+    GROUP BY f.farmer_no, f.username
+    HAVING NetPay > 0
+""")
+    List<PaymentFileData> getFilteredPaymentRecordsByFarmer(String farmerNo);
 
+//    Filter Farmer's Payment Records by the collection centre only.
+    @Query(nativeQuery = true, value = """
+    SELECT f.farmer_no, f.payment_mode, f.mobile_no, f.username, f.payment_freequency,
+           p.name AS CollectionCenter, r.route AS route, bd.branch, bd.account_number, bd.account_name,
+           COALESCE(SUM(c.amount), 0.0) AS collectionAmount,
+           COALESCE((SELECT SUM(fa.amount) FROM farmer_product_allocations fa
+                    WHERE fa.farmer_no = f.farmer_no AND fa.payment_status = 'N' AND fa.status = 'Y'), 0.0) AS allocationAmount,
+           (COALESCE(SUM(c.amount), 0.0) -
+            COALESCE((SELECT SUM(fa.amount) FROM farmer_product_allocations fa
+                      WHERE fa.farmer_no = f.farmer_no AND fa.payment_status = 'N' AND fa.status = 'Y'), 0.0)) AS NetPay
+    FROM farmer f
+    LEFT JOIN collections c ON f.farmer_no = c.farmer_no AND c.payment_status = 'N'
+    JOIN route r ON f.route_fk = r.id
+    JOIN pick_up_locations p ON p.id = r.location_id
+    JOIN bank_details bd ON bd.id = f.bank_details_id
+    WHERE p.id = :locationId
+    GROUP BY f.farmer_no, f.username
+    HAVING NetPay > 0
+""")
+    List<PaymentFileData> getFilteredPaymentRecordsByLocation(Long locationId);
+
+//    Filter by Date Range only.
+    @Query(nativeQuery = true, value = """
+    SELECT f.farmer_no, f.payment_mode, f.mobile_no, f.username, f.payment_freequency,
+           p.name AS CollectionCenter, r.route AS route, bd.branch, bd.account_number, bd.account_name,
+           COALESCE(SUM(c.amount), 0.0) AS collectionAmount,
+           COALESCE((SELECT SUM(fa.amount) FROM farmer_product_allocations fa
+                    WHERE fa.farmer_no = f.farmer_no AND fa.payment_status = 'N' AND fa.status = 'Y'
+                      AND DATE(fa.allocation_date) BETWEEN :from AND :to), 0.0) AS allocationAmount,
+           (COALESCE(SUM(c.amount), 0.0) -
+            COALESCE((SELECT SUM(fa.amount) FROM farmer_product_allocations fa
+                      WHERE fa.farmer_no = f.farmer_no AND fa.payment_status = 'N' AND fa.status = 'Y'
+                        AND DATE(fa.allocation_date) BETWEEN :from AND :to), 0.0)) AS NetPay
+    FROM farmer f
+    LEFT JOIN collections c ON f.farmer_no = c.farmer_no AND c.payment_status = 'N' AND DATE(c.collection_date) BETWEEN :from AND :to
+    JOIN route r ON f.route_fk = r.id
+    JOIN pick_up_locations p ON p.id = r.location_id
+    JOIN bank_details bd ON bd.id = f.bank_details_id
+    GROUP BY f.farmer_no, f.username
+    HAVING NetPay > 0
+""")
+    List<PaymentFileData> getPaymentByDateRange(String from, String to);
+
+// Multiple Filters: Specific Farmer, Date Range, Collection Center
+    @Query(nativeQuery = true, value = """
+    SELECT f.farmer_no, f.payment_mode, f.mobile_no, f.username, f.payment_freequency,
+           p.name AS CollectionCenter, r.route AS route, bd.branch, bd.account_number, bd.account_name,
+           COALESCE(SUM(c.amount), 0.0) AS collectionAmount,
+           COALESCE((SELECT SUM(fa.amount) FROM farmer_product_allocations fa
+                    WHERE fa.farmer_no = f.farmer_no AND fa.payment_status = 'N' AND fa.status = 'Y'
+                    AND (:from IS NULL OR DATE(fa.allocation_date) >= :from)
+                    AND (:to IS NULL OR DATE(fa.allocation_date) <= :to)), 0.0) AS allocationAmount,
+           (COALESCE(SUM(c.amount), 0.0) -
+            COALESCE((SELECT SUM(fa.amount) FROM farmer_product_allocations fa
+                      WHERE fa.farmer_no = f.farmer_no AND fa.payment_status = 'N' AND fa.status = 'Y'
+                      AND (:from IS NULL OR DATE(fa.allocation_date) >= :from)
+                      AND (:to IS NULL OR DATE(fa.allocation_date) <= :to)), 0.0)) AS NetPay
+    FROM farmer f
+    LEFT JOIN collections c ON f.farmer_no = c.farmer_no AND c.payment_status = 'N'
+           AND (:from IS NULL OR DATE(c.collection_date) >= :from)
+           AND (:to IS NULL OR DATE(c.collection_date) <= :to)
+    JOIN route r ON f.route_fk = r.id
+    JOIN pick_up_locations p ON p.id = r.location_id
+    JOIN bank_details bd ON bd.id = f.bank_details_id
+    WHERE (:farmerNo IS NULL OR f.farmer_no = :farmerNo)
+      AND (:locationId IS NULL OR p.id = :locationId)
+    GROUP BY f.farmer_no, f.username
+    HAVING NetPay > 0
+""")
+    List<PaymentFileData> getFlexiblePaymentData(
+            @Param("farmerNo") String farmerNo,
+            @Param("locationId") Long locationId,
+            @Param("from") String from,
+            @Param("to") String to
+    );
 
 
 }   

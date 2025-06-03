@@ -23,9 +23,28 @@ public class PaymentRecordsContoller {
 
     }
     @GetMapping("filter")
-    public ResponseEntity<EntityResponse> getFilterPaymentData(@RequestParam String month,@RequestParam String paymentMode,@RequestParam Character paymentStatus){
+    public ResponseEntity<EntityResponse> getFilterPaymentData(@RequestParam String month,@RequestParam String paymentMode, @RequestParam Character paymentStatus){
         EntityResponse response = paymentRecordsService.getFilteredFarmerPaymentData(month, paymentMode,paymentStatus);
         return ResponseEntity.ok().body(response);
 
     }
+    @GetMapping("filter/location/{locationId}")
+    public ResponseEntity<EntityResponse> getFilterPaymentDataByLocation(
+            @PathVariable Long locationId){
+
+        EntityResponse response = paymentRecordsService.getFilterFarmerPaymentDataByLocation(locationId);
+
+        return ResponseEntity.ok().body(response);
+    }
+    @GetMapping("filter/farmer/{farmerNo}")
+    public ResponseEntity<EntityResponse> getFilterPaymentDataByFarmer(
+            @PathVariable String farmerNo
+    ){
+
+        EntityResponse response = paymentRecordsService.getFilterFarmerPaymentDataByFarmerNo(farmerNo);
+
+        return ResponseEntity.ok().body(response);
+    }
+
+
 }
