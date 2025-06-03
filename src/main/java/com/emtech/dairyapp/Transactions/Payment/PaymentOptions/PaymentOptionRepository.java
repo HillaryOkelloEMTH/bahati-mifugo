@@ -12,5 +12,8 @@ public interface PaymentOptionRepository extends JpaRepository<PaymentOption, Lo
     List<PaymentOption> findByCategoryId(Long categoryId);
     boolean existsByName(String name);
 
+    List<PaymentOption> findByDeletedFalse();
+    List<PaymentOption>findByCategoryIdAndDeletedFalse(Long categoryId);
+
 }
 

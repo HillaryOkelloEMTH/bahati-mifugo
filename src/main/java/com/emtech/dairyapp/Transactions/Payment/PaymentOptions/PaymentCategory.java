@@ -24,6 +24,10 @@ public class PaymentCategory {
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
     private List<PaymentOption> paymentOptions;
 
+    @Column(name="deleted",nullable =false)
+        private boolean deleted=false;
+    
+
     // Getters and Setters
 }
 

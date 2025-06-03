@@ -1,5 +1,6 @@
 package com.emtech.dairyapp.Transactions.Payment.PaymentOptions;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -13,11 +14,18 @@ public class PaymentOptionService {
     private final PaymentOptionRepository optionRepository;
     private final PaymentCategoryRepository categoryRepository;
 
-    public List<PaymentOptionDTO> getAllOptions() {
-        return optionRepository.findAll().stream()
-                .map(this::toDTO)
-                .collect(Collectors.toList());
-    }
+//    public List<PaymentOptionDTO> getAllOptions() {
+//        return optionRepository.findByDeletedFalse().stream()
+//                .map(this::toDTO)
+//                .collect(Collectors.toList());
+//    }
+public List<PaymentOptionDTO> getAllOptions() {
+    return optionRepository.findByDeletedFalse().stream()
+            .map(this::toDTO)
+            .collect(Collectors.toList());
+}
+
+
 
     public PaymentOptionDTO createOption(PaymentOptionDTO dto) {
         if (optionRepository.existsByName(dto.getName())) {
@@ -78,5 +86,26 @@ public class PaymentOptionService {
         dto.setCategoryName(option.getCategory().getName());
         return dto;
     }
-}
+
+    public void softDeleteOptions(Long id) {
+        Optional<PaymentOption> optional = optionRepository.findById(id);
+        if (optional.isPresent()) {
+            PaymentOption option = optional.get();
+            option.setDeleted(true);
+            optionRepository.save(option);
+        } else {
+            throw new EntityNotFoundException("Payment Options with id " + id + " not found");
+        }
+    }
+
+    public List<PaymentOptionDTO>getOptionByCategoryId(Long categoryId){
+    return optionRepository.findByCategoryIdAndDeletedFalse(categoryId).stream()
+            .map(this::toDTO)
+            .collect(Collectors.toList());
+
+
+
+        }
+    }
+
 

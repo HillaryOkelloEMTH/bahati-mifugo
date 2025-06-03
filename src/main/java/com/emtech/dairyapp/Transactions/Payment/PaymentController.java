@@ -34,7 +34,7 @@ public class PaymentController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public Mono<ResponseEntity<PaymentEntityResponse>> processCashPayment(@RequestBody CashPaymentRequest body){
+    public Mono<ResponseEntity<PaymentEntityResponse>> processCashPayment(@RequestBody CashPaymentRequest body) {
         return Mono.just(ResponseEntity.ok().body(this.paymentService.processCashPayment(body.getAmount(), body.getCollectorId(), body.getCollectionId())));
     }
 
@@ -43,7 +43,7 @@ public class PaymentController {
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public Mono<ResponseEntity<PaymentsResponse>> findAllPayments(){
+    public Mono<ResponseEntity<PaymentsResponse>> findAllPayments() {
         return Mono.just(ResponseEntity.ok().body(this.paymentService.findAllPayments()));
     }
 
@@ -52,7 +52,7 @@ public class PaymentController {
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public Mono<ResponseEntity<PaymentsResponse>> findAllPendingPayments(){
+    public Mono<ResponseEntity<PaymentsResponse>> findAllPendingPayments() {
         return Mono.just(ResponseEntity.ok().body(this.paymentService.findAllPaymentsByStatus("Pending")));
     }
 
@@ -61,7 +61,7 @@ public class PaymentController {
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public Mono<ResponseEntity<PaymentsResponse>> findAllSuccessfulPayments(){
+    public Mono<ResponseEntity<PaymentsResponse>> findAllSuccessfulPayments() {
         return Mono.just(ResponseEntity.ok().body(this.paymentService.findAllPaymentsByStatus("Success")));
     }
 
@@ -70,7 +70,7 @@ public class PaymentController {
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public Mono<ResponseEntity<PaymentsResponse>> findAllFailedPayments(){
+    public Mono<ResponseEntity<PaymentsResponse>> findAllFailedPayments() {
         return Mono.just(ResponseEntity.ok().body(this.paymentService.findAllPaymentsByStatus("Failed")));
     }
 
@@ -79,36 +79,41 @@ public class PaymentController {
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public Mono<ResponseEntity<PaymentResponse>> findPaymentDetails(@PathVariable Long id){
+    public Mono<ResponseEntity<PaymentResponse>> findPaymentDetails(@PathVariable Long id) {
         return Mono.just(ResponseEntity.ok().body(this.paymentService.findPaymentDetails(id)));
     }
 
 
     //payment options endpoints
-    @GetMapping(path = "/categories", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/mode", produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<List<PaymentCategoryDTO>>> getAllCategories() {
         List<PaymentCategoryDTO> categories = paymentCategoryService.getAllCategories();
         return Mono.just(ResponseEntity.ok(categories));
     }
 
-    @PostMapping(path = "/categories", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "/mode", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<PaymentCategoryDTO>> createCategory(@RequestBody PaymentCategoryDTO dto) {
         PaymentCategoryDTO created = paymentCategoryService.createCategory(dto);
         return Mono.just(ResponseEntity.ok(created));
     }
 
-    @PutMapping(path = "/categories/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(path = "/mode/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<PaymentCategoryDTO>> updateCategory(@PathVariable Long id, @RequestBody PaymentCategoryDTO dto) {
         PaymentCategoryDTO updated = paymentCategoryService.updateCategory(id, dto);
         return Mono.just(ResponseEntity.ok(updated));
     }
 
-    @DeleteMapping(path = "/categories/{id}")
+    @DeleteMapping(path = "/mode/{id}")
     public Mono<ResponseEntity<Void>> deleteCategory(@PathVariable Long id) {
         paymentCategoryService.deleteCategory(id);
         return Mono.just(ResponseEntity.noContent().build());
     }
 
+    @DeleteMapping(path = "/mode/soft-delete/{id}")
+    public ResponseEntity<String> softDeleteCategory(@PathVariable Long id) {
+        paymentCategoryService.softDeleteCategory(id);
+        return ResponseEntity.ok("Payment Category with ID " + id + " was successfully soft-deleted.");
+    }
     // Payment Option APIs
 
     @GetMapping(path = "/options", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -135,5 +140,16 @@ public class PaymentController {
         return Mono.just(ResponseEntity.noContent().build());
     }
 
+    @DeleteMapping(path = "/options/soft-delete/{id}")
+    public ResponseEntity<String> softDeleteOptions(@PathVariable Long id) {
+        paymentOptionService.softDeleteOptions(id);
+        return ResponseEntity.ok("Payment Option with ID " + id + " was successfully soft-deleted.");
+    }
 
+    @GetMapping("/options/by-category/{categoryId}")
+    public ResponseEntity<List<PaymentOptionDTO>> getOptionsByCategory(@PathVariable Long categoryId) {
+        List<PaymentOptionDTO> options = paymentOptionService.getOptionByCategoryId(categoryId);
+        return ResponseEntity.ok(options);
+
+    }
 }

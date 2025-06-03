@@ -31,6 +31,8 @@ public class PaymentOption {
     @Column(columnDefinition = "TINYINT(1)")
     private boolean active = true;
 
+    @Column(name="deleted" ,nullable=false)
+    private boolean deleted=false;
 
     // Getters and Setters
 }

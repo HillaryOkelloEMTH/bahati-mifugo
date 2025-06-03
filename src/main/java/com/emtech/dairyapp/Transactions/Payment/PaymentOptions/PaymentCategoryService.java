@@ -1,7 +1,10 @@
 package com.emtech.dairyapp.Transactions.Payment.PaymentOptions;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -13,7 +16,7 @@ public class PaymentCategoryService {
     private final PaymentCategoryRepository categoryRepository;
 
     public List<PaymentCategoryDTO> getAllCategories() {
-        return categoryRepository.findAll().stream()
+        return categoryRepository.findByDeletedFalse().stream()
                 .map(category -> {
                     PaymentCategoryDTO dto = new PaymentCategoryDTO();
                     dto.setId(category.getId());
@@ -53,5 +56,18 @@ public class PaymentCategoryService {
     public void deleteCategory(Long id) {
         categoryRepository.deleteById(id);
     }
+
+    public void softDeleteCategory(Long id) {
+        Optional<PaymentCategory> optional = categoryRepository.findById(id);
+        if (optional.isPresent()) {
+            PaymentCategory category = optional.get();
+            category.setDeleted(true);
+            categoryRepository.save(category);
+        } else {
+            throw new EntityNotFoundException("PaymentCategory with id " + id + " not found");
+        }
+    }
+
 }
+
 
