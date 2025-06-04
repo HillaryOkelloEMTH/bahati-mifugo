@@ -21,7 +21,7 @@ public class MilkCollections {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Integer farmerNo;//farmer no
+    private Integer farmerNo; //farmer no
     @Column(unique = true)
     private String collectionNumber;
     private String canNo;

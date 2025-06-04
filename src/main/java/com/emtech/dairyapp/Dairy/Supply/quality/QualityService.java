@@ -3,6 +3,7 @@ package com.emtech.dairyapp.Dairy.Supply.quality;
 import com.emtech.dairyapp.Auth.User.User;
 import com.emtech.dairyapp.Auth.User.UserRepository;
 import com.emtech.dairyapp.Auth.User.UserService;
+import com.emtech.dairyapp.Configurations.FarmerManagement.Farmer;
 import com.emtech.dairyapp.Configurations.FarmerManagement.FarmerRepo;
 import com.emtech.dairyapp.Configurations.Interfaces.FarmerData;
 import com.emtech.dairyapp.Configurations.Utils.HttpClient;
@@ -14,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Headers;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -24,15 +26,15 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class QualityService {
+public class QualityService implements CommandLineRunner {
     @Value("${dairy.lactovate-secret}")
     String secretKey;
 
-    private FarmerRepo farmerRepo;
-    private SignatureService signatureService;
-    private UserRepository userRepo;
+    private final FarmerRepo farmerRepo;
+    private final SignatureService signatureService;
+    private final UserRepository userRepo;
 
-    private HttpClient client;
+    private final HttpClient client;
     private String collector = "";
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -46,6 +48,7 @@ public class QualityService {
 
             if (optional.isEmpty()) {
                 log.error("Farmer with farmer no {} not found", farmerNo);
+                res.setMessage("Farmer with farmer no "+farmerNo+" not found.");
                 res.setStatusCode(HttpStatus.NOT_FOUND.value());
                 return res;
             }
@@ -54,20 +57,28 @@ public class QualityService {
             collector = f.getCollector();
 
             payload.addProperty("name", f.getUsername());
-            payload.addProperty("farmerNumber", f.getFno());
             payload.addProperty("region", f.getRoute());
+            payload.addProperty("farmerNumber", f.getFno().toString());
             payload.addProperty("phone", "");
             payload.addProperty("email", "");
 
             Headers headers = new Headers.Builder()
-                    .add("X-Signature", signatureService.signData(payload.toString()))
-                    .add("X-Client-ID", "emtech-dairy")
+                    .add("x-signature", signatureService.hmacSha256(payload.toString(), secretKey))
                     .build();
 
-            EntityResponse<String> response = client.req("/api/farmers", headers, payload);
+            EntityResponse<String> response = client.req("POST","/api/partners/create-farmer", headers, payload);
+//            EntityResponse<?> postAgentRes = postAgent();
+            if (!"200".equals(response.getStatusCode().toString())) {
+                log.error("Failed to post farmer. Error is. {}", response.getMessage());
+                return response;
+            }
 
+            res.setStatusCode(HttpStatus.OK.value());
+            res.setMessage("Posting successful");
         } catch (Exception e) {
             log.error(e.toString());
+            res.setMessage(e.getMessage());
+            res.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
         }
         return res;
     }
@@ -88,15 +99,15 @@ public class QualityService {
 
             payload.addProperty("name", u.getUsername());
             payload.addProperty("email", u.getEmail());
-            payload.addProperty("agentNumber", u.getId());
-            payload.addProperty("password", "1234");
+            payload.addProperty("agentNumber", u.getId().toString());
+            payload.addProperty("password", "123456");
 
             Headers headers = new Headers.Builder()
                     .add("X-Signature", signatureService.signData(payload.toString()))
                     .add("X-Client-ID", "1")
                     .build();
 
-            EntityResponse<String> response = client.req("/api/partners/create-agent", headers, payload);
+            EntityResponse<String> response = client.req("POST","/api/partners/create-agent", headers, payload);
 
         } catch (Exception e) {
             log.error(e.toString());
@@ -117,7 +128,7 @@ public class QualityService {
                     .add("Signature", signatureService.hmacSha256("", secretKey))
                     .build();
 
-            EntityResponse<String> result = client.req("/api/partners/test-logs", headers, payload);
+            EntityResponse<String> result = client.req("GET","/api/partners/test-logs", headers, payload);
 
             if (!"200".equals(result.getStatusCode().toString())) {
                 log.error("Failed to load test logs information");
@@ -139,4 +150,18 @@ public class QualityService {
         return res;
     }
 
+    @Override
+    public void run(String... args) {
+        List<Farmer> farmers = farmerRepo.findAll().stream().filter((f) -> f.getFarmerNo() != 1).toList();
+
+        for (Farmer f: farmers) {
+            log.info("Posting farmer with id {}", f.getId());
+            if (farmers.size() - farmers.indexOf(f) == 5 ) {
+                postFarmer(f.getFarmerNo());
+            } else {
+                postFarmer(f.getFarmerNo());
+                postAgent();
+            }
+        }
+    }
 }

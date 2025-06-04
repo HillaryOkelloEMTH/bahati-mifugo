@@ -19,26 +19,30 @@ public class HttpClient {
     private final OkHttpClient client = new OkHttpClient();
 
 
-    public EntityResponse<String> req(String endpoint, Headers reHeaders, JsonObject payload) {
+    public EntityResponse<String> req(String method, String endpoint, Headers reqHeaders, JsonObject payload) {
         EntityResponse<String> response = new EntityResponse<>();
 
         log.info("initializing request, sending to quality check server");
         try {
             RequestBody req = RequestBody.create(String.valueOf(payload), MediaType.parse("application/json"));
             Headers headers = new Headers.Builder()
-                    .addAll(reHeaders)
+                    .addAll(reqHeaders)
                     .add("Content-Type", "application/json")
-                    .add("x-signature", "testserviceid123456")
+                    .add("serviceid", "testserviceid123456")
                     .build();
 
-            Request request = new Request.Builder()
-                    .url(baseUrl+endpoint)
-                    .post(req)
-                    .headers(headers)
-                    .build();
+            Request request;
+            if (method.equals("POST")) {
+                request = new Request.Builder().url(baseUrl+endpoint)
+                        .post(req)
+                        .headers(headers).build();
+            } else {
+                request = new Request.Builder().url(baseUrl+endpoint)
+                        .get().headers(headers).build();
+            }
 
             try(Response res = client.newCall(request).execute()) {
-                System.out.println("The response is "+res);
+                System.out.println("The response is "+res.body().string());
                 if (res.isSuccessful()) {
                     String resBody = "";
                     if (res.body() != null) {

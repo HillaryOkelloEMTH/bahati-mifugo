@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("api/v1/quality")
 @RequiredArgsConstructor
 public class QualityTestsController {
-    private QualityService service;
+    private final QualityService service;
 
     @PostMapping("post-farmer-agent")
     public ResponseEntity<?> postFarmer(@RequestParam Integer farmerNo) {
