@@ -65,7 +65,7 @@ public class JWTUtil {
     private String doGenerateToken(Map<String, Object> claims,String username) {
         Long expirationTimeLong = Long.parseLong(expirationTime); //in second
         final Date createdDate = new Date();
-        final Date expirationDate = new Date(createdDate.getTime() + 1000 * 60 * 30); // expire after 30 min
+        final Date expirationDate = new Date(createdDate.getTime() + 1000 * 60 * 3); // expire after 30 min
 
         return Jwts.builder()
                 .setClaims(claims)

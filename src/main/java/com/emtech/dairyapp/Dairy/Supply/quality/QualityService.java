@@ -103,8 +103,7 @@ public class QualityService implements CommandLineRunner {
             payload.addProperty("password", "123456");
 
             Headers headers = new Headers.Builder()
-                    .add("X-Signature", signatureService.signData(payload.toString()))
-                    .add("X-Client-ID", "1")
+                    .add("x-signature", signatureService.signData(payload.toString()))
                     .build();
 
             EntityResponse<String> response = client.req("POST","/api/partners/create-agent", headers, payload);
@@ -125,7 +124,7 @@ public class QualityService implements CommandLineRunner {
             log.info("Retrieving test logs from lactovate");
 
             Headers headers = new Headers.Builder()
-                    .add("Signature", signatureService.hmacSha256("", secretKey))
+                    .add("x-signature", signatureService.hmacSha256("", secretKey))
                     .build();
 
             EntityResponse<String> result = client.req("GET","/api/partners/test-logs", headers, payload);
@@ -152,8 +151,9 @@ public class QualityService implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        List<Farmer> farmers = farmerRepo.findAll().stream().filter((f) -> f.getFarmerNo() != 1).toList();
+//        List<Farmer> farmers = farmerRepo.findAll().stream().filter((f) -> f.getFarmerNo() != 1).toList();
 
+        List<Farmer> farmers = new ArrayList<>();
         for (Farmer f: farmers) {
             log.info("Posting farmer with id {}", f.getId());
             if (farmers.size() - farmers.indexOf(f) == 5 ) {

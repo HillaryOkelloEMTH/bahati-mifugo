@@ -57,7 +57,7 @@ public class RefreshTokenService {
                 return res;
             }
 
-            UserData userData = userService.getUserDetails(optional.get().getId());
+            UserData userData = userService.getUserDetails(optional.get().getUser().getId());
             String freshToken = jwtService.generateToken(userData);
 
             res.setMessage("Access token refreshed");
