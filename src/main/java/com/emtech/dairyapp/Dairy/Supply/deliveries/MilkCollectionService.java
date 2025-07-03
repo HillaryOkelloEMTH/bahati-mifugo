@@ -141,7 +141,7 @@ public class MilkCollectionService {
                         Optional<Can> cancheck = canRepo.findByCanNo(collections.getCanNo());
                         if (cancheck.isEmpty()) {
 
-                            log.info("----Collection event----");
+                            log.info("<<<----Collection event---->>>");
 //                            Can can = cancheck.get();
 //                            Double lessWeight = Double.valueOf(can.getDeductionWeight());
                             Double lessWeight = 0.0;
@@ -149,10 +149,10 @@ public class MilkCollectionService {
                             collections.setQuantity(actual_quantity);
                             collections.setDeductedWeight(lessWeight);
                             Double buyingPrice = productConfig.get().getBuyingPrice();
-                            log.info("buying price {}", buyingPrice);
+                            log.info("calculated buying price is: {}", buyingPrice);
                             Double totalAmount = buyingPrice * collections.getQuantity();
                             collections.setOriginalQuantity(actual_quantity);
-                            log.info("total amount " + totalAmount);
+                            log.info("total amount {}", totalAmount);
                             collections.setAmount(totalAmount);
                             collections.setCurrentPrice(buyingPrice);
                             //selling cost calculation
@@ -742,12 +742,12 @@ public class MilkCollectionService {
         return response;
     }
 
-    public EntityResponse<?> getDayRecords(String date) {
+    public EntityResponse<?> getDayRecords(String from, String to) {
         EntityResponse<List<DailyRecords>> response = new EntityResponse<>();
 
         try {
 
-            List<DailyRecords> todaysCollections = milkCollectionRepo.getSpecificDateRecord(date);
+            List<DailyRecords> todaysCollections = milkCollectionRepo.getSpecificDateRecord(from , to);
             if (!todaysCollections.isEmpty()) {
                 response.setStatusCode(HttpStatus.OK.value());
                 response.setEntity(todaysCollections);

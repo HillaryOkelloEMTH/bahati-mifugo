@@ -33,8 +33,8 @@ public class MilkCollectionController {
     private MilkReturnService milkReturnService;
 
     @PostMapping("add")
-    public ResponseEntity<EntityResponse> addNewRecord(@RequestBody MilkCollections collections){
-        EntityResponse response = collectionService.newcollection(collections);
+    public ResponseEntity<?> addNewRecord(@RequestBody MilkCollections collections){
+        var response = collectionService.newcollection(collections);
         return ResponseEntity.ok().body(response);
     }
 
@@ -217,9 +217,9 @@ public class MilkCollectionController {
         EntityResponse response = collectionService.getCollectionsBySpecificDate(date);
         return ResponseEntity.ok().body(response);
     }
-    @GetMapping("day/records")
-    public ResponseEntity<?> getDateRecords(@RequestParam String date){
-        var response = collectionService.getDayRecords(date);
+    @GetMapping("date-range/totals")
+    public ResponseEntity<?> getDateRecords(@RequestParam String from, @RequestParam String to){
+        var response = collectionService.getDayRecords(from, to);
         return ResponseEntity.ok().body(response);
     }
 

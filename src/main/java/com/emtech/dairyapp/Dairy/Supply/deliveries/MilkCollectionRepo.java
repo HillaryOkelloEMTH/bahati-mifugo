@@ -75,9 +75,9 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
     @Query(value = "SELECT count(*) as count,COALESCE(ROUND(SUM(c.quantity),2),0.0)  as quantity,COALESCE(ROUND(SUM(c.amount),2),0.0) as amount FROM collections c WHERE DATE(c.collection_date) = CURDATE() and c.event ='Collection'", nativeQuery = true)
     List<DailyRecords> getTodaysCollections();
 
-    @Query(value = "SELECT count(*) as count,COALESCE(ROUND(SUM(c.quantity),2),0.0)  as quantity,(select coalesce(round(sum(cl.amount),2),0.0) from collections cl where month(cl.collection_date)=month(now()) and year(cl.collection_date)=year(now())) as amount FROM collections c WHERE DATE(\n" +
-            "c.collection_date) = date(now()) and c.event ='Collection'", nativeQuery = true)
-    List<DailyRecords> getSpecificDateRecord(String date);
+    @Query(value = "SELECT count(*) as count,COALESCE(ROUND(SUM(c.quantity),2),0.0)  as quantity,(select coalesce(round(sum(cl.amount),2),0.0) from collections cl where month(cl.collection_date)=month(now()) and year(cl.collection_date)=year(now())) as amount FROM collections c WHERE " +
+            "c.event ='Collection' and DATE(c.collection_date) between :from and :to", nativeQuery = true)
+    List<DailyRecords> getSpecificDateRecord(String from, String to);
     @Query(value = "SELECT count(*) as count,COALESCE(ROUND(SUM(c.quantity),2),0.0)  as quantity,COALESCE(ROUND(SUM(c.amount),2),0.0) as amount FROM collections c WHERE DATE(c.collection_date) between :from and :to and c.event ='Collection'", nativeQuery = true)
     List<DailyRecords> getDateRangeRecord(String from,String to);
     @Query(value = "SELECT count(*) as count,COALESCE(ROUND(SUM(c.quantity),2),0.0)  as quantity,COALESCE(ROUND(SUM(c.amount),2),0.0) as amount FROM collections c join route r on r.id=c.route_fk join pick_up_locations p on p.id =r.location_id where p.id =:locationid and  c.event ='Collection' and date(c.collection_date) between :from and :to", nativeQuery = true)
