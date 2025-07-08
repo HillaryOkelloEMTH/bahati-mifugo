@@ -2,8 +2,8 @@ package com.emtech.dairyapp.Transactions.Payment;
 
 import com.emtech.dairyapp.Dairy.FloatTracking.FloatManager;
 import com.emtech.dairyapp.Dairy.FloatTracking.FloatManagerRepo;
-import com.emtech.dairyapp.Dairy.Supply.MilkCollectionRepo;
-import com.emtech.dairyapp.Dairy.Supply.MilkCollections;
+import com.emtech.dairyapp.Dairy.Supply.deliveries.MilkCollectionRepo;
+import com.emtech.dairyapp.Dairy.Supply.deliveries.MilkCollections;
 import com.emtech.dairyapp.Transactions.Data.Http.Response.PaymentEntityResponse;
 import com.emtech.dairyapp.Transactions.Data.Http.Response.PaymentResponse;
 import com.emtech.dairyapp.Transactions.Data.Http.Response.PaymentsResponse;

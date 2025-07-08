@@ -26,7 +26,7 @@ spring:
     show-sql: false
 
   mvc:
-    pathmatch:
+    path-match:
       matching-strategy: ant_path_matcher
   banner:
     location: classpath:static/banner.txt
@@ -39,6 +39,9 @@ spring:
 dairy:
   company_logo_path: /home/ubuntu/prod/bahati/resources/dairy_logo.jpg
   report-path: /home/ubuntu/prod/bahati/resources/reports
+  private-key: classpath:keys/private_key.pem
+  lactovate-secret: secret123456
+  quality-test-url: https://devcub.com/lactovate
 #  company_logo_path: C:\\Users\\michael\\Documents\\springboot projects\\DAIRY_APP_BE\\src\\main\\resources\\dairy_logo.jpg
 #  report-path: C:\\Users\\michael\\Documents\\springboot projects\\DAIRY_APP_BE\\src\\main\\resources\\reports
 

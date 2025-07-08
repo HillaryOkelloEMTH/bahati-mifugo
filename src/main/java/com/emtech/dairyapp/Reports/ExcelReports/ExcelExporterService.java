@@ -2,7 +2,7 @@
 //
 //
 //import com.emtech.dairyapp.Dairy.Interface.CollectionsData;
-//import com.emtech.dairyapp.Dairy.Supply.MilkCollectionRepo;
+//import com.emtech.dairyapp.Dairy.Supply.deliveries.MilkCollectionRepo;
 //import com.opencsv.CSVWriter;
 //import io.netty.buffer.ByteBuf;
 //import io.netty.buffer.Unpooled;

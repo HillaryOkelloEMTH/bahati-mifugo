@@ -15,6 +15,7 @@ public interface TransporterRepository extends JpaRepository<Transporter, Long> 
     List<TransporterRoutes> getTransporterRoutes(Long transporterId);
     @Query(value = "select t.id, t.username, t.active, date(t.created_on) as createdOn, r.route from transporter t join route r on t.route_id=r.id", nativeQuery = true)
     List<Transporters> getTransporters();
+
     interface TransporterRoutes{
         Long getId();
         String getRoute();

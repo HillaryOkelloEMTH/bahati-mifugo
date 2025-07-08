@@ -81,4 +81,8 @@ public class User implements Serializable {
     @JsonFormat(pattern = "dd-MMM-yyyy HH:mm:ss")
     @Column(name = "reset_password_token_expire")
     private Timestamp resetPasswordTokenExpire;
+
+    public User(String username) {
+        this.username = username;
+    }
 }

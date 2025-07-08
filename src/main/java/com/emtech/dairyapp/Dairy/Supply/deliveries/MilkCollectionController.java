@@ -1,17 +1,16 @@
-package com.emtech.dairyapp.Dairy.Supply;
+package com.emtech.dairyapp.Dairy.Supply.deliveries;
 
 
 import com.emtech.dairyapp.Dairy.Interface.CollectionsData;
+import com.emtech.dairyapp.Dairy.Supply.UpdateMilkCollectiorequest;
 import com.emtech.dairyapp.Dairy.Supply.bulkuploads.BulkSupplyService;
 import com.emtech.dairyapp.Dairy.Supply.returns.MilkReturnService;
 import com.emtech.dairyapp.Response.EntityResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -34,8 +33,8 @@ public class MilkCollectionController {
     private MilkReturnService milkReturnService;
 
     @PostMapping("add")
-    public ResponseEntity<EntityResponse> addNewRecord(@RequestBody MilkCollections collections){
-        EntityResponse response = collectionService.newcollection(collections);
+    public ResponseEntity<?> addNewRecord(@RequestBody MilkCollections collections){
+        var response = collectionService.newcollection(collections);
         return ResponseEntity.ok().body(response);
     }
 
@@ -218,9 +217,9 @@ public class MilkCollectionController {
         EntityResponse response = collectionService.getCollectionsBySpecificDate(date);
         return ResponseEntity.ok().body(response);
     }
-    @GetMapping("day/records")
-    public ResponseEntity<?> getDateRecords(@RequestParam String date){
-        var response = collectionService.getDayRecords(date);
+    @GetMapping("date-range/totals")
+    public ResponseEntity<?> getDateRecords(@RequestParam String from, @RequestParam String to){
+        var response = collectionService.getDayRecords(from, to);
         return ResponseEntity.ok().body(response);
     }
 

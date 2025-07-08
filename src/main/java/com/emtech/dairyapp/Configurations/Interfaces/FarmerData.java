@@ -17,4 +17,5 @@ public interface FarmerData {
     String getSubcounty();
     String getCounty();
     String getGender();
+    String getCollector();
 }

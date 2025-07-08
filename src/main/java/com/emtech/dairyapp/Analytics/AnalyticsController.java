@@ -1,9 +1,8 @@
 package com.emtech.dairyapp.Analytics;
 
-import com.emtech.dairyapp.Dairy.Supply.MilkCollectionService;
+import com.emtech.dairyapp.Dairy.Supply.deliveries.MilkCollectionService;
 
 
-import com.emtech.dairyapp.Response.EntityResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.ResponseEntity;

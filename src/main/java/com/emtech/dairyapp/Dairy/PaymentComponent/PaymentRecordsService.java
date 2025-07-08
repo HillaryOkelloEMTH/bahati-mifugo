@@ -1,6 +1,6 @@
 package com.emtech.dairyapp.Dairy.PaymentComponent;
 
-import com.emtech.dairyapp.Dairy.Supply.MilkCollectionRepo;
+import com.emtech.dairyapp.Dairy.Supply.deliveries.MilkCollectionRepo;
 import com.emtech.dairyapp.Response.EntityResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -6,9 +6,12 @@ import com.emtech.dairyapp.Auth.UserRole.UserRole;
 import com.emtech.dairyapp.Auth.UserRole.UserRoleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Mono;
 
 import java.util.Optional;
 
@@ -66,13 +69,20 @@ public class UserInfo {
     }
 
     public static User user() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.isAuthenticated()) {
-            System.out.println("more details "+authentication.getPrincipal());
-            if (authentication.getPrincipal() instanceof User user) {
-                return user;
-            }
-        }
-        return null;
+        return reactiveUser().blockOptional().orElse(new User());
+    }
+
+    public static Mono<User> reactiveUser() {
+        return ReactiveSecurityContextHolder.getContext()
+                .map(SecurityContext::getAuthentication)
+                .filter(Authentication::isAuthenticated)
+                .map(Authentication::getPrincipal)
+                .filter(principal -> principal instanceof UserDetails)
+                .map(principal -> {
+                    UserDetails userDetails = (UserDetails) principal;
+                    System.out.println("Current User Data: "+userDetails);
+                    return new User(userDetails.getUsername());
+                })
+                .switchIfEmpty(Mono.just(new User()));
     }
 }

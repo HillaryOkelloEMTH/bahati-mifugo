@@ -1,4 +1,4 @@
-package com.emtech.dairyapp.Dairy.Supply;
+package com.emtech.dairyapp.Dairy.Supply.deliveries;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -1,4 +1,4 @@
-package com.emtech.dairyapp.Dairy.Supply;
+package com.emtech.dairyapp.Dairy.Supply.deliveries;
 
 import com.emtech.dairyapp.Configurations.Utils.CONSTANTS;
 import lombok.AllArgsConstructor;
@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
+
 import java.util.Date;
 
 
@@ -21,7 +21,7 @@ public class MilkCollections {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Integer farmerNo;//farmer no
+    private Integer farmerNo; //farmer no
     @Column(unique = true)
     private String collectionNumber;
     private String canNo;
