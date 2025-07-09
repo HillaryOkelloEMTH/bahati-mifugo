@@ -22,7 +22,9 @@ public class SMSService {
     //Call Back URL
     @Value("${ebs.callbackurl.one}")
 //    private String callbackurl;
-    private String callbackurl = "http://52.15.152.26:9900/api/v1/sms/smsCallbacks";
+//    private String callbackurl = "http://52.15.152.26:9900/api/v1/sms/smsCallbacks";
+    private String callbackurl = "https://7abe-197-155-71-138.ngrok-free.app/api/v1/sms/smsCallbacks";
+
 
     //URL
     @Value("${ebs.url}")

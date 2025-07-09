@@ -12,11 +12,78 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long> {
+//milk collection by routeId and date range
+List<MilkCollections> findByRouteFk(Long routeFk);
+    List<MilkCollections> findByRouteFkAndCollectionDate(Long routeFk, Date collectionDate);
+    List<MilkCollections> findByRouteFkAndCollectionDateBetweenOrderByCollectionDateDesc(Long routeFk, Date start, Date end);
+    @Query(value = "SELECT f.first_name, f.last_name, f.farmer_no, c.updated_status AS updateStatus, " +
+            "c.original_quantity AS originalQuantity, c.session, c.id, c.collection_number AS collectionCode, " +
+            "c.event, c.current_price AS currentPrice, c.product_type AS productType, c.payment_status AS paymentStatus, " +
+            "f.id AS farmerId, u.user_name AS collector, f.username AS farmer, c.amount, c.quantity, " +
+            "c.collection_date, r.route AS route, p.name AS pickUpLocation " +
+            "FROM collections c " +
+            "JOIN users u ON c.collector_id = u.id " +
+            "JOIN farmer f ON f.farmer_no = c.farmer_no " +
+            "JOIN route r ON r.id = c.route_fk " +
+            "JOIN pick_up_locations p ON p.id = r.location_id " +
+            "WHERE r.id = :routeId " +
+            "AND DATE(c.collection_date) BETWEEN :startDate AND :endDate " +
+            "ORDER BY c.collection_date", nativeQuery = true)
+    List<CollectionsData> getCollectionByRouteAndDate(@Param("routeId") Long routeId,
+                                                      @Param("startDate") Date startDate,
+                                                      @Param("endDate") Date endDate);
+
+
+    @Query(value = "SELECT f.first_name, f.last_name, f.farmer_no, " +
+            "c.updated_status AS updateStatus, " +
+            "c.original_quantity AS originalQuantity, " +
+            "c.session, c.id, c.collection_number AS collectionCode, " +
+            "c.event, c.current_price AS currentPrice, " +
+            "c.product_type AS productType, c.payment_status AS paymentStatus, " +
+            "f.id AS farmerId, u.user_name AS collector, f.username AS farmer, " +
+            "c.amount, c.quantity, c.collection_date, " +
+            "r.route AS route, p.name AS pickUpLocation " +
+            "FROM collections c " +
+            "JOIN users u ON c.collector_id = u.id " +
+            "JOIN farmer f ON f.farmer_no = c.farmer_no " +
+            "JOIN route r ON r.id = c.route_fk " +
+            "JOIN pick_up_locations p ON p.id = r.location_id " +
+            "WHERE f.farmer_no = :farmerNo " +
+            "AND (:startDate IS NULL OR DATE(c.collection_date) >= :startDate) " +
+            "AND (:endDate IS NULL OR DATE(c.collection_date) <= :endDate) " +
+            "ORDER BY c.collection_date DESC", nativeQuery = true)
+    List<CollectionsData> getCollectionsByFarmerAndDate(@Param("farmerNo") Integer farmerNo,
+                                                        @Param("startDate") Date startDate,
+                                                        @Param("endDate") Date endDate);
+
+
+    List<MilkCollections> findByFarmerNoOrderByCollectionDateDesc(Integer farmerNo);
+    List<MilkCollections> findByFarmerNoAndCollectionDateBetweenOrderByCollectionDateDesc(Integer farmerNo, Date startDate, Date endDate);
+
+//farmer status per year and month
+@Query("SELECT DISTINCT m.farmerNo FROM MilkCollections m WHERE FUNCTION('MONTH', m.collectionDate) = :month AND FUNCTION('YEAR', m.collectionDate) = :year")
+List<Integer> findActiveFarmersByMonthAndYear(@Param("month") int month, @Param("year") int year);
+
+    @Query("SELECT DISTINCT m.farmerNo FROM MilkCollections m")
+    List<Integer> findAllFarmersFromCollections();
+
+    //farmer status per year and month per route
+@Query("SELECT DISTINCT m.farmerNo FROM MilkCollections m " +
+        "WHERE m.routeFk = :routeId " +
+        "AND FUNCTION('MONTH', m.collectionDate) = :month " +
+        "AND FUNCTION('YEAR', m.collectionDate) = :year")
+List<Integer> findActiveFarmerNosByRouteAndMonthYear(@Param("routeId") Long routeId,
+                                                     @Param("month") int month,
+                                                     @Param("year") int year);
+
+//farmers status per year and center
+
 
 
     List<MilkCollections> findByFarmerNo(Integer farmer_noId);
@@ -85,6 +152,25 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
     @Query(value = "SELECT count(*) as count,COALESCE(ROUND(SUM(c.quantity),2),0.0)  as quantity,COALESCE(ROUND(SUM(c.amount),2),0.0) as amount FROM collections c join route r on r.id=c.route_fk  where r.id =:routeId and  c.event ='Collection'", nativeQuery = true)
     List<DailyRecords> getRouteRecord(Long routeId);
 
+    //count route records with date range
+    @Query(value = """
+    SELECT 
+        COUNT(*) as count,
+        COALESCE(ROUND(SUM(c.quantity), 2), 0.0) as quantity,
+        COALESCE(ROUND(SUM(c.amount), 2), 0.0) as amount
+    FROM collections c 
+    JOIN route r ON r.id = c.route_fk  
+    WHERE r.id = :routeId 
+      AND c.event = 'Collection'
+      AND DATE(c.collection_date) BETWEEN :startDate AND :endDate
+    """, nativeQuery = true)
+    List<DailyRecords> getRouteRecordBetweenDates(
+            @Param("routeId") Long routeId,
+            @Param("startDate") String startDate,
+            @Param("endDate") String endDate
+    );
+
+
     @Query(value = "SELECT r.route as route, count(*) as count,COALESCE(ROUND(SUM(c.quantity),2),0.0)  as quantity,COALESCE(ROUND(SUM(c.amount),2),0.0) as amount FROM collections c join route r on r.id=c.route_fk where  c.event ='Collection' group by c.route_fk",nativeQuery = true)
     List<DailyRecords> getRouteSummary();
     @Query(value = "SELECT count(*) as count,COALESCE(ROUND(SUM(c.quantity), 2),0.0)  as quantity,COALESCE(ROUND(SUM(c.amount),2),0.0) as amount FROM collections c where c.event ='Collection' and month(c.collection_date)= month(now()) and year(c.collection_date)= year(now())", nativeQuery = true)
@@ -92,6 +178,9 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
 
     @Query(value = "SELECT f.first_name ,f.last_name ,f.farmer_no ,c.updated_status as updateStatus,c.can_no as canNo,c.original_quantity as originalQuantity,c.session, c.id, c.collection_number as collectionCode ,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer,c.amount,c.quantity,c.collection_date,r.route as route ,p.name as pickUpLocation from collections c join users u on c.collector_id =u.id join farmer f on f.farmer_no=c.farmer_no join route r on r.id=c.route_fk join pick_up_locations p on p.id =r.location_id where DATE(c.collection_date) =:date order by c.collection_date", nativeQuery = true)
     List<CollectionsData> getCollectionsbyDate(String date);
+
+    @Query(value = "SELECT f.first_name ,f.last_name ,f.farmer_no ,c.updated_status as updateStatus,c.can_no as canNo,c.original_quantity as originalQuantity,c.session, c.id, c.collection_number as collectionCode ,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer,c.amount,c.quantity,c.collection_date,r.route as route ,p.name as pickUpLocation from collections c join users u on c.collector_id =u.id join farmer f on f.farmer_no=c.farmer_no join route r on r.id=c.route_fk join pick_up_locations p on p.id =r.location_id where p.id= :locationId and DATE(c.collection_date) between :from and :to order by c.collection_date", nativeQuery = true)
+    List<CollectionsData> locationDeliveryPerDateRange(Integer locationId, String from , String to);
 
     @Query(value = "SELECT f.first_name ,f.last_name ,f.farmer_no ,c.updated_status as updateStatus,c.can_no as canNo,c.original_quantity as originalQuantity,c.session, c.id, c.collection_number as collectionCode ,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer,c.amount,c.quantity,c.collection_date,r.route as route,p.name as pickUpLocation from collections c join users u on c.collector_id =u.id join farmer f on f.farmer_no=c.farmer_no join route r on r.id=c.route_fk join pick_up_locations p on p.id =r.location_id", nativeQuery = true)
     List<CollectionsData> getAllCollections();
@@ -225,7 +314,8 @@ public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long>
             @Param("session") String session, @Param("date") String date);
 
 
-    @Query(value = "select quantity, date(collection_date) as date from collections where farmer_no = :farmerNo and date(collection_date) between :from and :to order by date(collection_date) desc", nativeQuery = true)
+    @Query(value = " select c.quantity, date(c.collection_date) as date, c.session,round(c.amount, 2) as amount, c.status as paid, " +
+            "u.user_name as collector from collections c join users u on u.id=c.collector_id where c.farmer_no = :farmerNo and date(c.collection_date) between :from and :to order by date(c.collection_date) desc;", nativeQuery = true)
     List<FarmerDelivery> getFarmerDeliveries(Integer farmerNo, String from, String to);
 
 

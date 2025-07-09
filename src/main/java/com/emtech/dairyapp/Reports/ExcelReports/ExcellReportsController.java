@@ -5,6 +5,7 @@ import org.jfree.ui.InsetsTextField;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,6 +31,13 @@ public class ExcellReportsController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
                 .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
                 .body(file);
+    }
+
+    @GetMapping("location/date-range")
+    private ResponseEntity<?> centerDeliveryPerDateRange(@RequestParam Integer lid, @RequestParam String from, String to) {
+        var res = exelReportService.centerDeliveryPerDateRange(lid, from, to);
+        return ResponseEntity.status(res.getStatusCode()).contentType(res.getEntity().getMediaType())
+                .headers(res.getEntity().getHeaders()).body(res.getEntity().getResource());
     }
 
     @GetMapping("payroll/{month}/{year}")

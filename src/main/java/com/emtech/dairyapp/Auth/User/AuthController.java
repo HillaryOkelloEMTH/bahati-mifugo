@@ -27,11 +27,26 @@ public class AuthController {
     @Lazy
     private UserService userService;
 
+    @Autowired private AuthService authService;
+    @Autowired private RefreshTokenService tokenService;
+
 //    @CrossOrigin(value = { "http://localhost:4200"}, allowedHeaders = {"Access-Control-Allow-Origin: *"})
     @PostMapping("login")
     public ResponseEntity<?> login(@RequestBody AuthRequest body){
-        var authResponse = this.userService.authenticateUser(body);
+        var authResponse = this.authService.authenticateUser(body);
         return ResponseEntity.status(authResponse.getStatusCode()).body(authResponse);
+    }
+
+    @PostMapping("refresh-token")
+    public ResponseEntity<?> refreshToken(@RequestParam String token) {
+        var res = tokenService.refreshToken(token);
+        return  new ResponseEntity<>(res, HttpStatus.valueOf(res.getStatusCode()));
+    }
+
+    @PostMapping("logout")
+    public Mono<ResponseEntity<?>> logout(@RequestParam String token) {
+        var res = authService.logout(token);
+        return Mono.just(new ResponseEntity<>(res, HttpStatus.valueOf(res.getStatusCode())));
     }
 
 
