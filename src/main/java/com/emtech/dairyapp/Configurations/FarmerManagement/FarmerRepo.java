@@ -8,6 +8,7 @@ import com.emtech.dairyapp.Dairy.Interface.CurrentTotalFarmers;
 import com.emtech.dairyapp.Reports.Dto.PayrollInterface;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -17,6 +18,14 @@ import java.util.Optional;
 public interface FarmerRepo extends JpaRepository<Farmer,Long> {
 
 
+//filtering status of farmer per route
+@Query("SELECT f FROM Farmer f WHERE f.routeFk = :routeId")
+List<Farmer> findAllByRouteFk(@Param("routeId") Long routeId);
+    //filtering status of farmer
+    List<Farmer> findByFarmerNoIn(List<Integer> farmerNos);
+
+    @Query("SELECT f FROM Farmer f WHERE f.farmerNo IN :farmerNos")
+    List<Farmer> findFarmersByFarmerNos(@Param("farmerNos") List<Integer> farmerNos);
 
     List<Farmer> findByDeletedFlag(Character deletedFlag);
     List<Farmer> findByWardFk(Long wardId);

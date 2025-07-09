@@ -83,6 +83,6 @@ public class Product implements Serializable {
     @JoinColumn(name="category_id")
     private Category productCategory;
 
-//    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
-//    private List<CategoryProduct> categoryProducts;
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    private List<CategoryProduct> categoryProducts;
 }

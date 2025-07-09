@@ -131,6 +131,7 @@ public class MccAllocationService {
         return response;
     }
 
+//    Get Specific Center's product allocation.
     public ProductsResponse getMccProducts(Long locationId) {
         AtomicReference<ProductsResponse> response = new AtomicReference<>();
 
@@ -165,7 +166,7 @@ public class MccAllocationService {
         }
         return response.get();
     }
-
+//    Get all Products in all Centers.
     public ProductsResponse getAllMccProducts() {
         AtomicReference<ProductsResponse> response = new AtomicReference<>();
 
@@ -309,4 +310,37 @@ public class MccAllocationService {
         }
         return response;
     }
+
+//    Filter by Collection Centre, productId and Date Range.
+    public ProductsResponse getFilterMccProducts(Long locationId, Long productId, Date startDate, Date endDate){
+
+//        if (month < 1 || month > 12){
+//
+//        }
+        List<MccAllocation> allocations = mccAllocationRepo.findAllByFilters(locationId, productId, startDate, endDate);
+        return toProductsResponse(allocations);
+    }
+//   Fil
+    private ProductsResponse toProductsResponse(List<MccAllocation> allocations) {
+
+        List<ProductData> data = allocations.stream().map(a -> {
+            Product p = productRepository.findById(a.getProductId()).orElse(null);
+            PickUpLocations mcc = pickUpLocationsRepo.findById(a.getLocationId()).orElse(null);
+
+            return ProductData.builder()
+                    .id(a.getProductId())
+                    .stock(a.getStock())
+                    .name(p != null ? p.getName() : null)
+                    .mcc(mcc != null ? mcc.getName() : null)
+                    .allocatedOn(a.getAllocatedOn())
+                    .build();
+        }).toList();
+
+        return ProductsResponse.builder()
+                .statusCode(HttpStatus.OK.value())
+                .message(data.isEmpty() ? "No allocations found" : data.size() + " allocations found")
+                .productData(data)
+                .build();
+    }
+
 }

@@ -1,10 +1,7 @@
 package com.emtech.dairyapp.Stock.Data.Http.Request.Product;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 import jakarta.persistence.Column;
 import java.io.Serializable;
@@ -36,4 +33,6 @@ public class ProductCreateRequest implements Serializable {
 
     @JsonProperty(value = "priceType")
     private String priceType;
+
+
 }

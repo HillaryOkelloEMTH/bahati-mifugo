@@ -10,6 +10,7 @@ import com.emtech.dairyapp.Configurations.Routes.RouteRepo;
 import com.emtech.dairyapp.Configurations.Utils.CONSTANTS;
 import com.emtech.dairyapp.Configurations.Utils.Formatter;
 import com.emtech.dairyapp.Dairy.Interface.Allocations;
+import com.emtech.dairyapp.Dairy.ProductAllocations.dto.AllocationsDTO;
 import com.emtech.dairyapp.Dairy.ProductAllocations.dto.ProductRequestDto;
 import com.emtech.dairyapp.Dairy.Supply.deliveries.MilkCollectionRepo;
 import com.emtech.dairyapp.Notifications.SMS.smsv2.SmsReqDto;
@@ -22,11 +23,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -354,30 +360,99 @@ public class FarmerProductAllocationService {
         }
     }
 
-    public EntityResponse fetchFarmerAllocations(Integer farmerNo) {
+//    public EntityResponse fetchFarmerAllocations(Integer farmerNo) {
+//        log.info("Fetching FarmerProductAllocationss ...");
+//        EntityResponse response = new EntityResponse();
+//        try {
+//            List<Allocations> FarmerProductAllocationss = farmerProdAllocattionsRepo.getAllocationsByFarmer(farmerNo);
+//            if (FarmerProductAllocationss.size() > 0) {
+//                log.info("FarmerProductAllocationss Found " + "(" + FarmerProductAllocationss.size() + ")");
+//                response.setEntity(FarmerProductAllocationss);
+//                response.setStatusCode(HttpStatus.OK.value());
+//                response.setMessage(HttpStatus.FOUND.getReasonPhrase());
+//            } else {
+//                log.info("FarmerProductAllocationss Not Found " + "(" + FarmerProductAllocationss.size() + ")");
+//                response.setEntity(FarmerProductAllocationss);
+//                response.setStatusCode(HttpStatus.OK.value());
+//                response.setMessage(HttpStatus.NO_CONTENT.getReasonPhrase());
+//            }
+//            return response;
+//        } catch (Exception e) {
+//            log.error("Error: " + e.getLocalizedMessage());
+//            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+//            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+//            return response;
+//        }
+//    }
+
+//    Switched from Entity Response to ResponseEntity.
+    public ResponseEntity<AllocationsResponse> fetchFarmerAllocations(Integer farmerNo) {
         log.info("Fetching FarmerProductAllocationss ...");
-        EntityResponse response = new EntityResponse();
         try {
-            List<Allocations> FarmerProductAllocationss = farmerProdAllocattionsRepo.getAllocationsByFarmer(farmerNo);
-            if (FarmerProductAllocationss.size() > 0) {
-                log.info("FarmerProductAllocationss Found " + "(" + FarmerProductAllocationss.size() + ")");
-                response.setEntity(FarmerProductAllocationss);
-                response.setStatusCode(HttpStatus.OK.value());
-                response.setMessage(HttpStatus.FOUND.getReasonPhrase());
-            } else {
-                log.info("FarmerProductAllocationss Not Found " + "(" + FarmerProductAllocationss.size() + ")");
-                response.setEntity(FarmerProductAllocationss);
-                response.setStatusCode(HttpStatus.OK.value());
-                response.setMessage(HttpStatus.NO_CONTENT.getReasonPhrase());
-            }
-            return response;
+            List<FarmerProductAllocations> farmerProductAllocations = farmerProdAllocattionsRepo.findByFarmerNo(farmerNo);
+
+            List<Allocations> allocationsList =farmerProductAllocations.stream()
+                    .map(this::convertEntityToDTO)
+                    .collect(Collectors.toList());
+
+            AllocationsResponse  response = AllocationsResponse.builder()
+                    .statusCode(HttpStatus.OK.value())
+                    .message(farmerProductAllocations.isEmpty() ? "No Content" : "Allocations Found")
+                    .entity(allocationsList)
+                    .build();
+
+
+            HttpStatus status = farmerProductAllocations.isEmpty()? HttpStatus.NO_CONTENT : HttpStatus.OK;
+
+            return  new ResponseEntity<>(response, status);
         } catch (Exception e) {
-            log.error("Error: " + e.getLocalizedMessage());
-            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
-            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
-            return response;
+
+            log.error("Error fetching FarmerProductAllocations: " + e.getLocalizedMessage());
+
+            AllocationsResponse errorResponse = AllocationsResponse.builder()
+                    .statusCode(HttpStatus.BAD_REQUEST.value())
+                    .message(HttpStatus.BAD_REQUEST.getReasonPhrase())
+                    .entity(null)
+                    .build();
+
+            return new ResponseEntity<>(errorResponse,HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    public AllocationsDTO convertEntityToDTO(FarmerProductAllocations allocation) {
+
+        Date allocationDate = allocation.getAllocationDate();
+
+        String time = null;
+        if (allocationDate != null) {
+            time = allocationDate.toInstant()
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalTime()
+                    .toString();
+        }
+
+        return AllocationsDTO.builder()
+                .id(allocation.getId())
+                .product(allocation.getProductName())
+                .username(allocation.getFarmerName())
+                .status(allocation.getStatus())
+                .type(allocation.getType())
+                .noOfCows(allocation.getNoOfCows())
+                .heatStartDate(allocation.getHeatStartDate())
+                .farmer_no(allocation.getFarmerNo())
+                .amount(allocation.getAmount())
+                .quantity(allocation.getQuantity())
+                .allocationDate(allocation.getAllocationDate())
+                .requestedOn(allocation.getRequestedOn())
+                .comments(allocation.getComments())
+                .time(time)
+                .allocatedBy(allocation.getAllocatedBY())
+                .approvalDate(allocation.getApprovalDate())
+                .paymentStatus(allocation.getPaymentStatus())
+                .revokeStatus(allocation.getRevokeStatus())
+                .build();
+    }
+
 
     public EntityResponse fetchAllocationsByDate(String date) {
         log.info("Fetching FarmerProductAllocationss ...");

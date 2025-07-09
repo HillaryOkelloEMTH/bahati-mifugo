@@ -12,10 +12,8 @@ import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.token.TokenService;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
@@ -31,7 +29,7 @@ public class AuthController {
     private UserService userService;
 
     @Autowired private AuthService authService;
-    @Autowired private RefreshTokenService tokenService;
+    @Autowired RefreshTokenService tokenService;
 
 //    @CrossOrigin(value = { "http://localhost:4200"}, allowedHeaders = {"Access-Control-Allow-Origin: *"})
     @PostMapping("login")
