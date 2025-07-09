@@ -75,10 +75,14 @@ public class FarmerController {
 
 
     @GetMapping("active/location")
-    public ResponseEntity<?> getCenterActiveFarmers(@RequestParam(required=false) int months, @RequestParam Long locationId) {
+    public ResponseEntity<?> getCenterActiveFarmers(
+            @RequestParam(required = false) Integer months,
+            @RequestParam Long locationId) {
+
         var res = farmerService.getCenterActiveFarmers(months, locationId);
         return new ResponseEntity<>(res, HttpStatusCode.valueOf(res.getStatusCode()));
     }
+
 
     @GetMapping("mcc/{locationId}")
     public ResponseEntity<?> getMccFarmers(@PathVariable Long locationId) {
