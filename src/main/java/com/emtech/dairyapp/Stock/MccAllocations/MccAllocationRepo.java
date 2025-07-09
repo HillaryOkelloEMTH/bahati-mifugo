@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -16,7 +17,14 @@ public interface MccAllocationRepo extends JpaRepository<MccAllocation, Long> {
     Optional<MccAllocation> findByProductIdAndLocationId(Long productId, Long locationId);
 
 
-    @Query(value = "select ma.product_id, ma.allocated_on, ma.stock, p.name, p.description, p.category, p.type, p.category_id, pp.selling_price from mcc_allocation ma join product p on ma.product_id=p.id join product_price pp on ma.product_id=pp.product_id where ma.location_id = :locationId  group by ma.id", nativeQuery = true)
+    @Query(value = "select ma.product_id, ma.allocated_on, ma.location_id,  " +
+            " ma.stock, p.name, p.description, p.category, p.type, p.price_type, p.update_date, " +
+            " p.category_id, p.price, pp.selling_price, p.profit, " +
+            " p.discount, p.discounted, p.creation_date, p.deleted from mcc_allocation ma " +
+            " join product p on ma.product_id=p.id " +
+            " join product_price pp on ma.product_id=pp.product_id " +
+            " where ma.location_id = :locationId " +
+            " group by ma.id", nativeQuery = true)
     List<MccProducts> getMccProducts(Long locationId);
 
     @Query(value = "select ma.product_id, ma.allocated_on, ma.stock, p.name, mcc.name as mcc, p.description, p.category, p.type, p.category_id,p.price, pp.selling_price from mcc_allocation ma join product p on ma.product_id=p.id join product_price pp on ma.product_id=pp.product_id join pick_up_locations mcc on ma.location_id=mcc.id group by ma.id", nativeQuery = true)
@@ -54,6 +62,7 @@ public interface MccAllocationRepo extends JpaRepository<MccAllocation, Long> {
     public interface MccProducts {
         Long getProduct_id();
         Date getAllocated_on();
+        Timestamp getUpdate_date();
         Integer getStock();
         String getName();
         String getType();
@@ -63,5 +72,14 @@ public interface MccAllocationRepo extends JpaRepository<MccAllocation, Long> {
         Double getSelling_price();
         Double getPrice();
         String getMcc();
+        Double getProfit();
+        Double getDiscount();
+        Integer getDiscounted();
+        Integer getDeleted();
+        Timestamp getCreation_date();
+        String getPrice_type();
+
+
+
     }
 }

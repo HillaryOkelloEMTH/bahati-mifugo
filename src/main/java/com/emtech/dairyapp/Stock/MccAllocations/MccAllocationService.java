@@ -155,6 +155,15 @@ public class MccAllocationService {
                         .mcc(mccProduct.getMcc())
                         .type(mccProduct.getType())
                         .categoryId(mccProduct.getCategory_id())
+                        .allocatedOn(mccProduct.getAllocated_on())
+                        .creationDate(mccProduct.getCreation_date())
+                        .updateDate(mccProduct.getUpdate_date())
+                        .deleted(mccProduct.getDeleted())
+                        .discount(mccProduct.getDiscount())
+                        .discounted(mccProduct.getDiscounted())
+                        .price(mccProduct.getPrice())
+                        .priceType(mccProduct.getPrice_type())
+                        .profit(mccProduct.getProfit())
                         .build();
                 productData.add(product);
             } );
@@ -185,11 +194,20 @@ public class MccAllocationService {
                         .stock(mccProduct.getStock())
                         .name(mccProduct.getName())
                         .category(mccProduct.getCategory())
-                        .price(mccProduct.getPrice())
                         .salePrice(mccProduct.getSelling_price())
-                        .allocatedOn(mccProduct.getAllocated_on())
                         .description(mccProduct.getDescription())
                         .mcc(mccProduct.getMcc())
+                        .type(mccProduct.getType())
+                        .categoryId(mccProduct.getCategory_id())
+                        .allocatedOn(mccProduct.getAllocated_on())
+                        .creationDate(mccProduct.getCreation_date())
+                        .updateDate(mccProduct.getUpdate_date())
+                        .deleted(mccProduct.getDeleted())
+                        .discount(mccProduct.getDiscount())
+                        .discounted(mccProduct.getDiscounted())
+                        .price(mccProduct.getPrice())
+                        .priceType(mccProduct.getPrice_type())
+                        .profit(mccProduct.getProfit())
                         .build();
                 productData.add(product);
             } );

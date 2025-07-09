@@ -36,8 +36,10 @@ public class ProductData implements Serializable {
 
     @Builder.Default
     private Double profit = null;
+
     @Builder.Default
     private String type = null;
+
     @Builder.Default
     private Integer stock=null;
 
