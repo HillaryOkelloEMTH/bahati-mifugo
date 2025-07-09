@@ -1,10 +1,8 @@
 package com.emtech.dairyapp.Dairy.ProductAllocations;
 
 import com.emtech.dairyapp.Auth.Utilities.RequestStatus;
-import com.emtech.dairyapp.Configurations.FarmerManagement.Farmer;
 import com.emtech.dairyapp.Configurations.FarmerManagement.FarmerRepo;
 import com.emtech.dairyapp.Configurations.Interfaces.FarmerInfo;
-import com.emtech.dairyapp.Configurations.Interfaces.PickUpLocation;
 import com.emtech.dairyapp.Configurations.PickUpLocations.PickUpLocations;
 import com.emtech.dairyapp.Configurations.PickUpLocations.PickUpLocationsRepo;
 import com.emtech.dairyapp.Configurations.Routes.Route;
@@ -12,6 +10,7 @@ import com.emtech.dairyapp.Configurations.Routes.RouteRepo;
 import com.emtech.dairyapp.Configurations.Utils.CONSTANTS;
 import com.emtech.dairyapp.Configurations.Utils.Formatter;
 import com.emtech.dairyapp.Dairy.Interface.Allocations;
+import com.emtech.dairyapp.Dairy.ProductAllocations.dto.AllocationsDTO;
 import com.emtech.dairyapp.Dairy.ProductAllocations.dto.ProductRequestDto;
 import com.emtech.dairyapp.Dairy.Supply.MilkCollectionRepo;
 import com.emtech.dairyapp.Notifications.SMS.smsv2.SmsReqDto;
@@ -19,7 +18,6 @@ import com.emtech.dairyapp.Notifications.SMS.smsv2.SmsServiceV2;
 import com.emtech.dairyapp.Response.EntityResponse;
 import com.emtech.dairyapp.Stock.MccAllocations.MccAllocation;
 import com.emtech.dairyapp.Stock.MccAllocations.MccAllocationRepo;
-import com.emtech.dairyapp.Stock.Product.Product;
 import com.emtech.dairyapp.Stock.Product.ProductRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -28,9 +26,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -387,26 +389,70 @@ public class FarmerProductAllocationService {
     public ResponseEntity<AllocationsResponse> fetchFarmerAllocations(Integer farmerNo) {
         log.info("Fetching FarmerProductAllocationss ...");
         try {
-            List<Allocations> farmerProductAllocations = farmerProdAllocattionsRepo.getAllocationsByFarmer(farmerNo);
+            List<FarmerProductAllocations> farmerProductAllocations = farmerProdAllocattionsRepo.findByFarmerNo(farmerNo);
+
+            List<Allocations> allocationsList =farmerProductAllocations.stream()
+                    .map(this::convertEntityToDTO)
+                    .collect(Collectors.toList());
 
             AllocationsResponse  response = AllocationsResponse.builder()
                     .statusCode(HttpStatus.OK.value())
-                    .message(farmerProductAllocations.isEmpty() ? "No Content" : "Allcoations Found")
-                    .allocations(farmerProductAllocations)
+                    .message(farmerProductAllocations.isEmpty() ? "No Content" : "Allocations Found")
+                    .entity(allocationsList)
                     .build();
 
+
             HttpStatus status = farmerProductAllocations.isEmpty()? HttpStatus.NO_CONTENT : HttpStatus.OK;
+
             return  new ResponseEntity<>(response, status);
         } catch (Exception e) {
+
             log.error("Error fetching FarmerProductAllocations: " + e.getLocalizedMessage());
+
             AllocationsResponse errorResponse = AllocationsResponse.builder()
                     .statusCode(HttpStatus.BAD_REQUEST.value())
                     .message(HttpStatus.BAD_REQUEST.getReasonPhrase())
-                    .allocations(null)
+                    .entity(null)
                     .build();
+
             return new ResponseEntity<>(errorResponse,HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    public AllocationsDTO convertEntityToDTO(FarmerProductAllocations allocation) {
+
+        Date allocationDate = allocation.getAllocationDate();
+
+        String time = null;
+        if (allocationDate != null) {
+            time = allocationDate.toInstant()
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalTime()
+                    .toString();
+        }
+
+        return AllocationsDTO.builder()
+                .id(allocation.getId())
+                .product(allocation.getProductName())
+                .username(allocation.getFarmerName())
+                .status(allocation.getStatus())
+                .type(allocation.getType())
+                .noOfCows(allocation.getNoOfCows())
+                .heatStartDate(allocation.getHeatStartDate())
+                .farmer_no(allocation.getFarmerNo())
+                .amount(allocation.getAmount())
+                .quantity(allocation.getQuantity())
+                .allocationDate(allocation.getAllocationDate())
+                .requestedOn(allocation.getRequestedOn())
+                .comments(allocation.getComments())
+                .time(time)
+                .allocatedBy(allocation.getAllocatedBY())
+                .approvalDate(allocation.getApprovalDate())
+                .paymentStatus(allocation.getPaymentStatus())
+                .revokeStatus(allocation.getRevokeStatus())
+                .build();
+    }
+
 
     public EntityResponse fetchAllocationsByDate(String date) {
         log.info("Fetching FarmerProductAllocationss ...");

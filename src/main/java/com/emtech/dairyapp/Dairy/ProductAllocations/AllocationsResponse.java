@@ -20,5 +20,5 @@ public class AllocationsResponse implements Serializable {
     private String message;
 
     @Builder.Default
-    private List<Allocations> allocations = null;
+    private List<Allocations> entity = null;
 }

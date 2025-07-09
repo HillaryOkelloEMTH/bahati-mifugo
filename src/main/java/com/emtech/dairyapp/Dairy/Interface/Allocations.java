@@ -12,7 +12,7 @@ public interface Allocations {
     RequestStatus getStatus();
     String getType();
     Integer getNoOfCows();
-    Date getheatStartDate();
+    Date getHeatStartDate();
 
     Integer getFarmer_no();
     Double getAmount();
