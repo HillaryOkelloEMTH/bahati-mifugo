@@ -6,6 +6,7 @@ import com.emtech.dairyapp.Auth.Data.Http.Request.Auth.ResetPasswordRequest;
 import com.emtech.dairyapp.Auth.Data.Http.Request.Auth.UpdateUserPasswordRequest;
 import com.emtech.dairyapp.Auth.Data.Http.Response.Auth.AuthResponse;
 import com.emtech.dairyapp.Auth.Data.Http.Response.Auth.RecordCreateResponse;
+import com.emtech.dairyapp.Auth.RefreshToken.RefreshTokenService;
 import com.emtech.dairyapp.Response.EntityResponse;
 import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +29,7 @@ public class AuthController {
     private UserService userService;
 
     @Autowired private AuthService authService;
-    @Autowired private RefreshTokenService tokenService;
+    @Autowired RefreshTokenService tokenService;
 
 //    @CrossOrigin(value = { "http://localhost:4200"}, allowedHeaders = {"Access-Control-Allow-Origin: *"})
     @PostMapping("login")
