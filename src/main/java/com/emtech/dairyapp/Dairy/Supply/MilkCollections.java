@@ -49,6 +49,4 @@ public class MilkCollections {
     private  Character updatedStatus= CONSTANTS.NO;
     private  Date updatedDate;
     private Character paymentStatus=CONSTANTS.NO;
-
-
 }

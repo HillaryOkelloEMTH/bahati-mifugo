@@ -21,6 +21,9 @@ public class AuthResponse {
     private String mobile = null;
 
     @Builder.Default
+    private String refreshToken = null;
+
+    @Builder.Default
     private List<UserRoleData> roles = null;
 
     @Builder.Default

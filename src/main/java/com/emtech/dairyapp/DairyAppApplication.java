@@ -26,7 +26,6 @@ import java.util.*;
 @SpringBootApplication
 @Slf4j
 public class DairyAppApplication {
-    //test comment
     public static void main(String[] args) {
         System.setProperty("user.timezone", "Africa/Nairobi");
         TimeZone.setDefault(TimeZone.getTimeZone("Africa/Nairobi"));
