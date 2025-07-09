@@ -58,14 +58,24 @@ public class FarmerController {
         return new ResponseEntity<>(res, HttpStatusCode.valueOf(res.getStatusCode()));
     }
 
+//    @GetMapping("active/route")
+//    public ResponseEntity<?> getRouteActiveFarmers(@RequestParam(required = false) int months, @RequestParam Long routeId) {
+//        var res = farmerService.getRouteActiveFarmers(months, routeId);
+//        return new ResponseEntity<>(res, HttpStatusCode.valueOf(res.getStatusCode()));
+//    }
+
     @GetMapping("active/route")
-    public ResponseEntity<?> getRouteActiveFarmers(@RequestParam int months, @RequestParam Long routeId) {
+    public ResponseEntity<?> getRouteActiveFarmers(
+            @RequestParam(required = false) Integer months,
+            @RequestParam Long routeId) {
+
         var res = farmerService.getRouteActiveFarmers(months, routeId);
         return new ResponseEntity<>(res, HttpStatusCode.valueOf(res.getStatusCode()));
     }
 
+
     @GetMapping("active/location")
-    public ResponseEntity<?> getCenterActiveFarmers(@RequestParam int months, @RequestParam Long locationId) {
+    public ResponseEntity<?> getCenterActiveFarmers(@RequestParam(required=false) int months, @RequestParam Long locationId) {
         var res = farmerService.getCenterActiveFarmers(months, locationId);
         return new ResponseEntity<>(res, HttpStatusCode.valueOf(res.getStatusCode()));
     }
