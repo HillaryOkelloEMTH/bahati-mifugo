@@ -14,5 +14,7 @@ public interface CategoryProductRepository extends JpaRepository<CategoryProduct
     Optional<CategoryProduct> findByCategoryAndProduct(@NonNull Category c, @NonNull Product p);
 
     List<CategoryProduct> findAllByCategory(@NonNull Category c);
+    Optional<CategoryProduct> findByProductId(Long productId);
+
 
 }

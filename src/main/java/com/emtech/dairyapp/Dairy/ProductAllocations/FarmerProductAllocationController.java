@@ -39,11 +39,16 @@ public class FarmerProductAllocationController {
         var response = service.fetchRouteFarmerProductAllocations(routeId, month, year);
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
+//    @GetMapping("farmer")
+//    public ResponseEntity<EntityResponse<?>> getFarmerAllocations(@RequestParam Integer farmerNo){
+//        EntityResponse<?> response = service.fetchFarmerAllocations(farmerNo);
+//        return ResponseEntity.ok().body(response);
+//    }
     @GetMapping("farmer")
-    public ResponseEntity<EntityResponse<?>> getFarmerAllocations(@RequestParam Integer farmerNo){
-        EntityResponse<?> response = service.fetchFarmerAllocations(farmerNo);
-        return ResponseEntity.ok().body(response);
+    public ResponseEntity<AllocationsResponse> getFarmerAllocations(@RequestParam Integer farmerNo){
+        return service.fetchFarmerAllocations(farmerNo);
     }
+
     @GetMapping("date")
     public ResponseEntity<?> getAllocationsByDate(@RequestParam String date){
         var response = service.fetchAllocationsByDate(date);
