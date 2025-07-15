@@ -19,6 +19,8 @@ public interface Allocations {
     Integer getQuantity();
     Date getAllocationDate();
     Date getRequestedOn();
+    String getRoute();
+    String getLocation();
 
     String getComments();
     String getTime();

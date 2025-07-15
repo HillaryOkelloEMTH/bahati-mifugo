@@ -150,12 +150,30 @@ public class MccAllocationService {
                         .stock(mccProduct.getStock())
                         .name(mccProduct.getName())
                         .category(mccProduct.getCategory())
+                        .price(mccProduct.getPrice())
                         .salePrice(mccProduct.getSelling_price())
                         .description(mccProduct.getDescription())
                         .mcc(mccProduct.getMcc())
                         .type(mccProduct.getType())
                         .categoryId(mccProduct.getCategory_id())
+                        .creationDate(mccProduct.getAllocated_on())
+                        .updateDate(mccProduct.getUpdated_on())
                         .build();
+
+
+                if (mccProduct.getSelling_price() >= mccProduct.getPrice()) {
+                    product.setDiscount(0.0);
+                    product.setDiscounted(0);
+
+                    product.setProfit(mccProduct.getSelling_price() - mccProduct.getPrice());
+                }
+
+                if (mccProduct.getPrice() >= mccProduct.getSelling_price()) {
+                    product.setDiscount(mccProduct.getPrice() - mccProduct.getSelling_price());
+                    product.setDeleted(1);
+
+                    product.setProfit(0.0);
+                }
                 productData.add(product);
             } );
 

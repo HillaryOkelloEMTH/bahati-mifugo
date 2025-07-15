@@ -961,6 +961,43 @@ public Map<String, Object> getFarmerStatusByRoute(Long routeId, int month, int y
         return response;
     }
 
+
+    public EntityResponse<?> getFarmerRangeRecords(Integer farmerNo, String from, String to) {
+        EntityResponse<List<CollectionsData>> res = new EntityResponse<>();
+
+        try {
+            List<CollectionsData> records = milkCollectionRepo.getFarmerRangeRecords(farmerNo, from, to);
+
+            res.setStatusCode(HttpStatus.OK.value());
+            res.setMessage("Retrieved "+records.size()+" records");
+            res.setEntity(records);
+        } catch (Exception e) {
+            log.error(e.toString());
+
+            res.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            res.setMessage("A server error occurred");
+        }
+        return res;
+    }
+
+    public EntityResponse<?> getFarmerDateRangeStats(Integer farmerNo, String from, String to) {
+        EntityResponse<List<DailyRecords>> res = new EntityResponse<>();
+
+        try {
+            List<DailyRecords> records = milkCollectionRepo.getFarmerDateRangeStats(farmerNo, from, to);
+
+            res.setStatusCode(HttpStatus.OK.value());
+            res.setMessage("Successful");
+            res.setEntity(records);
+        } catch (Exception e) {
+            log.error(e.toString());
+
+            res.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            res.setMessage("A server error occurred");
+        }
+        return res;
+    }
+
     public EntityResponse getDateRangeRecords(String from,String to) {
 
         EntityResponse response = new EntityResponse();

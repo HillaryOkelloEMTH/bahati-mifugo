@@ -22,6 +22,8 @@ import com.emtech.dairyapp.Stock.Product.ProductRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -135,30 +137,55 @@ public class FarmerProductAllocationService {
     }
 
 
-    public EntityResponse<?> fetchFarmerProductAllocations() {
-        log.info("Fetching FarmerProductAllocationss ...");
-        EntityResponse response = new EntityResponse();
+    public EntityResponse<?> fetchFarmerProductAllocations(int page, int size) {
+        log.info("Fetching Farmer ProductAllocations ...");
+        EntityResponse<List<Allocations>> response = new EntityResponse<>();
+        Pageable pageable = PageRequest.of(page, size);
         try {
-            List<Allocations> FarmerProductAllocationss = farmerProdAllocattionsRepo.getAllocations(CONSTANTS.NO);
-            if (FarmerProductAllocationss.size() > 0) {
+            List<Allocations> allocations = farmerProdAllocattionsRepo.getAllocations(CONSTANTS.NO, pageable);
 
-                log.info("FarmerProductAllocations Found " + "(" + FarmerProductAllocationss.size() + ")");
-                response.setEntity(FarmerProductAllocationss);
+            if (!allocations.isEmpty()) {
+
+                log.info("Farmer ProductAllocations Found {} ", allocations.size());
+                response.setEntity(allocations);
                 response.setStatusCode(HttpStatus.OK.value());
                 response.setMessage(HttpStatus.FOUND.getReasonPhrase());
             } else {
-                log.info("FarmerProductAllocationss Not Found " + "(" + FarmerProductAllocationss.size() + ")");
-                response.setEntity(FarmerProductAllocationss);
+                log.info("FarmerProduct Allocations Not Found");
+                response.setEntity(allocations);
                 response.setStatusCode(HttpStatus.OK.value());
                 response.setMessage(HttpStatus.NO_CONTENT.getReasonPhrase());
             }
             return response;
         } catch (Exception e) {
-            log.error("Error: " + e.getLocalizedMessage());
+            log.error("Error: {}", e.getMessage());
             response.setStatusCode(HttpStatus.BAD_REQUEST.value());
             response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
             return response;
         }
+    }
+
+    public EntityResponse<?> getAllocationsByDateRange(String from, String to) {
+        EntityResponse<List<Allocations>> res = new EntityResponse<>();
+
+        try {
+            if (from.isEmpty() || to.isEmpty()) {
+                res.setStatusCode(HttpStatus.BAD_REQUEST.value());
+                res.setMessage("From and to dates required");
+                return res;
+            }
+            List<Allocations> allocations = farmerProdAllocattionsRepo.getAllocationsByDateRange(from, to);
+
+            res.setStatusCode(HttpStatus.OK.value());
+            res.setMessage("Retrieved "+allocations.size()+" allocations");
+            res.setEntity(allocations);
+        } catch (Exception e) {
+            log.error(e.toString());
+
+            res.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            res.setMessage("Failed to fetch allocations");
+        }
+        return res;
     }
 
     public EntityResponse<?> fetchRouteFarmerProductAllocations(Long routeId, Integer month, String year) {

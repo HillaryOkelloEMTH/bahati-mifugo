@@ -6,6 +6,7 @@ import com.emtech.dairyapp.Dairy.PaymentComponent.PaymentFileData;
 import com.emtech.dairyapp.Reports.FarmerDetails;
 import com.emtech.dairyapp.Reports.FarmerStmtDetails;
 import com.emtech.dairyapp.Reports.ReportData;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -110,6 +111,12 @@ List<Integer> findActiveFarmerNosByRouteAndMonthYear(@Param("routeId") Long rout
     @Query(value = "SELECT f.first_name ,f.last_name ,f.farmer_no,c.updated_status as updateStatus,c.can_no as canNo,c.original_quantity as originalQuantity,c.id, c.session, c.collection_number as collectionCode,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer ,c.amount,c.quantity,c.collection_date,r.route as route from collections c join users u on c.collector_id =u.id join farmer f on f.farmer_no=c.farmer_no join route r on r.id=c.route_fk  where c.collector_id =:collectorId and c.session = :session  and c.event= 'Collection' and DATE(c.collection_date)= :date order by c.collection_date", nativeQuery = true)
     List<CollectionsData> filterTodaysCollectionsBySession(Long collectorId, String date, String session);
 
+    @Query(value = "SELECT f.first_name ,f.last_name ,f.farmer_no ,c.updated_status as updateStatus,c.can_no as canNo,c.original_quantity as originalQuantity,c.session, c.id, c.collection_number as collectionCode ,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name " +
+            "as collector,f.username as farmer,c.amount,c.quantity,c.collection_date,r.route as route ,p.name as pickUpLocation from collections c join users u on c.collector_id =u.id join farmer f on f.farmer_no=c.farmer_no join route r " +
+            "on r.id=c.route_fk join pick_up_locations p on p.id =r.location_id where DATE(c.collection_date) " +
+            "between :from and :to and f.farmer_no = :farmerNo order by c.collection_date", nativeQuery = true)
+    List<CollectionsData> getFarmerRangeRecords(Integer farmerNo, String from , String to);
+
     @Query(value = "SELECT c.id, c.collection_number as collectionCode,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,c.phone_no,u.user_name as collector,c.amount,c.quantity,c.collection_date from collections c join users u on c.collector_id =u.id  where c.collector_id =:collectorId and c.event= 'Buying' and DATE(c.collection_date) BETWEEN :from AND :to order by c.collection_date", nativeQuery = true)
     List<PurchaseData> getCollectorsPurchasesByDateRange(Long collectorId, String from,String to);
     @Query(value = "SELECT c.id, c.collection_number as collectionCode,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,c.phone_no,u.user_name as collector,c.amount,c.quantity,c.collection_date from collections c join users u on c.collector_id =u.id  where c.collector_id =:collectorId and c.event= 'Buying' and DATE(c.collection_date)= :date order by c.collection_date", nativeQuery = true)
@@ -145,6 +152,12 @@ List<Integer> findActiveFarmerNosByRouteAndMonthYear(@Param("routeId") Long rout
     @Query(value = "SELECT count(*) as count,COALESCE(ROUND(SUM(c.quantity),2),0.0)  as quantity,(select coalesce(round(sum(cl.amount),2),0.0) from collections cl where month(cl.collection_date)=month(now()) and year(cl.collection_date)=year(now())) as amount FROM collections c WHERE " +
             "c.event ='Collection' and DATE(c.collection_date) between :from and :to", nativeQuery = true)
     List<DailyRecords> getSpecificDateRecord(String from, String to);
+
+
+    @Query(value = "select count(*) as count, coalesce(round(sum(c.quantity), 2), 0.0) as quantity from collections c where" +
+            " c.farmer_no = :farmerNo and date(c.collection_date) between :from and :to", nativeQuery = true)
+    List<DailyRecords> getFarmerDateRangeStats(Integer farmerNo, String from, String to);
+
     @Query(value = "SELECT count(*) as count,COALESCE(ROUND(SUM(c.quantity),2),0.0)  as quantity,COALESCE(ROUND(SUM(c.amount),2),0.0) as amount FROM collections c WHERE DATE(c.collection_date) between :from and :to and c.event ='Collection'", nativeQuery = true)
     List<DailyRecords> getDateRangeRecord(String from,String to);
     @Query(value = "SELECT count(*) as count,COALESCE(ROUND(SUM(c.quantity),2),0.0)  as quantity,COALESCE(ROUND(SUM(c.amount),2),0.0) as amount FROM collections c join route r on r.id=c.route_fk join pick_up_locations p on p.id =r.location_id where p.id =:locationid and  c.event ='Collection' and date(c.collection_date) between :from and :to", nativeQuery = true)
@@ -401,8 +414,9 @@ List<Integer> findActiveFarmerNosByRouteAndMonthYear(@Param("routeId") Long rout
             "    LEFT JOIN collections c ON f.farmer_no = c.farmer_no AND c.payment_status ='N' \n" +
             "WHERE f.farmer_no IS NOT NULL\n" +
             "GROUP BY f.farmer_no, f.username\n" +
-            "HAVING NetPay > 0;  ",nativeQuery = true)
-    List<PaymentFileData> getFarmersPaymentRecords();
+            "HAVING NetPay > 0 order by c.id desc",nativeQuery = true)
+    List<PaymentFileData> getFarmersPaymentRecords(Pageable pageable);
+
     @Query(value = "SELECT CONVERT(f.farmer_no,char) as farmer_no,f.payment_mode as payment_mode,f.payment_freequency as freequency , f.username as username, \n" +
             "\tROUND(SUM(c.amount),2) AS collectionAmount, \n" +
             "    ROUND((SELECT SUM(fa.amount) FROM farmer_product_allocations fa WHERE fa.farmer_no = f.farmer_no AND fa.payment_status =:paymentStatus and fa.status='Y' and MONTHNAME(fa.allocation_date)=:month  ),2) AS allocationAmount,\n" +

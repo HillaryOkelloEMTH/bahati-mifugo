@@ -17,8 +17,8 @@ public class PaymentRecordsContoller {
 
 
     @GetMapping("records")
-    public ResponseEntity<EntityResponse> getPaymentData(){
-        EntityResponse response = paymentRecordsService.getFarmerPaymentData();
+    public ResponseEntity<?> getPaymentData(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "30") int size){
+        EntityResponse<?> response = paymentRecordsService.getFarmerPaymentData(page, size);
         return ResponseEntity.ok().body(response);
 
     }

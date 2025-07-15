@@ -3,6 +3,7 @@ package com.emtech.dairyapp.Dairy.ProductAllocations;
 import com.emtech.dairyapp.Dairy.ProductAllocations.dto.ProductRequestDto;
 import com.emtech.dairyapp.Response.EntityResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,9 +24,15 @@ public class FarmerProductAllocationController {
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
     @GetMapping("get")
-    public ResponseEntity<?> getFarmerProductAllocations(){
-        var response = service.fetchFarmerProductAllocations();
+    public ResponseEntity<?> getFarmerProductAllocations(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size){
+        var response = service.fetchFarmerProductAllocations(page, size);
         return ResponseEntity.ok().body(response);
+    }
+
+    @GetMapping("date/range")
+    private ResponseEntity<?> getAllocationsByDateRange(@RequestParam String from, @RequestParam String to) {
+        var res = service.getAllocationsByDateRange(from, to);
+        return new ResponseEntity<>(res, HttpStatusCode.valueOf(res.getStatusCode()));
     }
 
     @GetMapping("get/{locationId}/{month}/{year}")

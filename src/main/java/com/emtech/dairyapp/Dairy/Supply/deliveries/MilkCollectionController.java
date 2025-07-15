@@ -75,6 +75,18 @@ public class MilkCollectionController {
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
+    @GetMapping("farmer/deliveries")
+    public ResponseEntity<?> getFarmerRangeRecords(@RequestParam Integer farmerNo, @RequestParam String startDate, @RequestParam String endDate) {
+        var res = collectionService.getFarmerRangeRecords(farmerNo, startDate, endDate);
+        return new ResponseEntity<>(res, HttpStatus.valueOf(res.getStatusCode()));
+    }
+
+    @GetMapping("farmer/date/range/summary/{farmerNo}/{from}/{to}")
+    private ResponseEntity<?> getFarmerDeliveryStatsSummary(@PathVariable Integer farmerNo, @PathVariable String from, @PathVariable String to) {
+        var res = collectionService.getFarmerDateRangeStats(farmerNo, from, to);
+        return new ResponseEntity<>(res, HttpStatus.valueOf(res.getStatusCode()));
+    }
+
 
     @PostMapping("return/{id}")
     public ResponseEntity<?> returnDelivery(@PathVariable Long id) {
@@ -222,7 +234,7 @@ public class MilkCollectionController {
     }
 
     @GetMapping("date/range")
-    public ResponseEntity<EntityResponse> getDateRangeCollections(@RequestParam String fromdate,@RequestParam String toDate){
+    public ResponseEntity<EntityResponse> getDateRangeCollections(@RequestParam String fromdate, @RequestParam String toDate){
         EntityResponse response = collectionService.getCollectionsByDateRange(fromdate, toDate);
         return ResponseEntity.ok().body(response);
     }

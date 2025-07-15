@@ -4,6 +4,8 @@ import com.emtech.dairyapp.Dairy.Supply.deliveries.MilkCollectionRepo;
 import com.emtech.dairyapp.Response.EntityResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -16,13 +18,14 @@ public class PaymentRecordsService {
     @Autowired
     private MilkCollectionRepo collectionRepo;
 
-    public EntityResponse getFarmerPaymentData() {
+    public EntityResponse<?> getFarmerPaymentData(int page, int size) {
+        EntityResponse<List<PaymentFileData>> response = new EntityResponse<>();
+        Pageable pageable = PageRequest.of(page, size);
 
-        EntityResponse response = new EntityResponse();
         try {
+            List<PaymentFileData> cdata = collectionRepo.getFarmersPaymentRecords(pageable);
 
-            List<PaymentFileData> cdata = collectionRepo.getFarmersPaymentRecords();
-            if(cdata.size()>0) {
+            if(!cdata.isEmpty()) {
                 response.setStatusCode(HttpStatus.OK.value());
                 response.setEntity(cdata);
                 response.setMessage(HttpStatus.OK.getReasonPhrase());
@@ -30,8 +33,8 @@ public class PaymentRecordsService {
                 response.setStatusCode(HttpStatus.NOT_FOUND.value());
                 response.setEntity(cdata);
                 response.setMessage(HttpStatus.NOT_FOUND.getReasonPhrase());
-
             }
+
         } catch (Exception e) {
             log.error(e.getMessage());
             response.setStatusCode(HttpStatus.BAD_REQUEST.value());

@@ -16,7 +16,6 @@ import java.util.Date;
 @NoArgsConstructor
 @Builder
 public class AllocationsDTO implements Allocations {
-
     private Long id;
     private String product;
     private String username;
@@ -35,6 +34,6 @@ public class AllocationsDTO implements Allocations {
     private Date approvalDate;
     private Character paymentStatus;
     private Character revokeStatus;
-
-
+    private String route;
+    private String location;
 }
