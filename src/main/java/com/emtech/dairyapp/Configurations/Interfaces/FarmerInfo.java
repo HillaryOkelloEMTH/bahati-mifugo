@@ -14,6 +14,7 @@ public interface FarmerInfo {
     String getMember_type();
     String getMobile_no();
     Long getRouteId();
+    Long getLocationId();
 
     String getDeleted_flag();
     String getCreated_at();

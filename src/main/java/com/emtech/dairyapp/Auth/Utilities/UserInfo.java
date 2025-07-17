@@ -48,7 +48,7 @@ public class UserInfo {
             }
         }
 
-        return "UNKNOWN_USER";
+        return "";
     }
 
     public String userRole() {

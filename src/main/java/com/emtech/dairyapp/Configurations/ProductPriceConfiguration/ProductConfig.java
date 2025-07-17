@@ -19,8 +19,6 @@ import java.util.Date;
 @NoArgsConstructor
 @Entity
 public class ProductConfig {
-
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -32,7 +30,10 @@ public class ProductConfig {
     private String unitMeasurement;
     private Integer quantity;
     private Long routeFk;
+    private Long mccFk;
     private Date createdDate=new Date();
     private Date modifiedDate=new Date();
     private Date effectiveFrom;
+    private String createdBy;
+    private String updatedBy;
 }

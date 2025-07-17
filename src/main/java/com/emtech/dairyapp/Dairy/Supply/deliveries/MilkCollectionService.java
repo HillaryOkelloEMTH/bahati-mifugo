@@ -324,31 +324,32 @@ public Map<String, Object> getFarmerStatusByRoute(Long routeId, int month, int y
                     response.setMessage("Duplicate entry detected");
                     return response;
                 }
+
                 Optional<FarmerInfo> check = farmerRepo.findByFarmerNo(collections.getFarmerNo());
                 log.info("Checking if farmer exist ...");
                 String username = "";
                 if (check.isPresent()) {
+                    ProductConfig productConfig = getConfig(check.get());
                     log.info("Farmer exist ...");
                     username = check.get().getName();
-                    Optional<ProductConfig> productConfig = productConfigRepo.findByRouteFk(collections.getRouteFk());
-                    if (productConfig.isPresent()) {
+
+                    if (productConfig.getBuyingPrice() > 0) {
                         Optional<Can> cancheck = canRepo.findByCanNo(collections.getCanNo());
                         if (cancheck.isEmpty()) {
 
                             log.info("<<<----Collection event---->>>");
-//                            Can can = cancheck.get();
-//                            Double lessWeight = Double.valueOf(can.getDeductionWeight());
                             Double lessWeight = 0.0;
                             Double actual_quantity = collections.getQuantity() - lessWeight;
                             collections.setQuantity(actual_quantity);
                             collections.setDeductedWeight(lessWeight);
-                            Double buyingPrice = productConfig.get().getBuyingPrice();
+                            Double buyingPrice = productConfig.getBuyingPrice();
                             log.info("calculated buying price is: {}", buyingPrice);
                             Double totalAmount = buyingPrice * collections.getQuantity();
                             collections.setOriginalQuantity(actual_quantity);
                             log.info("total amount {}", totalAmount);
                             collections.setAmount(totalAmount);
                             collections.setCurrentPrice(buyingPrice);
+
                             //selling cost calculation
                             response.setStatusCode(HttpStatus.OK.value());
                             response.setMessage(HttpStatus.OK.getReasonPhrase());
@@ -461,8 +462,9 @@ public Map<String, Object> getFarmerStatusByRoute(Long routeId, int month, int y
             Optional<MilkCollections> collectionCheck = milkCollectionRepo.findByCollectionNumber(col.getCollectionNumber());
             if (collectionCheck.isPresent()) {
                 MilkCollections collections= collectionCheck.get();
-                Optional<ProductConfig> productConfig = productConfigRepo.findByRouteFk(collections.getRouteFk());
-                if (productConfig.isPresent()) {
+                ProductConfig productConfig = new ProductConfig();
+
+                if (productConfig.getBuyingPrice() > 0) {
                     Optional<FarmerInfo> farmerInfo = farmerRepo.findByFarmerNo(collections.getFarmerNo());
                     Optional<Can> cancheck = canRepo.findByCanNo(col.getCanNo());
 
@@ -472,6 +474,7 @@ public Map<String, Object> getFarmerStatusByRoute(Long routeId, int month, int y
                       return response;
                     }
                     FarmerInfo farmer = farmerInfo.get();
+                    productConfig = getConfig(farmer);
                     if (cancheck.isEmpty()) {
 
                         log.info("----Collection event----");
@@ -481,10 +484,10 @@ public Map<String, Object> getFarmerStatusByRoute(Long routeId, int month, int y
                         Double actual_quantity = col.getOriginalQuantity() - lessWeight;
                         collections.setQuantity(actual_quantity);
                         collections.setDeductedWeight(lessWeight);
-                        Double buyingPrice = productConfig.get().getBuyingPrice();
-                        log.info("buying price {}", +buyingPrice);
+                        Double buyingPrice = productConfig.getBuyingPrice();
+                        log.info("buying price {}", buyingPrice);
                         Double totalAmount = buyingPrice * collections.getQuantity();
-                        log.info("total amount " + totalAmount);
+                        log.info("total delivery amount {}", totalAmount);
                         collections.setSession(col.getSession());
                         collections.setCanNo(col.getCanNo());
                         collections.setAmount(totalAmount);
@@ -505,7 +508,7 @@ public Map<String, Object> getFarmerStatusByRoute(Long routeId, int month, int y
 
                         log.info("new month total for {} , farmer no {}, month {} .......", farmer.getName(), farmer.getFarmer_no(), monthNo);
 
-                        log.info("Collection for " + collections.getCollectionDate() + " was updated at: " + collections.getUpdatedDate());
+                        log.info("Collection for {} was updated at: {}", collections.getCollectionDate(), collections.getUpdatedDate());
                         Double monthTotal = milkCollectionRepo.getMonthyAccumulation(collections.getFarmerNo(), monthNo, year);
 
                         if (farmerInfo.get().getMobile_no() != null){
@@ -550,6 +553,23 @@ public Map<String, Object> getFarmerStatusByRoute(Long routeId, int month, int y
             response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
         }
         return response;
+    }
+
+    private ProductConfig getConfig(FarmerInfo f) {
+        ProductConfig p = new ProductConfig();
+
+        log.info("Fetching price configuration for {} and route {} for farmer", f.getRoute(), f.getPickUpLocation());
+        Optional<ProductConfig> routeConfig = productConfigRepo.findByMccFkAndRouteFk(f.getLocationId(), f.getRouteId());
+        Optional<ProductConfig> centerConfig = productConfigRepo.findByMcc(f.getLocationId());
+
+        if (routeConfig.isPresent()) {
+            p = routeConfig.get();
+            log.info("Setting the product config for route since it exists. Buying Price is {}", p.getBuyingPrice());
+        } else if(centerConfig.isPresent()) {
+            p = centerConfig.get();
+            log.info("Setting the product config for center since it exists. Buying Price is {}", p.getBuyingPrice());
+        }
+        return p;
     }
 
     public EntityResponse deleteCollections(Long id) {
