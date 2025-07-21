@@ -406,15 +406,40 @@ List<Integer> findActiveFarmerNosByRouteAndMonthYear(@Param("routeId") Long rout
 //            "\tGROUP BY f.farmer_no, f.username HAVING NetPay > 0",nativeQuery = true)
 //    List<PaymentFileData> getweeklyPaymentFileData(String week, String mode);
 
-    @Query(value = "SELECT CONVERT(f.farmer_no,char) as farmer_no,f.payment_mode as payment_mode,f.payment_freequency as freequency , f.username as username,\n" +
-            "    COALESCE(ROUND(SUM(c.amount),2), 0.0) AS collectionAmount, \n" +
-            "    COALESCE((SELECT ROUND(SUM(fa.amount),2) FROM farmer_product_allocations fa WHERE fa.farmer_no = f.farmer_no AND fa.payment_status ='N' and fa.status='Y'  ), 0.0) AS allocationAmount,\n" +
-            "    ((COALESCE(ROUND(SUM(c.amount),2), 0.0))-(COALESCE((SELECT ROUND(SUM(fa.amount),2) FROM farmer_product_allocations fa WHERE fa.farmer_no = f.farmer_no AND fa.payment_status ='N'  ), 0.0))) AS NetPay\n" +
-            "FROM farmer f \n" +
-            "    LEFT JOIN collections c ON f.farmer_no = c.farmer_no AND c.payment_status ='N' \n" +
-            "WHERE f.farmer_no IS NOT NULL\n" +
-            "GROUP BY f.farmer_no, f.username\n" +
-            "HAVING NetPay > 0 order by c.id desc",nativeQuery = true)
+//    @Query(value = "SELECT CONVERT(f.farmer_no,char) as farmer_no,f.payment_mode as payment_mode,f.payment_freequency as freequency , f.username as username,\n" +
+//            "    COALESCE(ROUND(SUM(c.amount),2), 0.0) AS collectionAmount, \n" +
+//            "    COALESCE((SELECT ROUND(SUM(fa.amount),2) FROM farmer_product_allocations fa WHERE fa.farmer_no = f.farmer_no AND fa.payment_status ='N' and fa.status='Y'  ), 0.0) AS allocationAmount,\n" +
+//            "    ((COALESCE(ROUND(SUM(c.amount),2), 0.0))-(COALESCE((SELECT ROUND(SUM(fa.amount),2) FROM farmer_product_allocations fa WHERE fa.farmer_no = f.farmer_no AND fa.payment_status ='N'  ), 0.0))) AS NetPay\n" +
+//            "FROM farmer f \n" +
+//            "    LEFT JOIN collections c ON f.farmer_no = c.farmer_no AND c.payment_status ='N' \n" +
+//            "WHERE f.farmer_no IS NOT NULL\n" +
+//            "GROUP BY f.farmer_no, f.username\n" +
+//            "HAVING NetPay > 0 order by c.id desc ",nativeQuery = true)
+//    List<PaymentFileData> getFarmersPaymentRecords(Pageable pageable);
+
+    @Query(value = "SELECT CONVERT(f.farmer_no, CHAR) AS farmer_no, " +
+            "f.payment_mode AS payment_mode, " +
+            "f.payment_freequency AS freequency, " +
+            "f.username AS username, " +
+            "COALESCE(ROUND(SUM(c.amount), 2), 0.0) AS collectionAmount, " +
+            "COALESCE((SELECT ROUND(SUM(fa.amount), 2) " +
+            "         FROM farmer_product_allocations fa " +
+            "         WHERE fa.farmer_no = f.farmer_no " +
+            "         AND fa.payment_status = 'N' AND fa.status = 'Y'), 0.0) AS allocationAmount, " +
+            "(COALESCE(ROUND(SUM(c.amount), 2), 0.0) - " +
+            " COALESCE((SELECT ROUND(SUM(fa.amount), 2) " +
+            "          FROM farmer_product_allocations fa " +
+            "          WHERE fa.farmer_no = f.farmer_no AND fa.payment_status = 'N'), 0.0)) AS NetPay " +
+            "FROM farmer f " +
+            "LEFT JOIN collections c ON f.farmer_no = c.farmer_no " +
+            "    AND c.payment_status = 'N' " +
+            "    AND MONTH(c.collection_date) = MONTH(CURRENT_DATE) " +
+            "    AND YEAR(c.collection_date) = YEAR(CURRENT_DATE) " +
+            "WHERE f.farmer_no IS NOT NULL " +
+            "GROUP BY f.farmer_no, f.username " +
+            "HAVING NetPay > 0 " +
+            "ORDER BY c.id DESC",
+            nativeQuery = true)
     List<PaymentFileData> getFarmersPaymentRecords(Pageable pageable);
 
     @Query(value = "SELECT CONVERT(f.farmer_no,char) as farmer_no,f.payment_mode as payment_mode,f.payment_freequency as freequency , f.username as username, \n" +

@@ -4,6 +4,7 @@ import com.emtech.dairyapp.Dairy.Supply.deliveries.MilkCollectionRepo;
 import com.emtech.dairyapp.Response.EntityResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -24,6 +25,7 @@ public class PaymentRecordsService {
 
         try {
             List<PaymentFileData> cdata = collectionRepo.getFarmersPaymentRecords(pageable);
+//            List<PaymentFileData> cdata = dataPage.getContent();
 
             if(!cdata.isEmpty()) {
                 response.setStatusCode(HttpStatus.OK.value());

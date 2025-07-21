@@ -16,6 +16,7 @@ import org.springframework.security.authentication.ReactiveAuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
@@ -51,12 +52,15 @@ public class AuthenticationManager implements ReactiveAuthenticationManager {
             List<Role> roles = this.userService.validateUser(authToken);
             if (roles != null && !roles.isEmpty()) {
                 log.log(Level.WARNING, String.format("Authenticated user roles [ %s ] ", roles.size()));
-                return Mono.just(new UsernamePasswordAuthenticationToken(authentication.getPrincipal(),
+                UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(authentication.getPrincipal(),
                         authentication.getCredentials(),
                         roles.stream().map(Role::getAccessRights)
                                 .toList().stream().flatMap(Collection::stream)
                                 .toList().stream().map(s -> new SimpleGrantedAuthority(s.name())).distinct()
-                                .collect(Collectors.toList())));
+                                .collect(Collectors.toList()));
+
+                SecurityContextHolder.getContext().setAuthentication(auth);
+                return Mono.just(auth);
             } else {
                 return Mono.just(authentication);
             }

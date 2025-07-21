@@ -12,7 +12,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -60,12 +62,12 @@ public class ProductConfigService {
                                                 ProductConfig pRouteConfig = new ProductConfig();
                                                 pRouteConfig.setProductName(productConfig.getProductName());
                                                 pRouteConfig.setBuyingPrice(productConfig.getBuyingPrice());
-                                                pRouteConfig.setSellingPrice(productConfig.getBuyingPrice());
+                                                pRouteConfig.setSellingPrice(productConfig.getSellingPrice());
                                                 pRouteConfig.setUnitMeasurement(productConfig.getUnitMeasurement());
                                                 pRouteConfig.setQuantity(productConfig.getQuantity());
                                                 pRouteConfig.setEffectiveFrom(productConfig.getEffectiveFrom());
                                                 pRouteConfig.setCreatedDate(new Date());
-                                                pRouteConfig.setMccFk(null);
+                                                pRouteConfig.setMccFk(pul.getId());
                                                 pRouteConfig.setRouteFk(r.getId());
                                                 productConfig.setCreatedBy(UserInfo.username());
                                                 routeConfigs.add(pRouteConfig);
@@ -91,6 +93,7 @@ public class ProductConfigService {
         }
         return response;
     }
+
 
     public EntityResponse addProductConfig(ProductConfig productConfig){
         log.info("Adding new ProductConfig ...");
@@ -172,9 +175,6 @@ public class ProductConfigService {
                     (p) -> {
                         List<ProductConfigRepo.AllProductConfig> configs = productConfigRepo.findCenterConfigs(p.getId());
 
-                        System.out.println("the size of the data is "+configs.size());
-                        System.out.println("the first record is "+configs.get(0));
-
                         response.setEntity(configs);
                         response.setStatusCode(HttpStatus.OK.value());
                         response.setMessage(HttpStatus.FOUND.getReasonPhrase());
@@ -249,30 +249,38 @@ public class ProductConfigService {
             productConfigRepo.findById(productConfig.getId()).ifPresentOrElse(
                     (p) -> {
                         log.info("Saving the price history change and update");
-                        PriceChangeHistory ch = new PriceChangeHistory();
 
                         if (updateType.equalsIgnoreCase("route")) {
                             log.info("Updating buying price for route with id {}", p.getRouteFk());
                             p.setModifiedDate(new Date());
                             p.setUpdatedBy(UserInfo.username());
-                            p.setBuyingPrice(productConfig.getBuyingPrice());
                             p.setStatus('Y');
-                            p.setSellingPrice(productConfig.getSellingPrice());
+                            productConfig.setRouteFk(p.getRouteFk());
+                            productConfig.setMccFk(p.getMccFk());
 
                             saveHistory(p, productConfig);
+                            p.setBuyingPrice(productConfig.getBuyingPrice());
+                            p.setSellingPrice(productConfig.getSellingPrice());
+
                             productConfigRepo.save(p);
-                            productConfigRepo.updateRouteCollectionPrices(p.getRouteFk(), productConfig.getBuyingPrice(), productConfig.getEffectiveFrom().toString());
+                            productConfigRepo.updateRouteCollectionPrices(p.getRouteFk(), productConfig.getBuyingPrice(), new SimpleDateFormat("yyyy-MM-dd").format(productConfig.getEffectiveFrom()));
+
+                            response.setStatusCode(HttpStatus.OK.value());
+                            response.setMessage("Price update for route done.");
                         } else {
                             log.info("Updating buying price for center with id {}", p.getMccFk());
                             p.setModifiedDate(new Date());
                             p.setUpdatedBy(UserInfo.username());
+                            productConfig.setRouteFk(p.getRouteFk());
+                            productConfig.setMccFk(p.getMccFk());
+
                             saveHistory(p, productConfig);
                             p.setBuyingPrice(productConfig.getBuyingPrice());
                             p.setStatus('Y');
                             p.setSellingPrice(productConfig.getSellingPrice());
                             productConfigRepo.save(p);
 
-                            if (productConfig.getMccFk() != null && productConfig.getRouteFk() != null) {
+                            if (p.getMccFk() != null && p.getRouteFk() == null) {
                                 productConfigRepo.findAllRouteConfigs(p.getMccFk()).forEach((pConfig) -> {
                                     log.info("Updating mcc price changes for route with id {}", p.getRouteFk());
                                     pConfig.setModifiedDate(new Date());
@@ -285,7 +293,10 @@ public class ProductConfigService {
                             }
 
                             log.info("Updating total amount for collections based on new prices and effective dates.");
-                            productConfigRepo.updateAllMccCollectionPrices(p.getMccFk(), productConfig.getBuyingPrice(), productConfig.getEffectiveFrom().toString());
+                            productConfigRepo.updateAllMccCollectionPrices(p.getMccFk(), productConfig.getBuyingPrice(), DateTimeFormatter.ofPattern("yyyy-MM-dd").format(productConfig.getEffectiveFrom().toInstant()));
+
+                            response.setMessage("Price update done.");
+                            response.setStatusCode(HttpStatus.OK.value());
                         }
                     },
                     () -> {

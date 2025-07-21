@@ -72,6 +72,6 @@ public class SecurityContextRepository implements ServerSecurityContextRepositor
         SecurityContextHolder.getContext().setAuthentication(auth);
 
         return authenticationManager.authenticate(auth)
-                .map(SecurityContextImpl::new);
+                .map(authentication -> (SecurityContext) new SecurityContextImpl(authentication)).doOnSuccess(securityContext -> SecurityContextHolder.getContext().setAuthentication(securityContext.getAuthentication()));
     }
 }

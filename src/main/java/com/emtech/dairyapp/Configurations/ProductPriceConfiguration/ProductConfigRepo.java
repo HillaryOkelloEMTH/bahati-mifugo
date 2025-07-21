@@ -16,7 +16,7 @@ public interface ProductConfigRepo extends JpaRepository<ProductConfig,Long> {
     @Query(value = "select * from product_config where mcc_fk = :mccFk and route_fk is null", nativeQuery = true)
     Optional<ProductConfig> findByMcc(Long mccFk);
 
-    @Query(value = "Select * from product_config p join route r on p.route_fk = r.id where r.location_id = :mccFk and p.route_fk is not null", nativeQuery = true)
+    @Query(value = "Select p.* from product_config p join route r on p.route_fk = r.id where r.location_id = :mccFk and p.route_fk is not null", nativeQuery = true)
     List<ProductConfig> findAllRouteConfigs(Long mccFk);
 
     @Query(value = "select p.id as id, p.product_name,p.buying_price ,p.selling_price ,p.quantity ,p.unit_measurement ,p.effective_from, p.modified_date as modified_on ,pul.name as mcc from product_config p join pick_up_locations pul on p.mcc_fk =pul.id where p.route_fk is null", nativeQuery = true)

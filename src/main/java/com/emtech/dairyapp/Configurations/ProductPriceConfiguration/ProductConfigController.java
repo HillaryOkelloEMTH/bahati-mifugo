@@ -13,10 +13,7 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 @RequestMapping("api/v1/product/configuration")
 public class ProductConfigController {
-
-
     private  final ProductConfigService service;
-
     public ProductConfigController(ProductConfigService service) {
         this.service = service;
     }
