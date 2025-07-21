@@ -524,7 +524,7 @@ public class UserService {
                         .creationDate(user.getCreationDate())
                         .updateDate(user.getUpdateDate())
                         .isLoggedIn(user.getIsLoggedIn())
-                .build();
+                        .build();
 
                 usersData.add(userData);
             });

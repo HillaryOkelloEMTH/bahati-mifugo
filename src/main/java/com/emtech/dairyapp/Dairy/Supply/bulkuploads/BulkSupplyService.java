@@ -145,9 +145,8 @@ public class BulkSupplyService {
                                     continue;
                                 }
 
-                                log.info("checking milk buying price for route ------ for {} ", farmerInfo.getRouteId() );
-                                Optional<ProductConfig> configOptional = productConfigRepo.findByRouteFk(farmerInfo.getRouteId());
-                                if (configOptional.isEmpty()) {
+                                ProductConfig config = getConfig(farmerInfo);
+                                if (config.getBuyingPrice() < 0) {
                                     // create a response for failed step
                                     BulkDelivery bulkDelivery = getBulkDelivery(row, "price config not found", postedBy, farmer.get(), route.get());
                                     failures.getAndIncrement();
@@ -199,7 +198,7 @@ public class BulkSupplyService {
                                 milkSupply.setCollectionNumber(codenerator.codeGenerator(farmerInfo.getFarmer_no()));
                                 milkSupply.setCollectorId(user.getId());
                                 milkSupply.setProductType("Fresh Milk");
-                                milkSupply.setCurrentPrice(configOptional.get().getBuyingPrice());
+                                milkSupply.setCurrentPrice(config.getBuyingPrice());
                                 milkSupply.setDeductedWeight(0.0);
                                 milkSupply.setEvent("Collection");
                                 milkSupply.setPaymentStatus('N');
@@ -207,7 +206,7 @@ public class BulkSupplyService {
                                 milkSupply.setUpdatedStatus('N');
                                 milkSupply.setRouteFk(farmerInfo.getRouteId());
                                 milkSupply.setReturned('N');
-                                milkSupply.setAmount(row.getQuantity() * configOptional.get().getBuyingPrice());
+                                milkSupply.setAmount(row.getQuantity() * config.getBuyingPrice());
 
                                 success.getAndIncrement();
                                 milkCollectionRepo.save(milkSupply);
@@ -298,6 +297,23 @@ public class BulkSupplyService {
         bulkDelivery.setFarmer(farmer);
         bulkDelivery.setRoute(route);
         return bulkDelivery;
+    }
+
+    private ProductConfig getConfig(FarmerInfo f) {
+        ProductConfig p = new ProductConfig();
+
+        log.info("Fetching price configuration for {} and route {} for farmer", f.getRoute(), f.getPickUpLocation());
+        Optional<ProductConfig> routeConfig = productConfigRepo.findByMccFkAndRouteFk(f.getLocationId(), f.getRouteId());
+        Optional<ProductConfig> centerConfig = productConfigRepo.findByMcc(f.getLocationId());
+
+        if (routeConfig.isPresent()) {
+            p = routeConfig.get();
+            log.info("Setting the product config for route since it exists. Buying Price is {}", p.getBuyingPrice());
+        } else if(centerConfig.isPresent()) {
+            p = centerConfig.get();
+            log.info("Setting the product config for center since it exists. Buying Price is {}", p.getBuyingPrice());
+        }
+        return p;
     }
 
     public EntityResponse<List<BulkDto>> getData(InputStream inputStream, String filename) {

@@ -26,6 +26,7 @@ public class ProductPriceController {
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
+
     @PutMapping("update/{productId}/{locationId}/{sellingPrice}")
     public ResponseEntity<?> updateProductPrice(@PathVariable Long productId, @PathVariable Long locationId, @PathVariable Double sellingPrice) {
         var response = priceService.updateProductPrice(productId, locationId, sellingPrice);

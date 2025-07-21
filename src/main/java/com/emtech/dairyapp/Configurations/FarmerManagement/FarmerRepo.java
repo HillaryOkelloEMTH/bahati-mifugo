@@ -8,6 +8,7 @@ import com.emtech.dairyapp.Dairy.Interface.CurrentTotalFarmers;
 import com.emtech.dairyapp.Reports.Dto.PayrollInterface;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -17,6 +18,14 @@ import java.util.Optional;
 public interface FarmerRepo extends JpaRepository<Farmer,Long> {
 
 
+//filtering status of farmer per route
+@Query("SELECT f FROM Farmer f WHERE f.routeFk = :routeId")
+List<Farmer> findAllByRouteFk(@Param("routeId") Long routeId);
+    //filtering status of farmer
+    List<Farmer> findByFarmerNoIn(List<Integer> farmerNos);
+
+    @Query("SELECT f FROM Farmer f WHERE f.farmerNo IN :farmerNos")
+    List<Farmer> findFarmersByFarmerNos(@Param("farmerNos") List<Integer> farmerNos);
 
     List<Farmer> findByDeletedFlag(Character deletedFlag);
     List<Farmer> findByWardFk(Long wardId);
@@ -80,7 +89,7 @@ public interface FarmerRepo extends JpaRepository<Farmer,Long> {
     List<FarmersPerWard> getFarmersPerWard();
 
 
-    @Query(value = "SELECT f.id,f.username,f.payment_freequency,r.route as route ,r.id as routeId,f.first_name as name, f.last_name, b.account_name ,b.account_number  ,f.alternative_mobile_no   ,f.id_number ,f.created_at ,f.payment_mode ,f.deleted_flag,f.mobile_no ,f.member_type ,f.no_of_cows ,f.farmer_no ,s.name as subcounty,c.name as county,p.name as pickUpLocation from farmer f left join ward w  on f.ward_fk =w.id left join subcounty s on s.id =f.subcounty_fk left join county c on c.id =s.county_fk left join route r on r.id=f.route_fk left join pick_up_locations p on p.id =r.location_id left join bank_details b on b.id =f.bank_details_id where f.farmer_no=:farmer_no",nativeQuery = true)
+    @Query(value = "SELECT f.id,f.username,f.payment_freequency,r.route as route ,r.id as routeId,f.first_name as name, f.last_name, b.account_name ,b.account_number  ,f.alternative_mobile_no   ,f.id_number ,f.created_at ,f.payment_mode ,f.deleted_flag,f.mobile_no ,f.member_type ,f.no_of_cows ,f.farmer_no ,s.name as subcounty,c.name as county,p.name as pickUpLocation, p.id as locationId from farmer f left join ward w  on f.ward_fk =w.id left join subcounty s on s.id =f.subcounty_fk left join county c on c.id =s.county_fk left join route r on r.id=f.route_fk left join pick_up_locations p on p.id =r.location_id left join bank_details b on b.id =f.bank_details_id where f.farmer_no=:farmer_no",nativeQuery = true)
     Optional<FarmerInfo> findByFarmerNo(Integer farmer_no);
 
 

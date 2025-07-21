@@ -55,10 +55,10 @@ public class ProductData implements Serializable {
     private  Integer deleted = null;
 
     @Builder.Default
-    private Timestamp updateDate = null;
+    private Date updateDate = null;
 
     @Builder.Default
-    private Timestamp creationDate = null;
+    private Date creationDate = null;
 
     @Builder.Default
     private String mcc = null;

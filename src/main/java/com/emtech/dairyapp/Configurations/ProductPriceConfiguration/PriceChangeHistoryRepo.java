@@ -7,7 +7,5 @@ import java.util.List;
 
 @Repository
 public interface PriceChangeHistoryRepo extends JpaRepository<PriceChangeHistory,Long> {
-
-
     List<PriceChangeHistory> findByProductConfigId(Long productConfigId);
 }

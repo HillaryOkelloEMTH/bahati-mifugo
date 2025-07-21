@@ -24,8 +24,7 @@ public class PriceChangeHistory {
     private String modifiedBy;
     private Long productConfigId;
     private String productName;
-    @Column(nullable = false)
+    @Column(nullable = true)
     private Long routeFk;
-
-
+    private Long mccFk;
 }

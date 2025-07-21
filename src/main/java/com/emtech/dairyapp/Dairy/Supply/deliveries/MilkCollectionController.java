@@ -7,6 +7,7 @@ import com.emtech.dairyapp.Dairy.Supply.bulkuploads.BulkSupplyService;
 import com.emtech.dairyapp.Dairy.Supply.returns.MilkReturnService;
 import com.emtech.dairyapp.Response.EntityResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.multipart.FilePart;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -73,6 +75,18 @@ public class MilkCollectionController {
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
+    @GetMapping("farmer/deliveries")
+    public ResponseEntity<?> getFarmerRangeRecords(@RequestParam Integer farmerNo, @RequestParam String startDate, @RequestParam String endDate) {
+        var res = collectionService.getFarmerRangeRecords(farmerNo, startDate, endDate);
+        return new ResponseEntity<>(res, HttpStatus.valueOf(res.getStatusCode()));
+    }
+
+    @GetMapping("farmer/date/range/summary/{farmerNo}/{from}/{to}")
+    private ResponseEntity<?> getFarmerDeliveryStatsSummary(@PathVariable Integer farmerNo, @PathVariable String from, @PathVariable String to) {
+        var res = collectionService.getFarmerDateRangeStats(farmerNo, from, to);
+        return new ResponseEntity<>(res, HttpStatus.valueOf(res.getStatusCode()));
+    }
+
 
     @PostMapping("return/{id}")
     public ResponseEntity<?> returnDelivery(@PathVariable Long id) {
@@ -106,11 +120,7 @@ public class MilkCollectionController {
         return ResponseEntity.ok().body(response);
     }
 
-    @GetMapping("farmer")
-    public ResponseEntity<EntityResponse> getMemberCollections(@RequestParam Integer farmerNo){
-        EntityResponse response = collectionService.getCollectionsByMember(farmerNo);
-        return ResponseEntity.ok().body(response);
-    }
+
     @GetMapping("collector/date")
     public ResponseEntity<EntityResponse> getCollections(@RequestParam Long collectorId, @RequestParam String date){
         EntityResponse response = collectionService.getCollectionsByDate(collectorId,date);
@@ -196,11 +206,11 @@ public class MilkCollectionController {
         EntityResponse response = collectionService.collectionsTodayRecords();
         return ResponseEntity.ok().body(response);
     }
-    @GetMapping("per/farmer")
-    public ResponseEntity<EntityResponse> getFarmerCollections(@RequestParam Long farmerId){
-        EntityResponse response = collectionService.getCollectionByFarmer(farmerId);
-        return ResponseEntity.ok().body(response);
-    }
+//    @GetMapping("per/farmer")
+//    public ResponseEntity<EntityResponse> getFarmerCollections(@RequestParam Long farmerId){
+//        EntityResponse response = collectionService.getCollectionByFarmer(farmerId);
+//        return ResponseEntity.ok().body(response);
+//    }
 
     @GetMapping("per/collector")
     public ResponseEntity<EntityResponse> getCollectorCollections(@RequestParam Long collectorId){
@@ -224,7 +234,7 @@ public class MilkCollectionController {
     }
 
     @GetMapping("date/range")
-    public ResponseEntity<EntityResponse> getDateRangeCollections(@RequestParam String fromdate,@RequestParam String toDate){
+    public ResponseEntity<EntityResponse> getDateRangeCollections(@RequestParam String fromdate, @RequestParam String toDate){
         EntityResponse response = collectionService.getCollectionsByDateRange(fromdate, toDate);
         return ResponseEntity.ok().body(response);
     }
@@ -277,16 +287,75 @@ public class MilkCollectionController {
         EntityResponse response = collectionService.getPickUpLocationRecords(pickUpLocation, from, to);
         return ResponseEntity.ok().body(response);
     }
-    @GetMapping("route")
-    public ResponseEntity<?> getCollectorbyRoute(@RequestParam Long routeId){
-        EntityResponse response = collectionService.getCollectionByRoute(routeId);
+
+//filter route by date and range
+    @GetMapping("/route/filter")
+    public ResponseEntity<?> getCollectionsByRouteAndDate(
+            @RequestParam Long routeId,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate) {
+
+        EntityResponse response = collectionService.getCollectionsByRouteAndDate(routeId, startDate, endDate);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
+    }
+
+    @GetMapping("farmer")
+    public ResponseEntity<EntityResponse> getMemberCollections(@RequestParam Integer farmerNo){
+        EntityResponse response = collectionService.getCollectionsByMember(farmerNo);
         return ResponseEntity.ok().body(response);
     }
+//filter farmer by date range
+@GetMapping("/per/farmer")
+public ResponseEntity<EntityResponse> getMemberCollectionsPer(
+        @RequestParam Integer farmerNo,
+        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date startDate,
+        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date endDate
+) {
+    EntityResponse response = collectionService.getCollectionsByMemberPer(farmerNo, startDate, endDate);
+    return ResponseEntity.ok().body(response);
+}
+
+
+//farmer status active or inactive per route
+@GetMapping("/route/farmer-status")
+public ResponseEntity<Map<String, Object>> getFarmersStatusByRoute(
+        @RequestParam Long routeId,
+        @RequestParam int month,
+        @RequestParam int year,
+        @RequestParam(required=false) Integer status) {
+    Map<String, Object> result = collectionService.getFarmerStatusByRoute(routeId, month, year,status);
+    return ResponseEntity.ok(result);
+}
+
+//farmer status
+@GetMapping("/farmer-status/monthly")
+public ResponseEntity<Map<String, Object>> getMonthlyFarmerStatus(
+        @RequestParam int month,
+        @RequestParam int year,
+        @RequestParam(required=false) Integer status){
+    Map<String, Object> response = collectionService.getFarmerStatusByMonth(month, year,status);
+    return ResponseEntity.ok(response);
+}
+
+
+
     @GetMapping("records/route")
-    public ResponseEntity<?> getRouteRecords(@RequestParam Long routeId){
+    public ResponseEntity<?> getRouteRecords(@RequestParam Long routeId) {
         EntityResponse response = collectionService.getRouteRecords(routeId);
         return ResponseEntity.ok().body(response);
     }
+        //count route collerctions with date range
+        @GetMapping("/date-range/route-records")
+        public ResponseEntity<EntityResponse> getRouteRecordsByDateRange(
+                @RequestParam Long routeId,
+                @RequestParam String startDate,
+                @RequestParam String endDate) {
+
+            EntityResponse response = collectionService.getRouteRecordsByDateRange(routeId, startDate, endDate);
+            return new ResponseEntity<>(response, HttpStatus.valueOf(response.getStatusCode()));
+        }
+
+
     @GetMapping("records/all")
     public ResponseEntity<?> getAllRecords(){
         var response = collectionService.getAllCollectionsRecords();

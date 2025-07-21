@@ -69,8 +69,9 @@ public class SecurityContextRepository implements ServerSecurityContextRepositor
         log.info("User retrieved: {}. Authenticating ...", userDetails.getUsername());
 
         Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, authToken, userDetails.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(auth);
 
         return authenticationManager.authenticate(auth)
-                .map(SecurityContextImpl::new);
+                .map(authentication -> (SecurityContext) new SecurityContextImpl(authentication)).doOnSuccess(securityContext -> SecurityContextHolder.getContext().setAuthentication(securityContext.getAuthentication()));
     }
 }

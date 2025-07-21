@@ -43,7 +43,7 @@ public class CategoryService {
     public StockEntitiesResponse createCategory(@NonNull String name, @NonNull String description){
         AtomicReference<StockEntitiesResponse> response = new AtomicReference<>();
 
-        this.categoryRepo.findByName(name).ifPresentOrElse(category -> {
+        this.categoryRepo.findByNameIgnoreCase(name).ifPresentOrElse(category -> {
             log.log(Level.SEVERE, String.format("Category with the name %s already exists", name));
 
             response.set(StockEntitiesResponse.builder().message(String.format("Category with the name %s already exists", name)).statusCode(HttpStatus.BAD_REQUEST.value()).build());

@@ -5,6 +5,7 @@ import com.emtech.dairyapp.Auth.Data.User.UserData;
 import com.emtech.dairyapp.Auth.User.UserService;
 import com.emtech.dairyapp.Configurations.CanManagement.Can;
 import com.emtech.dairyapp.Configurations.CanManagement.CanRepo;
+import com.emtech.dairyapp.Configurations.FarmerManagement.Farmer;
 import com.emtech.dairyapp.Configurations.FarmerManagement.FarmerRepo;
 import com.emtech.dairyapp.Configurations.Interfaces.FarmerInfo;
 import com.emtech.dairyapp.Configurations.Interfaces.Locations;
@@ -33,6 +34,7 @@ import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.emtech.dairyapp.Configurations.Utils.Formatter.*;
 
@@ -49,6 +51,7 @@ public class MilkCollectionService {
     private final CanRepo canRepo;
     private final RouteRepo routeRepo;
 
+
     private final PickUpLocationsRepo pickUpLocationsRepo;
 
     @Lazy
@@ -56,6 +59,197 @@ public class MilkCollectionService {
 
     @Value("${sms.enable}")
     private boolean sms;
+
+
+    //colection with route id and date range
+    public EntityResponse getCollectionsByRouteAndDate(Long routeId, Date startDate, Date endDate) {
+        EntityResponse response = new EntityResponse();
+        try {
+            List<CollectionsData> collections =
+                    milkCollectionRepo.getCollectionByRouteAndDate(routeId, startDate, endDate);
+
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(collections);
+            response.setMessage(collections.isEmpty() ? "No collections found" : "Collections fetched successfully");
+
+        } catch (Exception e) {
+            log.error("Error fetching collections: ", e);
+            response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            response.setMessage("Server error occurred");
+        }
+        return response;
+    }
+
+
+    // Helper method to get start of the day
+    private Date getStartOfDay(Date date) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        return cal.getTime();
+    }
+
+    //  Helper method to get end of the day
+    private Date getEndOfDay(Date date) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        cal.set(Calendar.HOUR_OF_DAY, 23);
+        cal.set(Calendar.MINUTE, 59);
+        cal.set(Calendar.SECOND, 59);
+        cal.set(Calendar.MILLISECOND, 999);
+        return cal.getTime();
+    }
+
+
+
+//filtering farmers by farmerNo and date range
+
+    public EntityResponse getCollectionsByMemberPer(Integer farmerNo, Date startDate, Date endDate) {
+        EntityResponse response = new EntityResponse();
+        try {
+            List<CollectionsData> collections = milkCollectionRepo.getCollectionsByFarmerAndDate(farmerNo, startDate, endDate);
+
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(collections);
+            response.setMessage(collections.isEmpty() ? "No collections found" : "Collections fetched successfully");
+
+        } catch (Exception e) {
+            log.error("Error fetching collections by farmer: ", e);
+            response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            response.setMessage("Server error occurred");
+        }
+
+        return response;
+    }
+
+    //finding status of farmers per route
+public Map<String, Object> getFarmerStatusByRoute(Long routeId, int month, int year,Integer status) {
+    List<Integer> activeFarmerNos = milkCollectionRepo.findActiveFarmerNosByRouteAndMonthYear(routeId, month, year);
+    List<Farmer> allFarmersInRoute = farmerRepo.findAllByRouteFk(routeId);
+
+    Set<Integer> activeSet = new HashSet<>(activeFarmerNos);
+
+    List<Map<String, Object>> activeFarmers = new ArrayList<>();
+    List<Map<String, Object>> inactiveFarmers = new ArrayList<>();
+
+    for (Farmer farmer : allFarmersInRoute) {
+        Map<String, Object> farmerMap = new HashMap<>();
+        farmerMap.put("farmerNo", farmer.getFarmerNo());
+        farmerMap.put("fullName", buildFullName(farmer));
+        farmerMap.put("id", farmer.getId());
+        farmerMap.put("username", farmer.getUsername());
+        farmerMap.put("firstName", farmer.getFirstName());
+        farmerMap.put("lastName", farmer.getLastName());
+        farmerMap.put("middleName", farmer.getMiddleName());
+        farmerMap.put("idNumber", farmer.getIdNumber());
+        farmerMap.put("mobileNo", farmer.getMobileNo());
+        farmerMap.put("alternativeMobileNo", farmer.getAlternativeMobileNo());
+        farmerMap.put("memberType", farmer.getMemberType());
+        farmerMap.put("address", farmer.getAddress());
+        farmerMap.put("paymentMode", farmer.getPaymentMode());
+        farmerMap.put("location", farmer.getLocation());
+        farmerMap.put("subLocation", farmer.getSubLocation());
+        farmerMap.put("village", farmer.getVillage());
+        farmerMap.put("createdAt", farmer.getCreatedAt());
+        farmerMap.put("updatedOn", farmer.getUpdatedOn());
+
+        if (activeSet.contains(farmer.getFarmerNo())) {
+            activeFarmers.add(farmerMap);
+        } else {
+            inactiveFarmers.add(farmerMap);
+        }
+    }
+
+    Map<String, Object> response = new HashMap<>();
+    if(status==null) {
+        response.put("activeCount", activeFarmers.size());
+        response.put("inactiveCount", inactiveFarmers.size());
+        response.put("activeFarmers", activeFarmers);
+        response.put("inactiveFarmers", inactiveFarmers);
+    }else if(status==1){
+        response.put("activeCount", activeFarmers.size());
+        response.put("activeFarmers", activeFarmers);
+    }else if(status==0){
+        response.put("inactiveCount", inactiveFarmers.size());
+        response.put("inactiveFarmers", inactiveFarmers);
+
+    }
+
+
+    return response;
+}
+
+    private String buildFullName(Farmer farmer) {
+        return String.join(" ",
+                Optional.ofNullable(farmer.getFirstName()).orElse(""),
+                Optional.ofNullable(farmer.getMiddleName()).orElse(""),
+                Optional.ofNullable(farmer.getLastName()).orElse("")
+        ).trim().replaceAll(" +", " ");
+    }
+
+    //filtering status of farmers
+    public Map<String, Object> getFarmerStatusByMonth(int month, int year, Integer status) {
+        List<Integer> activeFarmerNos = milkCollectionRepo.findActiveFarmersByMonthAndYear(month, year);
+        List<Integer> allFarmerNos = milkCollectionRepo.findAllFarmersFromCollections();
+
+        List<Integer> inactiveFarmerNos = allFarmerNos.stream()
+                .filter(farmerNo -> !activeFarmerNos.contains(farmerNo))
+                .collect(Collectors.toList());
+
+        List<Farmer> activeFarmers = farmerRepo.findByFarmerNoIn(activeFarmerNos);
+        List<Farmer> inactiveFarmers = farmerRepo.findByFarmerNoIn(inactiveFarmerNos);
+
+        Map<String, Object> response = new HashMap<>();
+        if (status == null) {
+            response.put("activeCount", activeFarmers.size());
+            response.put("inactiveCount", inactiveFarmers.size());
+            response.put("activeFarmers", activeFarmers.stream().map(this::mapFarmer).collect(Collectors.toList()));
+            response.put("inactiveFarmers", inactiveFarmers.stream().map(this::mapFarmer).collect(Collectors.toList()));
+        } else if (status == 1) {
+            response.put("activeCount", activeFarmers.size());
+            response.put("activeFarmers", activeFarmers.stream().map(this::mapFarmer).collect(Collectors.toList()));
+        } else if (status == 0) {
+            response.put("inactiveCount", inactiveFarmers.size());
+            response.put("inactiveFarmers", inactiveFarmers.stream().map(this::mapFarmer).collect(Collectors.toList()));
+        } else {
+            response.put("message", "Invalid status value. Use 1 for active, 0 for inactive.");
+        }
+        return response;
+    }
+
+    private Map<String, Object> mapFarmer(Farmer farmer) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("id", farmer.getId());
+        map.put("username", farmer.getUsername());
+        map.put("firstName", farmer.getFirstName());
+        map.put("lastName", farmer.getLastName());
+        map.put("middleName", farmer.getMiddleName());
+        map.put("farmerNo", farmer.getFarmerNo());
+        map.put("fullName", buildName(farmer));
+        map.put("gender", farmer.getGender());
+        map.put("idNumber", farmer.getIdNumber());
+        map.put("mobileNo", farmer.getMobileNo());
+        map.put("alternativeMobileNo", farmer.getAlternativeMobileNo());
+        map.put("memberType", farmer.getMemberType());
+        map.put("address", farmer.getAddress());
+        map.put("paymentMode", farmer.getPaymentMode());
+        map.put("location", farmer.getLocation());
+        map.put("subLocation", farmer.getSubLocation());
+        map.put("createdAt", farmer.getCreatedAt());
+        map.put("updatedOn", farmer.getUpdatedOn());
+        return map;
+    }
+
+    private String buildName(Farmer farmer) {
+        StringBuilder fullName = new StringBuilder();
+        if (farmer.getFirstName() != null) fullName.append(farmer.getFirstName()).append(" ");
+        if (farmer.getMiddleName() != null) fullName.append(farmer.getMiddleName()).append(" ");
+        if (farmer.getLastName() != null) fullName.append(farmer.getLastName());
+        return fullName.toString().trim();
+    }
 
 
     public MilkCollectionService(MilkCollectionRepo milkCollectionRepo, ProductConfigRepo productConfigRepo, FloatManagerRepo floatManagerRepo, Codenerator codenerator, SmsServiceV2 smsServiceV2, FarmerRepo farmerRepo, CanRepo canRepo, RouteRepo routeRepo, PickUpLocationsRepo pickUpLocationsRepo, UserService userService) {
@@ -130,31 +324,32 @@ public class MilkCollectionService {
                     response.setMessage("Duplicate entry detected");
                     return response;
                 }
+
                 Optional<FarmerInfo> check = farmerRepo.findByFarmerNo(collections.getFarmerNo());
                 log.info("Checking if farmer exist ...");
                 String username = "";
                 if (check.isPresent()) {
+                    ProductConfig productConfig = getConfig(check.get());
                     log.info("Farmer exist ...");
                     username = check.get().getName();
-                    Optional<ProductConfig> productConfig = productConfigRepo.findByRouteFk(collections.getRouteFk());
-                    if (productConfig.isPresent()) {
+
+                    if (productConfig.getBuyingPrice() > 0) {
                         Optional<Can> cancheck = canRepo.findByCanNo(collections.getCanNo());
                         if (cancheck.isEmpty()) {
 
                             log.info("<<<----Collection event---->>>");
-//                            Can can = cancheck.get();
-//                            Double lessWeight = Double.valueOf(can.getDeductionWeight());
                             Double lessWeight = 0.0;
                             Double actual_quantity = collections.getQuantity() - lessWeight;
                             collections.setQuantity(actual_quantity);
                             collections.setDeductedWeight(lessWeight);
-                            Double buyingPrice = productConfig.get().getBuyingPrice();
+                            Double buyingPrice = productConfig.getBuyingPrice();
                             log.info("calculated buying price is: {}", buyingPrice);
                             Double totalAmount = buyingPrice * collections.getQuantity();
                             collections.setOriginalQuantity(actual_quantity);
                             log.info("total amount {}", totalAmount);
                             collections.setAmount(totalAmount);
                             collections.setCurrentPrice(buyingPrice);
+
                             //selling cost calculation
                             response.setStatusCode(HttpStatus.OK.value());
                             response.setMessage(HttpStatus.OK.getReasonPhrase());
@@ -267,8 +462,9 @@ public class MilkCollectionService {
             Optional<MilkCollections> collectionCheck = milkCollectionRepo.findByCollectionNumber(col.getCollectionNumber());
             if (collectionCheck.isPresent()) {
                 MilkCollections collections= collectionCheck.get();
-                Optional<ProductConfig> productConfig = productConfigRepo.findByRouteFk(collections.getRouteFk());
-                if (productConfig.isPresent()) {
+                ProductConfig productConfig = new ProductConfig();
+
+                if (productConfig.getBuyingPrice() > 0) {
                     Optional<FarmerInfo> farmerInfo = farmerRepo.findByFarmerNo(collections.getFarmerNo());
                     Optional<Can> cancheck = canRepo.findByCanNo(col.getCanNo());
 
@@ -278,6 +474,7 @@ public class MilkCollectionService {
                       return response;
                     }
                     FarmerInfo farmer = farmerInfo.get();
+                    productConfig = getConfig(farmer);
                     if (cancheck.isEmpty()) {
 
                         log.info("----Collection event----");
@@ -287,10 +484,10 @@ public class MilkCollectionService {
                         Double actual_quantity = col.getOriginalQuantity() - lessWeight;
                         collections.setQuantity(actual_quantity);
                         collections.setDeductedWeight(lessWeight);
-                        Double buyingPrice = productConfig.get().getBuyingPrice();
-                        log.info("buying price {}", +buyingPrice);
+                        Double buyingPrice = productConfig.getBuyingPrice();
+                        log.info("buying price {}", buyingPrice);
                         Double totalAmount = buyingPrice * collections.getQuantity();
-                        log.info("total amount " + totalAmount);
+                        log.info("total delivery amount {}", totalAmount);
                         collections.setSession(col.getSession());
                         collections.setCanNo(col.getCanNo());
                         collections.setAmount(totalAmount);
@@ -311,7 +508,7 @@ public class MilkCollectionService {
 
                         log.info("new month total for {} , farmer no {}, month {} .......", farmer.getName(), farmer.getFarmer_no(), monthNo);
 
-                        log.info("Collection for " + collections.getCollectionDate() + " was updated at: " + collections.getUpdatedDate());
+                        log.info("Collection for {} was updated at: {}", collections.getCollectionDate(), collections.getUpdatedDate());
                         Double monthTotal = milkCollectionRepo.getMonthyAccumulation(collections.getFarmerNo(), monthNo, year);
 
                         if (farmerInfo.get().getMobile_no() != null){
@@ -356,6 +553,23 @@ public class MilkCollectionService {
             response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
         }
         return response;
+    }
+
+    private ProductConfig getConfig(FarmerInfo f) {
+        ProductConfig p = new ProductConfig();
+
+        log.info("Fetching price configuration for {} and route {} for farmer", f.getRoute(), f.getPickUpLocation());
+        Optional<ProductConfig> routeConfig = productConfigRepo.findByMccFkAndRouteFk(f.getLocationId(), f.getRouteId());
+        Optional<ProductConfig> centerConfig = productConfigRepo.findByMcc(f.getLocationId());
+
+        if (routeConfig.isPresent()) {
+            p = routeConfig.get();
+            log.info("Setting the product config for route since it exists. Buying Price is {}", p.getBuyingPrice());
+        } else if(centerConfig.isPresent()) {
+            p = centerConfig.get();
+            log.info("Setting the product config for center since it exists. Buying Price is {}", p.getBuyingPrice());
+        }
+        return p;
     }
 
     public EntityResponse deleteCollections(Long id) {
@@ -767,6 +981,43 @@ public class MilkCollectionService {
         return response;
     }
 
+
+    public EntityResponse<?> getFarmerRangeRecords(Integer farmerNo, String from, String to) {
+        EntityResponse<List<CollectionsData>> res = new EntityResponse<>();
+
+        try {
+            List<CollectionsData> records = milkCollectionRepo.getFarmerRangeRecords(farmerNo, from, to);
+
+            res.setStatusCode(HttpStatus.OK.value());
+            res.setMessage("Retrieved "+records.size()+" records");
+            res.setEntity(records);
+        } catch (Exception e) {
+            log.error(e.toString());
+
+            res.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            res.setMessage("A server error occurred");
+        }
+        return res;
+    }
+
+    public EntityResponse<?> getFarmerDateRangeStats(Integer farmerNo, String from, String to) {
+        EntityResponse<List<DailyRecords>> res = new EntityResponse<>();
+
+        try {
+            List<DailyRecords> records = milkCollectionRepo.getFarmerDateRangeStats(farmerNo, from, to);
+
+            res.setStatusCode(HttpStatus.OK.value());
+            res.setMessage("Successful");
+            res.setEntity(records);
+        } catch (Exception e) {
+            log.error(e.toString());
+
+            res.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            res.setMessage("A server error occurred");
+        }
+        return res;
+    }
+
     public EntityResponse getDateRangeRecords(String from,String to) {
 
         EntityResponse response = new EntityResponse();
@@ -839,6 +1090,32 @@ public class MilkCollectionService {
         }
         return response;
     }
+
+    //count route records with date range
+    public EntityResponse getRouteRecordsByDateRange(Long routeId, String startDate, String endDate) {
+        EntityResponse response = new EntityResponse();
+        try {
+            List<DailyRecords> collections = milkCollectionRepo.getRouteRecordBetweenDates(routeId, startDate, endDate);
+
+            if (!collections.isEmpty()) {
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setEntity(collections);
+                response.setMessage("Records found for route ID " + routeId + " between " + startDate + " and " + endDate);
+            } else {
+                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                response.setEntity(collections);
+                response.setMessage("No records found for route ID " + routeId + " between " + startDate + " and " + endDate);
+            }
+
+        } catch (Exception e) {
+            log.error("Error retrieving route records: {}", e.getMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage("Failed to retrieve route records.");
+        }
+        return response;
+    }
+
+
     public EntityResponse getRouteSummary() {
 
         EntityResponse response = new EntityResponse();
