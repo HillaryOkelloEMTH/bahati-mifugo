@@ -15,6 +15,7 @@ import com.emtech.dairyapp.Configurations.ProductPriceConfiguration.ProductConfi
 import com.emtech.dairyapp.Configurations.Routes.Route;
 import com.emtech.dairyapp.Configurations.Routes.RouteRepo;
 import com.emtech.dairyapp.Configurations.Utils.CONSTANTS;
+import com.emtech.dairyapp.Configurations.Utils.Formatter;
 import com.emtech.dairyapp.Dairy.FloatTracking.FloatManager;
 import com.emtech.dairyapp.Dairy.FloatTracking.FloatManagerRepo;
 import com.emtech.dairyapp.Dairy.Interface.*;
@@ -59,6 +60,104 @@ public class MilkCollectionService {
 
     @Value("${sms.enable}")
     private boolean sms;
+
+
+    public MilkCollectionService(MilkCollectionRepo milkCollectionRepo, ProductConfigRepo productConfigRepo, FloatManagerRepo floatManagerRepo, Codenerator codenerator, SmsServiceV2 smsServiceV2, FarmerRepo farmerRepo, CanRepo canRepo, RouteRepo routeRepo, PickUpLocationsRepo pickUpLocationsRepo, UserService userService) {
+        this.milkCollectionRepo = milkCollectionRepo;
+        this.productConfigRepo = productConfigRepo;
+        this.floatManagerRepo = floatManagerRepo;
+        this.codenerator = codenerator;
+        this.smsServiceV2 = smsServiceV2;
+        this.farmerRepo = farmerRepo;
+        this.canRepo = canRepo;
+        this.routeRepo = routeRepo;
+        this.pickUpLocationsRepo = pickUpLocationsRepo;
+        this.userService = userService;
+    }
+
+
+    public EntityResponse<?> addCollection(MilkCollections collections) {
+        EntityResponse<MilkCollections> response = new EntityResponse<>();
+        try {
+            String collectionNumber = codenerator.codeGenerator(collections.getFarmerNo());
+            collections.setCollectionNumber(collectionNumber);
+            collections.setProductType("Fresh Milk");
+
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+            String formattedDate = formatter.format(collections.getCollectionDate());
+            Integer checkDuplicate = milkCollectionRepo.checkDuplicateEntry(collections.getFarmerNo(),
+                    collections.getSession(), formattedDate);
+            log.info("Checking duplicate record...");
+
+            if (checkDuplicate > 0) {
+                log.info("..Duplicate entry detected ... ");
+                response.setStatusCode(HttpStatus.NOT_ACCEPTABLE.value());
+                response.setMessage("Duplicate entry detected");
+                return response;
+            }
+
+             log.info("Checking if farmer exist ...");
+             farmerRepo.findByFarmerNo(collections.getFarmerNo()).ifPresentOrElse(
+                     (f) -> {
+                         getConfig(f).ifPresentOrElse(
+                                 (config) -> {
+                                     log.info("<<<----Collection event---->>>");
+                                     Double lessWeight = 0.0;
+                                     Double actual_quantity = collections.getQuantity() - lessWeight;
+                                     collections.setQuantity(actual_quantity);
+                                     collections.setDeductedWeight(lessWeight);
+                                     Double buyingPrice = config.getBuyingPrice();
+                                     log.info("calculated buying price is: {}", buyingPrice);
+                                     Double totalAmount = buyingPrice * collections.getQuantity();
+                                     collections.setOriginalQuantity(actual_quantity);
+                                     log.info("total amount {}", totalAmount);
+                                     collections.setAmount(totalAmount);
+                                     collections.setCurrentPrice(buyingPrice);
+
+                                     MilkCollections c = milkCollectionRepo.save(collections);
+
+                                     // get month and year
+                                     SimpleDateFormat formatMonth = new SimpleDateFormat("MM");
+                                     SimpleDateFormat formatYear = new SimpleDateFormat("yyyy");
+                                     int monthNo = Integer.parseInt(formatMonth.format(collections.getCollectionDate()));
+                                     String year = formatYear.format(collections.getCollectionDate());
+
+                                     Double monthTotal = milkCollectionRepo.getMonthyAccumulation(collections.getFarmerNo(), monthNo, year);
+                                     log.info("new month total for {} , farmer no {}, month {} , updated month total: {} .......", f.getUsername(), f.getFarmer_no(), monthNo, monthTotal);
+
+                                     String session = Objects.equals(collections.getSession(), "Session 1") ? "Morning" : (Objects.equals(collections.getSession(), "Session 2") ? "Afternoon" : "Evening");
+
+                                     response.setStatusCode(HttpStatus.CREATED.value());
+                                     response.setEntity(c);
+                                     response.setMessage(HttpStatus.CREATED.getReasonPhrase());
+
+                                     if (sms) {
+                                         log.info("Sending delivery sms for farmer {}, delivery for {}", f.getUsername(), c.getCollectionDate());
+                                         if (!f.getMobile_no().isEmpty()) {
+                                             String message = "Dear " + f.getUsername() + ", Farmer No. " + f.getFarmer_no() + " received milk: " + collections.getQuantity() + " Kgs of milk. " +
+                                                     session + " Session on " + formatDateOnly(collections.getCollectionDate()) + ". Month Total: " + monthTotal + " Kgs. Helpline: 0726777884";
+                                             smsServiceV2.sendSMSNotification(message, Formatter.formatPhone(f.getMobile_no())).subscribe();
+                                         }
+                                     }
+                                 },
+                                 () -> {
+                                     response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                                     response.setMessage("Price config not found.");
+                                 }
+                         );
+                     },
+                     () -> {
+                         response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                         response.setMessage("Farmer Not Found");
+                     }
+             );
+        } catch (Exception e) {
+            log.error(e.getLocalizedMessage());
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+        }
+        return response;
+    }
 
 
     //colection with route id and date range
@@ -251,175 +350,6 @@ public Map<String, Object> getFarmerStatusByRoute(Long routeId, int month, int y
         return fullName.toString().trim();
     }
 
-
-    public MilkCollectionService(MilkCollectionRepo milkCollectionRepo, ProductConfigRepo productConfigRepo, FloatManagerRepo floatManagerRepo, Codenerator codenerator, SmsServiceV2 smsServiceV2, FarmerRepo farmerRepo, CanRepo canRepo, RouteRepo routeRepo, PickUpLocationsRepo pickUpLocationsRepo, UserService userService) {
-        this.milkCollectionRepo = milkCollectionRepo;
-        this.productConfigRepo = productConfigRepo;
-        this.floatManagerRepo = floatManagerRepo;
-        this.codenerator = codenerator;
-        this.smsServiceV2 = smsServiceV2;
-        this.farmerRepo = farmerRepo;
-        this.canRepo = canRepo;
-        this.routeRepo = routeRepo;
-        this.pickUpLocationsRepo = pickUpLocationsRepo;
-        this.userService = userService;
-    }
-
-
-    public EntityResponse<?> newcollection(MilkCollections collections) {
-
-        EntityResponse<MilkCollections> response = new EntityResponse<>();
-        try {
-
-
-            String collectionNumber = codenerator.codeGenerator(collections.getFarmerNo());
-            collections.setCollectionNumber(collectionNumber);
-
-
-            collections.setProductType("Fresh Milk");
-            String event = collections.getEvent();
-
-            log.info("Price management fro route found...");
-            if (event.equalsIgnoreCase("Buying")) {
-                log.info("buying event");
-//                collections.setQuantity(collections.getOriginalQuantity());
-//                Double buyingPrice = collections.getCurrentPrice();
-//                Double totalAmount = buyingPrice * collections.getQuantity();
-//                collections.setAmount(totalAmount);
-//                collections.setCurrentPrice(buyingPrice);
-                Optional<FloatManager> manager = floatManagerRepo.findByCollectorId(collections.getCollectorId());
-                if (manager.isPresent()) {
-                    log.info("Collector allocation found ..");
-
-//                    Double famount = manager.get().getFloatAmount();
-//                    Double balance = famount - totalAmount;
-//                    Double spent = famount - balance;
-//                    manager.get().setFloatSpent(spent);
-//                    manager.get().setBalance(balance);
-
-//                    floatManagerRepo.save(manager.get());
-                    MilkCollections c = milkCollectionRepo.save(collections);
-
-                    response.setStatusCode(HttpStatus.CREATED.value());
-                    response.setEntity(c);
-                    response.setMessage(HttpStatus.CREATED.getReasonPhrase());
-                } else {
-                    log.info("Collector allocation Not Found!! ..");
-                    response.setStatusCode(HttpStatus.NOT_ACCEPTABLE.value());
-                    response.setMessage("Collector allocation Not Found!! ..");
-                    return response;
-
-                }
-
-            } else if (event.equalsIgnoreCase("Collection")) {
-                SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-                String formattedDate = formatter.format(collections.getCollectionDate());
-                Integer checkDuplicate = milkCollectionRepo.checkDuplicateEntry(collections.getFarmerNo(),
-                        collections.getSession(), formattedDate);
-                log.info("Checking duplicate record...");
-
-                if (checkDuplicate > 0) {
-                    log.info("..Duplicate entry detected ... ");
-                    response.setStatusCode(HttpStatus.NOT_ACCEPTABLE.value());
-                    response.setMessage("Duplicate entry detected");
-                    return response;
-                }
-
-                Optional<FarmerInfo> check = farmerRepo.findByFarmerNo(collections.getFarmerNo());
-                log.info("Checking if farmer exist ...");
-                String username = "";
-                if (check.isPresent()) {
-                    ProductConfig productConfig = getConfig(check.get());
-                    log.info("Farmer exist ...");
-                    username = check.get().getName();
-
-                    if (productConfig.getBuyingPrice() > 0) {
-                        Optional<Can> cancheck = canRepo.findByCanNo(collections.getCanNo());
-                        if (cancheck.isEmpty()) {
-
-                            log.info("<<<----Collection event---->>>");
-                            Double lessWeight = 0.0;
-                            Double actual_quantity = collections.getQuantity() - lessWeight;
-                            collections.setQuantity(actual_quantity);
-                            collections.setDeductedWeight(lessWeight);
-                            Double buyingPrice = productConfig.getBuyingPrice();
-                            log.info("calculated buying price is: {}", buyingPrice);
-                            Double totalAmount = buyingPrice * collections.getQuantity();
-                            collections.setOriginalQuantity(actual_quantity);
-                            log.info("total amount {}", totalAmount);
-                            collections.setAmount(totalAmount);
-                            collections.setCurrentPrice(buyingPrice);
-
-                            //selling cost calculation
-                            response.setStatusCode(HttpStatus.OK.value());
-                            response.setMessage(HttpStatus.OK.getReasonPhrase());
-                        } else {
-                            response.setStatusCode(HttpStatus.NOT_FOUND.value());
-                            response.setMessage("Can Not Found");
-                            return response;
-                        }
-                    } else {
-                        Optional<Route> r = routeRepo.findById(collections.getRouteFk());
-
-                        if (r.isPresent()) {
-                            log.info("Price Configuration for {} not found", r.get().getRoute());
-                            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
-                            response.setMessage("Price Configuration for " + r.get().getRoute() + " Not Found");
-                            return response;
-                        }
-                    }
-                } else {
-                    response.setStatusCode(HttpStatus.NOT_FOUND.value());
-                    response.setMessage("Farmer Not Found");
-                    return response;
-                }
-
-                MilkCollections c = milkCollectionRepo.save(collections);
-
-                response.setStatusCode(HttpStatus.CREATED.value());
-                response.setEntity(c);
-                response.setMessage(HttpStatus.CREATED.getReasonPhrase());
-
-                // get month and year
-                SimpleDateFormat formatMonth = new SimpleDateFormat("MM");
-                SimpleDateFormat formatYear = new SimpleDateFormat("yyyy");
-                int monthNo = Integer.parseInt(formatMonth.format(collections.getCollectionDate()));
-                String year = formatYear.format(collections.getCollectionDate());
-
-                Double monthTotal = milkCollectionRepo.getMonthyAccumulation(collections.getFarmerNo(), monthNo, year);
-                log.info("new month total for {} , farmer no {}, month {} , updated month total: {} .......", username, check.get().getFarmer_no(), monthNo, monthTotal);
-                //send sms
-//                if (sms) {
-                String session = Objects.equals(collections.getSession(), "Session 1") ? "Morning" : (Objects.equals(collections.getSession(), "Session 2") ? "Afternoon" : "Evening");
-                if (check.get().getMobile_no() != null) {
-                    log.info("Sending sms ...");
-                    String message = "Dear " + username + ", Farmer No. " + check.get().getFarmer_no() + " received milk: " + collections.getQuantity() + " Kgs of milk. " +
-                             session + " Session on " + formatDateOnly(collections.getCollectionDate()) + ". Month Total: " + monthTotal + " Kgs. Helpline: 0726777884";
-                    String phoneno = check.get().getMobile_no().trim();
-                    if (phoneno.startsWith("0")) {
-                        log.info("Starting with 0");
-                        phoneno = phoneno.replaceFirst("0", "254");
-                    } else if (phoneno.startsWith("+")) {
-                        log.info("Starting with +");
-                        phoneno = phoneno.substring(1);
-                    } else if (phoneno.startsWith("7") || phoneno.startsWith("1")) {
-                        phoneno = "254" + phoneno;
-                    }
-//                    smsServiceV2.SMSNotification(message, phoneno);
-                }
-            }
-
-
-        } catch (Exception e) {
-            log.error(e.getLocalizedMessage());
-            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
-            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
-        }
-        return response;
-
-
-    }
-
     public EntityResponse<?> getFarmerDeliveries(Integer farmerNo, String from, String to) {
         EntityResponse<List<FarmerDelivery>> response = new EntityResponse<>();
 
@@ -460,92 +390,77 @@ public Map<String, Object> getFarmerStatusByRoute(Long routeId, int month, int y
         EntityResponse<MilkCollections> response = new EntityResponse<>();
         try {
             Optional<MilkCollections> collectionCheck = milkCollectionRepo.findByCollectionNumber(col.getCollectionNumber());
-            if (collectionCheck.isPresent()) {
-                MilkCollections collections= collectionCheck.get();
-                ProductConfig productConfig = new ProductConfig();
+            milkCollectionRepo.findByCollectionNumber(col.getCollectionNumber()).ifPresentOrElse(
+                    (collections) -> {
+                        farmerRepo.findByFarmerNo(collections.getFarmerNo()).ifPresentOrElse(
+                                (f) -> {
+                                    getConfig(f).ifPresentOrElse(
+                                            (config) -> {
+                                                double lessWeight = 0.0;
+                                                Double actual_quantity = col.getOriginalQuantity() - lessWeight;
+                                                collections.setQuantity(actual_quantity);
+                                                collections.setDeductedWeight(lessWeight);
+                                                Double buyingPrice = config.getBuyingPrice();
+                                                log.info("milk buying price {}", buyingPrice);
+                                                Double totalAmount = buyingPrice * collections.getQuantity();
+                                                log.info("total collection amount {}", totalAmount);
+                                                collections.setSession(col.getSession());
+                                                collections.setCanNo(col.getCanNo());
+                                                collections.setAmount(totalAmount);
+                                                collections.setCurrentPrice(buyingPrice);
+                                                collections.setUpdatedStatus(CONSTANTS.YES);
+                                                collections.setUpdatedDate(new Date());
+                                                collections.setOriginalQuantity(col.getOriginalQuantity());
+                                                MilkCollections cdata = milkCollectionRepo.save(collections);
+                                                response.setStatusCode(HttpStatus.OK.value());
+                                                response.setEntity(cdata);
+                                                response.setMessage(HttpStatus.OK.getReasonPhrase());
 
-                if (productConfig.getBuyingPrice() > 0) {
-                    Optional<FarmerInfo> farmerInfo = farmerRepo.findByFarmerNo(collections.getFarmerNo());
-                    Optional<Can> cancheck = canRepo.findByCanNo(col.getCanNo());
+                                                // get month and year
+                                                SimpleDateFormat formatMonth = new SimpleDateFormat("MM");
+                                                SimpleDateFormat formatYear = new SimpleDateFormat("yyyy");
+                                                int monthNo = Integer.parseInt(formatMonth.format(collections.getCollectionDate()));
+                                                String year = formatYear.format(collections.getCollectionDate());
 
-                    if (farmerInfo.isEmpty()) {
+                                                log.info("Updated month total for {} , farmer no {}, month {} .......", f.getName(), f.getFarmer_no(), monthNo);
+
+                                                log.info("Collection for farmer {} was updated at: {}", collections.getCollectionDate(), collections.getUpdatedDate());
+                                                Double monthTotal = milkCollectionRepo.getMonthyAccumulation(collections.getFarmerNo(), monthNo, year);
+
+                                                if (f.getMobile_no() != null){
+                                                    String message = "Dear "+f.getName()+", M.No. "+f.getFarmer_no()+"."+
+                                                            "\nDelivery for "+formatDate(collections.getCollectionDate())+" has been updated from "+collections.getOriginalQuantity()+" kgs to "+
+                                                            collections.getQuantity()+" kgs on "+formatDate(new Date())+". Monthly Total: "+monthTotal;
+                                                    SmsReqDto reqDto = new SmsReqDto();
+                                                    reqDto.setBulk(false);
+                                                    reqDto.setPhoneNumber(formatPhone(f.getMobile_no().trim()));
+                                                    reqDto.setMessage(message);
+
+                                                    smsServiceV2.SMSNotification(reqDto);
+                                                    response.setMessage("Collection updated and sent notification to farmer.");
+                                                    log.info("Collection Quantity updated and sent notification to farmer.");
+                                                }else {
+                                                    log.info("Collection updated but failed to send notification to farmer due to unavailable phone number.");
+                                                    response.setMessage("Collection updated but failed to send notification to farmer due to unavailable phone number.");
+                                                }
+                                            },
+                                            () -> {
+                                                response.setMessage("Price config for center or route not found.");
+                                                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                                            }
+                                    );
+                                },
+                                () -> {
+                                    response.setMessage("Farmer with no "+collections.getFarmerNo()+" not found");
+                                    response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                                }
+                        );
+                    },
+                    () -> {
+                        response.setMessage("Milk collection record not found");
                         response.setStatusCode(HttpStatus.NOT_FOUND.value());
-                      response.setMessage("Farmer with member number "+collections.getFarmerNo()+" not found");
-                      return response;
                     }
-                    FarmerInfo farmer = farmerInfo.get();
-                    productConfig = getConfig(farmer);
-                    if (cancheck.isEmpty()) {
-
-                        log.info("----Collection event----");
-//                        Can can = cancheck.get();
-//                        Double lessWeight = Double.valueOf(can.getDeductionWeight());
-                        double lessWeight = 0.0;
-                        Double actual_quantity = col.getOriginalQuantity() - lessWeight;
-                        collections.setQuantity(actual_quantity);
-                        collections.setDeductedWeight(lessWeight);
-                        Double buyingPrice = productConfig.getBuyingPrice();
-                        log.info("buying price {}", buyingPrice);
-                        Double totalAmount = buyingPrice * collections.getQuantity();
-                        log.info("total delivery amount {}", totalAmount);
-                        collections.setSession(col.getSession());
-                        collections.setCanNo(col.getCanNo());
-                        collections.setAmount(totalAmount);
-                        collections.setCurrentPrice(buyingPrice);
-                        collections.setUpdatedStatus(CONSTANTS.YES);
-                        collections.setUpdatedDate(new Date());
-                        collections.setOriginalQuantity(col.getOriginalQuantity());
-                        MilkCollections cdata = milkCollectionRepo.save(collections);
-                        response.setStatusCode(HttpStatus.OK.value());
-                        response.setEntity(cdata);
-                        response.setMessage(HttpStatus.OK.getReasonPhrase());
-
-                        // get month and year
-                        SimpleDateFormat formatMonth = new SimpleDateFormat("MM");
-                        SimpleDateFormat formatYear = new SimpleDateFormat("yyyy");
-                        int monthNo = Integer.parseInt(formatMonth.format(collections.getCollectionDate()));
-                        String year = formatYear.format(collections.getCollectionDate());
-
-                        log.info("new month total for {} , farmer no {}, month {} .......", farmer.getName(), farmer.getFarmer_no(), monthNo);
-
-                        log.info("Collection for {} was updated at: {}", collections.getCollectionDate(), collections.getUpdatedDate());
-                        Double monthTotal = milkCollectionRepo.getMonthyAccumulation(collections.getFarmerNo(), monthNo, year);
-
-                        if (farmerInfo.get().getMobile_no() != null){
-                            String message = "Dear "+farmerInfo.get().getName()+", M.No. "+farmerInfo.get().getFarmer_no()+"."+
-                                    "\nDelivery for "+formatDate(collections.getCollectionDate())+" has been updated from "+collections.getOriginalQuantity()+" kgs to "+
-                                    collections.getQuantity()+" kgs on "+formatDate(new Date())+". Monthly Total: "+monthTotal;
-                            SmsReqDto reqDto = new SmsReqDto();
-                            reqDto.setBulk(false);
-                            reqDto.setPhoneNumber(formatPhone(farmerInfo.get().getMobile_no().trim()));
-                            reqDto.setMessage(message);
-
-                            smsServiceV2.SMSNotification(reqDto);
-                            response.setMessage("Collection updated and sent notification to farmer.");
-                            log.info("Collection updated and sent notification to farmer.");
-                        }else {
-                            log.info("Collection updated but failed to send notification to farmer due to unavailable phone number.");
-                            response.setMessage("Collection updated but failed to send notification to farmer due to unavailable phone number.");
-                        }
-                    } else {
-                        response.setStatusCode(HttpStatus.NOT_FOUND.value());
-                        response.setMessage("Can Not Found");
-                    }
-                } else {
-                    Optional<Route> r = routeRepo.findById(collections.getRouteFk());
-
-                    log.info("Price Configuration for " + r.get().getRoute() + " Not Found");
-                    response.setStatusCode(HttpStatus.BAD_REQUEST.value());
-                    response.setMessage("Price Configuration for " + r.get().getRoute() + " Not Found");
-                }
-            } else {
-                log.info("Milk collection Record Not Found");
-                response.setStatusCode(HttpStatus.NOT_FOUND.value());
-                response.setMessage("Milk collection Record Not Found");
-            }
-
-
-
+            );
 
         } catch (Exception e) {
             log.error(e.getMessage());
@@ -555,19 +470,22 @@ public Map<String, Object> getFarmerStatusByRoute(Long routeId, int month, int y
         return response;
     }
 
-    private ProductConfig getConfig(FarmerInfo f) {
-        ProductConfig p = new ProductConfig();
+
+    private Optional<ProductConfig> getConfig(FarmerInfo f) {
+        Optional<ProductConfig> p = Optional.empty();
 
         log.info("Fetching price configuration for {} and route {} for farmer", f.getRoute(), f.getPickUpLocation());
         Optional<ProductConfig> routeConfig = productConfigRepo.findByMccFkAndRouteFk(f.getLocationId(), f.getRouteId());
         Optional<ProductConfig> centerConfig = productConfigRepo.findByMcc(f.getLocationId());
 
         if (routeConfig.isPresent()) {
-            p = routeConfig.get();
-            log.info("Setting the product config for route since it exists. Buying Price is {}", p.getBuyingPrice());
+            p = routeConfig;
+            log.info("Setting the product config for route since it exists. Buying Price is {}", p.get().getBuyingPrice());
         } else if(centerConfig.isPresent()) {
-            p = centerConfig.get();
-            log.info("Setting the product config for center since it exists. Buying Price is {}", p.getBuyingPrice());
+            p = centerConfig;
+            log.info("Setting the product config for center since it exists. Buying Price is {}", p.get().getBuyingPrice());
+        } else {
+            log.info("Price config for Center and route not found");
         }
         return p;
     }

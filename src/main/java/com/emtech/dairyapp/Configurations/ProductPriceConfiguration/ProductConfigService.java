@@ -259,6 +259,7 @@ public class ProductConfigService {
                             productConfig.setMccFk(p.getMccFk());
 
                             saveHistory(p, productConfig);
+                            p.setEffectiveFrom(productConfig.getEffectiveFrom());
                             p.setBuyingPrice(productConfig.getBuyingPrice());
                             p.setSellingPrice(productConfig.getSellingPrice());
 
@@ -276,24 +277,23 @@ public class ProductConfigService {
 
                             saveHistory(p, productConfig);
                             p.setBuyingPrice(productConfig.getBuyingPrice());
+                            p.setEffectiveFrom(productConfig.getEffectiveFrom());
                             p.setStatus('Y');
                             p.setSellingPrice(productConfig.getSellingPrice());
                             productConfigRepo.save(p);
 
-                            if (p.getMccFk() != null && p.getRouteFk() == null) {
-                                productConfigRepo.findAllRouteConfigs(p.getMccFk()).forEach((pConfig) -> {
-                                    log.info("Updating mcc price changes for route with id {}", p.getRouteFk());
-                                    pConfig.setModifiedDate(new Date());
-                                    pConfig.setUpdatedBy(UserInfo.username());
-                                    pConfig.setBuyingPrice(productConfig.getBuyingPrice());
-                                    pConfig.setStatus('Y');
-                                    pConfig.setSellingPrice(productConfig.getSellingPrice());
-                                    productConfigRepo.save(pConfig);
-                                });
-                            }
+                            productConfigRepo.findAllRouteConfigs(p.getMccFk()).forEach((pConfig) -> {
+                                log.info("Updating mcc price changes for route with id {}", pConfig.getRouteFk());
+                                pConfig.setModifiedDate(new Date());
+                                pConfig.setUpdatedBy(UserInfo.username());
+                                pConfig.setBuyingPrice(productConfig.getBuyingPrice());
+                                pConfig.setStatus('Y');
+                                pConfig.setSellingPrice(productConfig.getSellingPrice());
+                                productConfigRepo.save(pConfig);
+                            });
 
                             log.info("Updating total amount for collections based on new prices and effective dates.");
-                            productConfigRepo.updateAllMccCollectionPrices(p.getMccFk(), productConfig.getBuyingPrice(), DateTimeFormatter.ofPattern("yyyy-MM-dd").format(productConfig.getEffectiveFrom().toInstant()));
+                            productConfigRepo.updateAllMccCollectionPrices(p.getMccFk(), productConfig.getBuyingPrice(), new SimpleDateFormat("yyyy-MM-dd").format(productConfig.getEffectiveFrom()));
 
                             response.setMessage("Price update done.");
                             response.setStatusCode(HttpStatus.OK.value());

@@ -65,7 +65,7 @@ ebs:
 
 
 sms:
-  enable: false
+  enable: true
 
 
 

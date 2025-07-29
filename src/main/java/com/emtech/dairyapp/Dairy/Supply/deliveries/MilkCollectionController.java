@@ -36,7 +36,7 @@ public class MilkCollectionController {
 
     @PostMapping("add")
     public ResponseEntity<?> addNewRecord(@RequestBody MilkCollections collections){
-        var response = collectionService.newcollection(collections);
+        var response = collectionService.addCollection(collections);
         return ResponseEntity.ok().body(response);
     }
 

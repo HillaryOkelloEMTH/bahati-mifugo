@@ -16,7 +16,7 @@ public interface FarmerProdAllocattionsRepo extends JpaRepository<FarmerProductA
 
 
 
-    List<FarmerProductAllocations> findByFarmerNo(Integer farmerNo);
+    List<FarmerProductAllocations> findByFarmerNoOrderByRequestedOnDesc(Integer farmerNo);
 
     @Query(value = "select count(*) from farmer_product_allocations al where al.status='APPROVED' and al.location_id = :locationId  and monthname(al.approval_date)= :month and year(al.approval_date)= :year", nativeQuery = true)
     Integer getMccAllocationsCount(Long locationId, String month, String year);

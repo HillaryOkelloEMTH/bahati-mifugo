@@ -63,14 +63,13 @@ public class JWTUtil {
     }
 
     private String doGenerateToken(Map<String, Object> claims,String username) {
-        Long expirationTimeLong = Long.parseLong(expirationTime); //in second
-        final Date createdDate = new Date();
-        final Date expirationDate = new Date(createdDate.getTime() + 1000 * 60 * 30); // expire after 30 min
+        Long expirationTimeLong = Long.parseLong(expirationTime); //in seconds
+        final Date expirationDate = new Date(new Date().getTime() + 1000 * 60 * 30); // expire after 30 mins.
 
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(username)
-                .setIssuedAt(createdDate)
+                .setIssuedAt(new Date())
                 .setExpiration(expirationDate)
                 .signWith(getSignInKey())
                 .compact();

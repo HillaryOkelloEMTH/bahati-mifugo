@@ -43,6 +43,24 @@ public class SecurityContextRepository implements ServerSecurityContextRepositor
     public Mono<SecurityContext> load(ServerWebExchange exchange) {
         ServerHttpRequest request = exchange.getRequest();
         String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+//        String authToken = null;
+
+//        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+//            authToken = authHeader.substring(7);
+//
+//            log.info("Bearer token found and is valid.");
+//        }else {
+//            log.error("couldn't find bearer string, will ignore the header.");
+//        }
+//        if (authToken != null) {
+//            Authentication auth = new UsernamePasswordAuthenticationToken(authToken, authToken);
+//
+//            log.info("Auth details are {}", auth);
+//
+//            return this.authenticationManager.authenticate(auth).map(SecurityContextImpl::new);
+//        } else {
+//            return Mono.empty();
+//        }
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             log.info("Authorization header missing or invalid format.");
