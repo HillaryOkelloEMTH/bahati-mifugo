@@ -414,9 +414,9 @@ public class FarmerProductAllocationService {
 
 //    Switched from Entity Response to ResponseEntity.
     public ResponseEntity<AllocationsResponse> fetchFarmerAllocations(Integer farmerNo) {
-        log.info("Fetching FarmerProductAllocationss ...");
+        log.info("Fetching Farmer Product Allocations ...");
         try {
-            List<FarmerProductAllocations> farmerProductAllocations = farmerProdAllocattionsRepo.findByFarmerNo(farmerNo);
+            List<FarmerProductAllocations> farmerProductAllocations = farmerProdAllocattionsRepo.findByFarmerNoOrderByRequestedOnDesc(farmerNo);
 
             List<Allocations> allocationsList =farmerProductAllocations.stream()
                     .map(this::convertEntityToDTO)
@@ -434,7 +434,7 @@ public class FarmerProductAllocationService {
             return  new ResponseEntity<>(response, status);
         } catch (Exception e) {
 
-            log.error("Error fetching FarmerProductAllocations: " + e.getLocalizedMessage());
+            log.error("1. Error fetching FarmerProductAllocations: {}", e.getLocalizedMessage());
 
             AllocationsResponse errorResponse = AllocationsResponse.builder()
                     .statusCode(HttpStatus.BAD_REQUEST.value())

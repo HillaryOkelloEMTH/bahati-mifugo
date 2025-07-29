@@ -50,6 +50,7 @@ public class SmsServiceV2 {
                 .body(Mono.just(smsRequest), SMSRequest.class)
                 .exchange()
                 .flatMap(clientResponse -> {
+                    System.out.println("The response from client is {}"+ clientResponse.toString());
                    if (clientResponse.statusCode().is2xxSuccessful()){
                        return clientResponse.bodyToFlux(SMSResponse.class)
                                .collectList()
@@ -78,6 +79,7 @@ public class SmsServiceV2 {
 
                                });
                    }else {
+                       System.out.println("Wereh ere tyring to debug.");
                        return clientResponse.bodyToFlux(SMSResponse.class)
                                .collectList()
                                .flatMap(body -> {
