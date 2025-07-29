@@ -64,12 +64,80 @@ List<Farmer> findAllByRouteFk(@Param("routeId") Long routeId);
             ,f.alternative_mobile_no  ,f.id_number ,f.created_at ,f.payment_mode ,f.deleted_flag,f.mobile_no ,f.member_type ,f.no_of_cows ,f.farmer_no \s
             ,s.name as subcounty,c.name as county,p.name as pickUpLocation from farmer f join collections cl on f.farmer_no = cl.farmer_no left join ward w  on f.ward_fk =w.id left join subcounty s on s.id =f.subcounty_fk left join county c on c.id =s.county_fk left join route r on r.id=f.route_fk left join pick_up_locations p on p.id =r.location_id left join bank_details b on b.id =f.bank_details_id where cl.collection_date >= date_sub(now(), interval :months month) and f.route_fk= :routeFk group by f.farmer_no""", nativeQuery = true)
     List<FarmerInfo> getRouteActiveFarmers(int months, Long routeFk);
+    @Query(value = """
+    SELECT 
+        f.id,
+        f.username,
+        f.payment_freequency,
+        r.route AS route,
+        r.id AS routeId,
+        f.first_name AS name,
+        b.account_name,
+        b.account_number,
+        f.alternative_mobile_no,
+        f.id_number,
+        f.created_at,
+        f.payment_mode,
+        f.deleted_flag,
+        f.mobile_no,
+        f.member_type,
+        f.no_of_cows,
+        f.farmer_no,
+        s.name AS subcounty,
+        c.name AS county,
+        p.name AS pickUpLocation
+    FROM farmer f
+    JOIN collections cl ON f.farmer_no = cl.farmer_no
+    LEFT JOIN ward w ON f.ward_fk = w.id
+    LEFT JOIN subcounty s ON s.id = f.subcounty_fk
+    LEFT JOIN county c ON c.id = s.county_fk
+    LEFT JOIN route r ON r.id = f.route_fk
+    LEFT JOIN pick_up_locations p ON p.id = r.location_id
+    LEFT JOIN bank_details b ON b.id = f.bank_details_id
+    WHERE f.route_fk = :routeFk
+    GROUP BY f.farmer_no
+""", nativeQuery = true)
+    List<FarmerInfo> getFarmersByRoute(@Param("routeFk") Long routeFk);
 
     @Query(value = """
             SELECT f.id,f.username,f.payment_freequency,r.route as route,r.id as routeId ,f.first_name as name,b.account_name ,b.account_number \s
             ,f.alternative_mobile_no  ,f.id_number ,f.created_at ,f.payment_mode ,f.deleted_flag,f.mobile_no ,f.member_type ,f.no_of_cows ,f.farmer_no \s
             ,s.name as subcounty,c.name as county,p.name as pickUpLocation from farmer f join collections cl on f.farmer_no = cl.farmer_no left join ward w  on f.ward_fk =w.id left join subcounty s on s.id =f.subcounty_fk left join county c on c.id =s.county_fk left join route r on r.id=f.route_fk left join pick_up_locations p on p.id =r.location_id left join bank_details b on b.id =f.bank_details_id where cl.collection_date >= date_sub(now(), interval :months month) and p.id= :locationId group by f.farmer_no""", nativeQuery = true)
     List<FarmerInfo> getCenterActiveFarmers(int months, Long locationId);
+    @Query(value = """
+    SELECT 
+        f.id,
+        f.username,
+        f.payment_freequency,
+        r.route AS route,
+        r.id AS routeId,
+        f.first_name AS name,
+        b.account_name,
+        b.account_number,
+        f.alternative_mobile_no,
+        f.id_number,
+        f.created_at,
+        f.payment_mode,
+        f.deleted_flag,
+        f.mobile_no,
+        f.member_type,
+        f.no_of_cows,
+        f.farmer_no,
+        s.name AS subcounty,
+        c.name AS county,
+        p.name AS pickUpLocation
+    FROM farmer f
+    JOIN collections cl ON f.farmer_no = cl.farmer_no
+    LEFT JOIN ward w ON f.ward_fk = w.id
+    LEFT JOIN subcounty s ON s.id = f.subcounty_fk
+    LEFT JOIN county c ON c.id = s.county_fk
+    LEFT JOIN route r ON r.id = f.route_fk
+    LEFT JOIN pick_up_locations p ON p.id = r.location_id
+    LEFT JOIN bank_details b ON b.id = f.bank_details_id
+    WHERE p.id = :locationId
+    GROUP BY f.farmer_no
+""", nativeQuery = true)
+    List<FarmerInfo> getFarmerCenter(@Param("locationId") Long locationId);
 
     @Query(value = "SELECT f.id,f.username,r.route as routeName,r.id as routeFk ,f.first_name as name, f.alternative_mobile_no  ,f.id_number as idNumber,f.created_at ,f.payment_mode ,f.deleted_flag,f.mobile_no as mobileNo,f.farmer_no as farmerNo,p.name as pickUpLocation from farmer f left join route r on r.id=f.route_fk left join pick_up_locations p on p.id =r.location_id where r.location_id= :locationId", nativeQuery = true)
     List<FarmerInterface> getMccfarmers(Long locationId);
