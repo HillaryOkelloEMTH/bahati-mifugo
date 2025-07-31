@@ -34,17 +34,6 @@ public class FarmerService {
 
     private final PickUpLocationsRepo pickUpLocationsRepo;
 
-
-//    public static String generatecSystemCode(int len) {
-//        String chars = "01234567890";
-//        Random rnd = new Random();
-//        String S = "S";
-//        StringBuilder sb = new StringBuilder(len);
-//        for (int i = 0; i < 10; i++)
-//            sb.append(chars.charAt(rnd.nextInt(chars.length()))).toString();
-//        return S + sb;
-//    }
-
     public FarmerService(FarmerRepo farmerRepo, SmsServiceV2 smsServiceV2, RouteRepo routeRepo, PickUpLocationsRepo pickUpLocationsRepo) {
         this.farmerRepo = farmerRepo;
         this.smsServiceV2 = smsServiceV2;
@@ -117,31 +106,20 @@ public class FarmerService {
             response.setEntity(farmer);
             response.setStatusCode(HttpStatus.CREATED.value());
             response.setMessage(HttpStatus.CREATED.getReasonPhrase());
-//            if (sms) {
+            if (sms) {
                 log.info("Sending sms ...");
 
                 String message = "Dear " + username + ", your registration was successful. Your member number is " + farmer.getFarmerNo() + "." +
                         " Bank: "+farmer.getBankDetails().getBankName()+" Acc no: "+farmer.getBankDetails().getAccountNumber() +
-                        " Welcome to Bahati Dairies";
+                        " Welcome to Bahati Dairies.";
                 String phoneno = farmer.getMobileNo().trim();
-                if (phoneno.startsWith("0")) {
-                    log.info("Starting with 0");
-                    phoneno = phoneno.replaceFirst("0", "254");
-                } else if (phoneno.startsWith("+")) {
-                    log.info("Starting with +");
-                    phoneno = phoneno.substring(1, phoneno.length());
-                } else if (phoneno.startsWith("7") || phoneno.startsWith("1")) {
-                    phoneno = "254" + phoneno;
-                }
-//                smsServiceV2.SMSNotification(message, phoneno);
-//            }
+
+                smsServiceV2.sendSMSNotification(message, Formatter.formatPhone(phoneno)).subscribe();
+            }
             log.info("Farmer Added");
             return response;
-
-
         }catch (Exception e){
-            e.printStackTrace();
-            log.error("Error: " + e.getLocalizedMessage());
+            log.error("An error occurred: {}", e.getLocalizedMessage());
             response.setStatusCode(HttpStatus.BAD_REQUEST.value());
             response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
             return response;
@@ -645,7 +623,7 @@ public EntityResponse<?> getRouteActiveFarmers(Integer months, Long routeId) {
 
                 String message = "Dear "+farmer.getFirstName()+", member no "+farmer.getFarmerNo()+" your route has been updated to "+route.getRoute();
 
-//                smsServiceV2.SMSNotification(message, phoneNo);
+                smsServiceV2.sendSMSNotification(message, Formatter.formatPhone(phoneNo));
             }
 
 
@@ -671,8 +649,6 @@ public EntityResponse<?> getRouteActiveFarmers(Integer months, Long routeId) {
             response.setStatusCode(HttpStatus.OK.value());
             response.setMessage(HttpStatus.OK.getReasonPhrase());
             return response;
-
-
         } catch (Exception e) {
             log.error("Error: " + e.getLocalizedMessage());
             response.setStatusCode(HttpStatus.BAD_REQUEST.value());

@@ -1,12 +1,14 @@
 package com.emtech.dairyapp.Configurations.Routes;
 
 
+import com.emtech.dairyapp.Configurations.PickUpLocations.PickUpLocationsRepo;
 import com.emtech.dairyapp.Configurations.Utils.CONSTANTS;
 import com.emtech.dairyapp.Response.EntityResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -17,7 +19,6 @@ public class RouteService {
     
     
     private final RouteRepo repo;
-
 
     public RouteService(RouteRepo repo) {
         this.repo = repo;
@@ -44,29 +45,28 @@ public class RouteService {
             return response;
         }
     }
-    public EntityResponse fetchRoute() {
-        log.info("Fetching Routes ...");
-        EntityResponse response = new EntityResponse();
+    public EntityResponse<?> fetchRoute(Long subCountyFk) {
+        log.info("Fetching Route Data ...");
+        EntityResponse<List<Route>> response = new EntityResponse<>();
+        System.out.println("The sub county Id is "+subCountyFk);
         try {
-            List<Route> Routes = repo.findByDeletedFlag(CONSTANTS.NO);
-            if(Routes.size()>0) {
-                log.info("Routes Found "+ "("+Routes.size()+")");
-                response.setEntity(Routes);
-                response.setStatusCode(HttpStatus.OK.value());
-                response.setMessage(HttpStatus.FOUND.getReasonPhrase());
-            }else {
-                log.info("Routes Not Found "+ "("+Routes.size()+")");
-                response.setEntity(Routes);
-                response.setStatusCode(HttpStatus.OK.value());
-                response.setMessage(HttpStatus.NO_CONTENT.getReasonPhrase());
+            List<Route> routes;
+
+            if (subCountyFk == null || subCountyFk == 0) {
+                routes = repo.findByDeletedFlag(CONSTANTS.NO);
+            } else {
+                routes = repo.findByDeletedFlagAndCenter(CONSTANTS.NO, subCountyFk);
             }
-            return response;
+
+            response.setEntity(routes);
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setMessage("Fetched "+(routes.isEmpty() ? "0 routes." : routes.size()+" routes"));
         } catch (Exception e) {
-            log.error("Error: " + e.getLocalizedMessage());
+            log.error("Error: {}", e.getMessage());
             response.setStatusCode(HttpStatus.BAD_REQUEST.value());
             response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
-            return response;
         }
+        return response;
     }
     public EntityResponse<?> fetchCollectorRoutes(Long collectorId) {
         log.info("Fetching Routes ...");

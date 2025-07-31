@@ -56,7 +56,6 @@ public class HttpConfigurer {
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
         http.authorizeExchange(
                 exchange -> exchange.pathMatchers(EndPoints.allowedUrls.toArray(String[]::new)).permitAll()
-                        .pathMatchers("api/v1/**").permitAll()
                         .anyExchange().authenticated())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)

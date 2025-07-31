@@ -25,8 +25,8 @@ public class RouteController {
         return ResponseEntity.ok().body(response);
     }
     @GetMapping("get")
-    public ResponseEntity<EntityResponse> getroutes(){
-        EntityResponse response = routeService.fetchRoute();
+    public ResponseEntity<?> getRoutes(@RequestParam Long subCountyFk){
+        var response = routeService.fetchRoute(subCountyFk);
         return ResponseEntity.ok().body(response);
     }
     @GetMapping("collector/{collectorId}")
