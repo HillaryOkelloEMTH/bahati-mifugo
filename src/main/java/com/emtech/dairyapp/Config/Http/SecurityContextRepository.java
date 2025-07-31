@@ -44,7 +44,7 @@ public class SecurityContextRepository implements ServerSecurityContextRepositor
         ServerHttpRequest request = exchange.getRequest();
         String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
 //        String authToken = null;
-
+//
 //        if (authHeader != null && authHeader.startsWith("Bearer ")) {
 //            authToken = authHeader.substring(7);
 //

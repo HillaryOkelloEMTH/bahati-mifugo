@@ -9,7 +9,10 @@ import java.util.List;
 @Repository
 public interface RouteRepo extends JpaRepository<Route,Long> {
 
-    List<Route>findByDeletedFlag(Character deletedFlag);
+    List<Route> findByDeletedFlag(Character deletedFlag);
+
+    @Query(value = "select r.* from route r join pick_up_locations p on p.subcounty_fk= :sub_countyFk where r.location_id = p.id and r.deleted_flag =:deletedFlag", nativeQuery = true)
+    List<Route>findByDeletedFlagAndCenter(Character deletedFlag, Long sub_countyFk);
 
     @Query(value = "select * from route where active_flag='Y'",nativeQuery = true)
     List<Route> getRoutes();

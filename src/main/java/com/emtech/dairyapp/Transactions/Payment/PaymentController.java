@@ -86,9 +86,9 @@ public class PaymentController {
 
     //payment options endpoints
     @GetMapping(path = "/mode", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<ResponseEntity<List<PaymentCategoryDTO>>> getAllCategories() {
-        List<PaymentCategoryDTO> categories = paymentCategoryService.getAllCategories();
-        return Mono.just(ResponseEntity.ok(categories));
+    public Mono<ResponseEntity<?>> getAllCategories() {
+        var res = paymentCategoryService.getAllCategories();
+        return Mono.just(ResponseEntity.status(res.getStatusCode()).body(res));
     }
 
     @PostMapping(path = "/mode", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)

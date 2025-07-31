@@ -81,7 +81,7 @@ public class BulkProductService {
                 workbook = new XSSFWorkbook(inputStream);
             } else {
                 response.setStatusCode(HttpStatus.BAD_REQUEST.value());
-                response.setMessage("Kindly upload an excel file");
+                response.setMessage("Upload an excel file");
                 return response;
             }
 
