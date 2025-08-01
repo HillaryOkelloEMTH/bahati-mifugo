@@ -1,8 +1,10 @@
 package com.emtech.dairyapp.Dairy.Interface;
 
+import java.util.Date;
+
 public interface FarmerDelivery {
     Double getQuantity();
-    String getDate();
+    Date getDate();
     Double getAmount();
     String getCollector();
     Character getPaid();

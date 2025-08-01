@@ -10,7 +10,7 @@ server:
 
 spring:
   profiles:
-    active: dev
+    active: default
   datasource:
     url: jdbc:mysql://localhost:3306/bahati_prod
     username: jufred
