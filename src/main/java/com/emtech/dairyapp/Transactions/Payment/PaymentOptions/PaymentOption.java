@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Date;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -34,6 +36,7 @@ public class PaymentOption {
     @Column(name="deleted" ,nullable=false)
     private boolean deleted=false;
 
+    private Date createdOn = new Date();
     // Getters and Setters
 }
 

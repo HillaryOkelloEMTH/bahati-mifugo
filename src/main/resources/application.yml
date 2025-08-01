@@ -1,7 +1,7 @@
 server:
   error:
     include-message: always
-  port: 9600
+  port: 9400
 #  ssl:
 #    key-store: classpath:static/keystore.p12
 #    key-alias: dairy
@@ -10,11 +10,11 @@ server:
 
 spring:
   profiles:
-    active: dev
+    active: default
   datasource:
-    url: jdbc:mysql://localhost:3307/bahati
-    username: root
-    password:
+    url: jdbc:mysql://localhost:3306/bahati_prod
+    username: jufred
+    password: Jufred@20
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     properties:

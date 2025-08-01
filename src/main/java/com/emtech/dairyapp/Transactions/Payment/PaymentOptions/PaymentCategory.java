@@ -25,9 +25,7 @@ public class PaymentCategory {
     private List<PaymentOption> paymentOptions;
 
     @Column(name="deleted",nullable =false)
-        private boolean deleted=false;
-    
-
+    private boolean deleted=false;
     // Getters and Setters
 }
 

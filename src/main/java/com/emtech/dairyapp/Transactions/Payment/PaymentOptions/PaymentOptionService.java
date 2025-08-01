@@ -84,6 +84,7 @@ public List<PaymentOptionDTO> getAllOptions() {
         dto.setActive(option.isActive());
         dto.setCategoryId(option.getCategory().getId());
         dto.setCategoryName(option.getCategory().getName());
+        dto.setCreatedOn(option.getCreatedOn());
         return dto;
     }
 
