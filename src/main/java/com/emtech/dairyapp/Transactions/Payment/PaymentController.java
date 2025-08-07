@@ -1,19 +1,20 @@
 package com.emtech.dairyapp.Transactions.Payment;
 
+import com.emtech.dairyapp.Stock.Category.Category;
 import com.emtech.dairyapp.Transactions.Data.Http.Request.CashPaymentRequest;
 import com.emtech.dairyapp.Transactions.Data.Http.Response.PaymentEntityResponse;
 import com.emtech.dairyapp.Transactions.Data.Http.Response.PaymentResponse;
 import com.emtech.dairyapp.Transactions.Data.Http.Response.PaymentsResponse;
-import com.emtech.dairyapp.Transactions.Payment.PaymentOptions.PaymentCategoryService;
-import com.emtech.dairyapp.Transactions.Payment.PaymentOptions.PaymentOptionService;
+import com.emtech.dairyapp.Transactions.Payment.PaymentOptions.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
-import com.emtech.dairyapp.Transactions.Payment.PaymentOptions.PaymentCategoryDTO;
-import com.emtech.dairyapp.Transactions.Payment.PaymentOptions.PaymentOptionDTO;
+
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping(
@@ -27,6 +28,10 @@ public class PaymentController {
 
     @Autowired
     private PaymentOptionService paymentOptionService;
+    @Autowired
+    private PaymentOptionRepository paymentOptionRepository;
+    @Autowired
+    private PaymentCategoryRepository paymentCategoryRepository;
 
     @RequestMapping(
             path = "/cash-payment",
@@ -152,4 +157,32 @@ public class PaymentController {
         return ResponseEntity.ok(options);
 
     }
+
+    @PutMapping("/payment-mode/{id}/toggle-status")
+    ResponseEntity<?>togglePaymentModeStatus(@PathVariable Long id) {
+        Optional<PaymentCategory> PaymentModeOpt = paymentCategoryRepository.findById(id);
+        if (PaymentModeOpt.isPresent()) {
+            PaymentCategory mode = PaymentModeOpt.get();
+            mode.setActive(!mode.isActive());
+            paymentCategoryRepository.save(mode);
+            return ResponseEntity.ok().build();
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Pyment mode not found");
+        }
+    }
+
+@PutMapping("/payment-options/{id}/toggle-status")
+        ResponseEntity<?>toggleStatusOption(@PathVariable Long id){
+                Optional<PaymentOption>paymentOptionOpt=paymentOptionRepository.findById(id);
+                if (paymentOptionOpt.isPresent()) {
+                    PaymentOption option = paymentOptionOpt.get();
+                    option.setActive(!option.isActive());
+                    paymentOptionRepository.save(option);
+                    return ResponseEntity.ok().build();
+                }else{
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Payment Option not found");
+                }
+        }
+
+
 }

@@ -21,6 +21,9 @@ public class PaymentCategoryService {
                     PaymentCategoryDTO dto = new PaymentCategoryDTO();
                     dto.setId(category.getId());
                     dto.setName(category.getName());
+                    dto.setCreatedAt(category.getCreatedAt());
+                    dto.setDeleted(category.isDeleted());
+                    dto.setActive(category.isActive());
                     return dto;
                 }).collect(Collectors.toList());
     }
@@ -28,9 +31,13 @@ public class PaymentCategoryService {
     public PaymentCategoryDTO createCategory(PaymentCategoryDTO dto) {
         PaymentCategory category = new PaymentCategory();
         category.setName(dto.getName());
+        category.setActive(dto.isActive());
 
         PaymentCategory saved = categoryRepository.save(category);
         dto.setId(saved.getId());
+//        dto.setActive(saved.isActive());
+        dto.setCreatedAt(saved.getCreatedAt());
+        dto.setDeleted(saved.isDeleted());
         return dto;
     }
 
