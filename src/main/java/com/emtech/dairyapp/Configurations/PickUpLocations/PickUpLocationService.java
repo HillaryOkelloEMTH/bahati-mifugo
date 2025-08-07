@@ -32,51 +32,85 @@ public class PickUpLocationService {
     @Autowired
     private PickUpLocationsRepo pickUpLocationsRepo;
 
+//
+//    @Transactional
+//    public EntityResponse addPickUpLocations(PickUpLocations pickUpLocations) {
+//        log.info("saving PickUpLocations...");
+//        EntityResponse response = new EntityResponse<>();
+//        try {
+//
+//            List<Collector> collectors= pickUpLocations.getCollectors();
+//            List<String> usernames=collectors.stream()
+//                    .map(collector -> collector.getUsername())
+//                    .collect(Collectors.toList());
+//
+//            long distinctCount = usernames.stream()
+//                    .distinct()
+//                    .count();
+//            boolean hasDuplicates = distinctCount != collectors.size();
+//            if(hasDuplicates){
+//                response.setStatusCode(HttpStatus.NOT_ACCEPTABLE.value());
+//                response.setEntity(usernames);
+//                response.setMessage("The Collectors Contains Duplicates");
+//                return  response;
+//            }
+//            System.out.println("Debugger ------1");
+//            PickUpLocations p = pickUpLocationsRepo.save(pickUpLocations);
+//
+//            for (Collector c:collectors ) {
+//                System.out.println("debugger ------2");
+//                pickUpLocationsRepo.updateCollectorInformation(p.getName(),c.getUsername());
+//            }
+//
+//            System.out.println("debugger -------3");
+//
+//            response.setStatusCode(HttpStatus.CREATED.value());
+//            response.setEntity(pickUpLocations);
+//            response.setMessage(HttpStatus.CREATED.getReasonPhrase());
+//        } catch (Exception e) {
+//            log.error(e.getMessage());
+//
+//            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+//            response.setEntity(pickUpLocations);
+//            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+//        }
+//
+//        return response;
+//    }
+@Transactional
+public EntityResponse addPickUpLocations(PickUpLocations pickUpLocations) {
+    log.info("saving PickUpLocations...");
+    EntityResponse response = new EntityResponse<>();
 
-    @Transactional
-    public EntityResponse addPickUpLocations(PickUpLocations pickUpLocations) {
-        log.info("saving PickUpLocations...");
-        EntityResponse response = new EntityResponse<>();
-        try {
+    List<Collector> collectors= pickUpLocations.getCollectors();
+    List<String> usernames=collectors.stream()
+            .map(Collector::getUsername)
+            .collect(Collectors.toList());
 
-            List<Collector> collectors= pickUpLocations.getCollectors();
-            List<String> usernames=collectors.stream()
-                    .map(collector -> collector.getUsername())
-                    .collect(Collectors.toList());
-
-            long distinctCount = usernames.stream()
-                    .distinct()
-                    .count();
-            boolean hasDuplicates = distinctCount != collectors.size();
-            if(hasDuplicates){
-                response.setStatusCode(HttpStatus.NOT_ACCEPTABLE.value());
-                response.setEntity(usernames);
-                response.setMessage("The Collectors Contains Duplicates");
-                return  response;
-            }
-            System.out.println("Debugger ------1");
-            PickUpLocations p = pickUpLocationsRepo.save(pickUpLocations);
-
-            for (Collector c:collectors ) {
-                System.out.println("debugger ------2");
-                pickUpLocationsRepo.updateCollectorInformation(p.getName(),c.getUsername());
-            }
-
-            System.out.println("debugger -------3");
-
-            response.setStatusCode(HttpStatus.CREATED.value());
-            response.setEntity(pickUpLocations);
-            response.setMessage(HttpStatus.CREATED.getReasonPhrase());
-        } catch (Exception e) {
-            log.error(e.getMessage());
-
-            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
-            response.setEntity(pickUpLocations);
-            response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
-        }
-
-        return response;
+    long distinctCount = usernames.stream().distinct().count();
+    boolean hasDuplicates = distinctCount != collectors.size();
+    if(hasDuplicates){
+        response.setStatusCode(HttpStatus.NOT_ACCEPTABLE.value());
+        response.setEntity(usernames);
+        response.setMessage("The Collectors Contains Duplicates");
+        return  response;
     }
+
+    System.out.println("Debugger ------1");
+    PickUpLocations p = pickUpLocationsRepo.save(pickUpLocations);
+
+    for (Collector c : collectors) {
+        System.out.println("debugger ------2");
+        pickUpLocationsRepo.updateCollectorInformation(p.getName(), c.getUsername());
+    }
+
+    System.out.println("debugger -------3");
+
+    response.setStatusCode(HttpStatus.CREATED.value());
+    response.setEntity(pickUpLocations);
+    response.setMessage(HttpStatus.CREATED.getReasonPhrase());
+    return response;
+}
 
     public EntityResponse getPickUpLocations() {
         EntityResponse response = new EntityResponse<>();
