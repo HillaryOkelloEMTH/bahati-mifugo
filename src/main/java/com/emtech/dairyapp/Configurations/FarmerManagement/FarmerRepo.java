@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -211,5 +212,60 @@ FarmerAccruedAmount getFarmerAccruedAmount(Long id, Character paymentyStatus);
             "GROUP BY c.farmer_no " +
             "ORDER BY p.id asc, c.farmer_no asc", nativeQuery = true)
     List<PayrollInterface> getFarmerPayroll(Integer month, String year);
+
+    //Farmer payroll by Date Range
+    @Query(value = "SELECT " +
+            "c.farmer_no AS fno, " +
+            "ROUND(SUM(c.quantity), 2) AS qty, " +
+            "ROUND(SUM(c.amount), 2) AS income, " +
+            "CONCAT(f.first_name,' ', IFNULL(f.middle_name, ' '), ' ', f.last_name) AS farmer, " +
+            "f.mobile_no AS mobileNo, " +
+            "r.route, " +
+            "p.name AS mcc, " +
+            "c.current_price AS price, " +
+
+            "(SELECT ROUND(COALESCE(SUM(CASE WHEN fpa2.product_name LIKE 'dairy%' THEN fpa2.amount ELSE 0 END), 0), 2) " +
+            " FROM farmer_product_allocations fpa2 " +
+            " WHERE DATE(fpa2.approval_date) BETWEEN :startDate AND :endDate " +
+            "   AND fpa2.farmer_no = c.farmer_no) AS dairyMeal, " +
+
+            "(SELECT ROUND(COALESCE(SUM(CASE WHEN fpa2.product_name NOT LIKE 'dairy%' THEN fpa2.amount ELSE 0 END), 0), 2) " +
+            " FROM farmer_product_allocations fpa2 " +
+            " WHERE DATE(fpa2.approval_date) BETWEEN :startDate AND :endDate " +
+            "   AND fpa2.farmer_no = c.farmer_no) AS salts, " +
+
+            "(SELECT ROUND(COALESCE(SUM(fpa.amount), 0.0), 2) " +
+            " FROM farmer_product_allocations fpa " +
+            " WHERE DATE(fpa.requested_on) BETWEEN :startDate AND :endDate " +
+            "   AND fpa.farmer_no = c.farmer_no) AS expenses, " +
+
+            "(ROUND(SUM(c.amount), 2) - " +
+            " (SELECT ROUND(COALESCE(SUM(fpa.amount), 0.0), 2) " +
+            "  FROM farmer_product_allocations fpa " +
+            "  WHERE DATE(fpa.requested_on) BETWEEN :startDate AND :endDate " +
+            "    AND fpa.farmer_no = c.farmer_no)) AS netpay, " +
+
+            "b.bank_name AS bname, " +
+            "b.account_number AS accno, " +
+            "b.branch " +
+
+            "FROM collections c " +
+            "LEFT JOIN farmer f ON c.farmer_no = f.farmer_no " +
+            "LEFT JOIN route r ON c.route_fk = r.id " +
+            "LEFT JOIN pick_up_locations p ON r.location_id = p.id " +
+            "LEFT JOIN bank_details b ON f.bank_details_id = b.id " +
+
+            "WHERE DATE(c.collection_date) BETWEEN :startDate AND :endDate " +
+            "AND c.quantity > 0 " +
+
+            "GROUP BY c.farmer_no " +
+            "ORDER BY p.id ASC, c.farmer_no ASC",
+            nativeQuery = true)
+    List<PayrollInterface> getFarmerPayrollByDateRange(
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
+    );
+
+
 
 }
