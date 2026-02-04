@@ -4,7 +4,9 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Data
@@ -25,7 +27,12 @@ public class PaymentCategory {
     private List<PaymentOption> paymentOptions;
 
     @Column(name="deleted",nullable =false)
-    private boolean deleted=false;
+        private boolean deleted=false;
+    private boolean active=true;
+    @CreationTimestamp
+    @Column(updatable = false)
+    private LocalDate createdAt;
+
     // Getters and Setters
 }
 

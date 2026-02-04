@@ -9,11 +9,13 @@ server:
 #    key-password: dairy-dev
 
 spring:
+  profiles:
+    active: default
   datasource:
-    url: jdbc:mariadb://localhost:3307/bahati
-    username: root
-    password:
-    driver-class-name: org.mariadb.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/bahati_prod
+    username: jufred
+    password: Jufred@20
+    driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     properties:
       hibernate:
@@ -24,6 +26,8 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: false
+
+
 
   mvc:
     path-match:

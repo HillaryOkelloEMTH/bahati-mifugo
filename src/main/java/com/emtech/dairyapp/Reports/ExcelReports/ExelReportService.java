@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 
 //import jakarta.swing.text.html.parser.Entity;
 import java.io.*;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -225,6 +226,51 @@ public class ExelReportService {
         }
 
     }
+
+
+    public EntityResponse<ByteArrayInputStream> farmerPayrollByDateRange(LocalDate startDate, LocalDate endDate) {
+        EntityResponse<ByteArrayInputStream> response = new EntityResponse<>();
+
+        try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            Sheet sheet = workbook.createSheet("Payroll");
+
+            String[] headers = {"Farmer", "Farmer No", "Mobile No", "Quantity", "Price", "Income",
+                    "Dairy Meal", "Salts", "Expenses", "NetPay", "Bank", "Account No", "Branch", "Route", "Mcc"};
+
+            List<PayrollInterface> data = farmerRepo.getFarmerPayrollByDateRange(startDate, endDate);
+
+            // Header row
+            int rowNum = 0;
+            Row headerRow = sheet.createRow(rowNum++);
+            createHeaderRow(headerRow, headers);
+
+            // Data rows
+            for (PayrollInterface record : data) {
+                Row row = sheet.createRow(rowNum++);
+                fillPayroll(row, record);
+            }
+
+            // Auto-size columns
+            for (int i = 0; i < headers.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            workbook.write(out);
+
+            String filename = "payroll_" + startDate + "_to_" + endDate + ".xlsx";
+            response.setMessage("Retrieved payroll successfully");
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(new ByteArrayInputStream(out.toByteArray()));
+            //response.setFilename(filename); // optional if you have a filename field
+        } catch (IOException e) {
+            log.error("Error generating payroll report for {} to {}", startDate, endDate, e);
+            response.setMessage("Unable to generate payroll report");
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        }
+
+        return response;
+    }
+
 
     public EntityResponse<ByteArrayInputStream> getRouteDeliverySummary(Long routeId, int month, String year) {
         EntityResponse<ByteArrayInputStream> response = new EntityResponse<>();

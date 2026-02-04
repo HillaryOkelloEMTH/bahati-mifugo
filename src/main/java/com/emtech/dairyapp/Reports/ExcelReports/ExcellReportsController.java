@@ -4,12 +4,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.jfree.ui.InsetsTextField;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.time.Month;
 
 @CrossOrigin
@@ -57,6 +59,29 @@ public class ExcellReportsController {
             return ResponseEntity.status(response.getStatusCode()).body(response);
         }
     }
+
+
+
+    @GetMapping("/payroll/date-range")
+    public ResponseEntity<?> getFarmerPayrollByDateRange(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+
+        var response = exelReportService.farmerPayrollByDateRange(startDate, endDate);
+
+        if (response.getStatusCode() == 200) {
+            InputStreamResource file = new InputStreamResource(response.getEntity());
+            String filename = "payroll_" + startDate + "_to_" + endDate + ".xlsx";
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
+                    .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
+                    .body(file);
+        } else {
+            return ResponseEntity.status(response.getStatusCode()).body(response.getMessage());
+        }
+    }
+
+
 
     @GetMapping("/route-summary-center/{date}/{centerId}")
     public ResponseEntity<Resource> routeSummaryForCenter(@PathVariable String date, @PathVariable Long centerId) {

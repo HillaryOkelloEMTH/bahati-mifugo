@@ -1,54 +1,43 @@
 package com.emtech.dairyapp.Transactions.Payment.PaymentOptions;
 
-import com.emtech.dairyapp.Response.EntityResponse;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class PaymentCategoryService {
 
     private final PaymentCategoryRepository categoryRepository;
 
-    public EntityResponse<List<PaymentCategoryDTO>> getAllCategories() {
-        EntityResponse<List<PaymentCategoryDTO>> res = new EntityResponse<>();
-
-        try {
-            List<PaymentCategoryDTO> categoryDTOS = categoryRepository.findByDeletedFalse().stream()
-                    .map(category -> {
-                        PaymentCategoryDTO dto = new PaymentCategoryDTO();
-                        dto.setId(category.getId());
-                        dto.setName(category.getName());
-                        return dto;
-                    }).toList();
-
-            res.setMessage("Successful");
-            res.setEntity(categoryDTOS);
-            res.setStatusCode(HttpStatus.OK.value());
-        } catch (Exception e) {
-            log.error("An error occurred {}", e.toString());
-            res.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
-            res.setMessage("A server error occurred");
-        }
-        return res;
+    public List<PaymentCategoryDTO> getAllCategories() {
+        return categoryRepository.findByDeletedFalse().stream()
+                .map(category -> {
+                    PaymentCategoryDTO dto = new PaymentCategoryDTO();
+                    dto.setId(category.getId());
+                    dto.setName(category.getName());
+                    dto.setCreatedAt(category.getCreatedAt());
+                    dto.setDeleted(category.isDeleted());
+                    dto.setActive(category.isActive());
+                    return dto;
+                }).collect(Collectors.toList());
     }
 
     public PaymentCategoryDTO createCategory(PaymentCategoryDTO dto) {
         PaymentCategory category = new PaymentCategory();
         category.setName(dto.getName());
+        category.setActive(dto.isActive());
 
         PaymentCategory saved = categoryRepository.save(category);
         dto.setId(saved.getId());
+//        dto.setActive(saved.isActive());
+        dto.setCreatedAt(saved.getCreatedAt());
+        dto.setDeleted(saved.isDeleted());
         return dto;
     }
 
