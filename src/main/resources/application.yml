@@ -2,11 +2,12 @@ server:
   error:
     include-message: always
   port: 9400
-#  ssl:
-#    key-store: classpath:static/keystore.p12
-#    key-alias: dairy
-#    key-store-password: dairy-dev
-#    key-password: dairy-dev
+  ssl:
+    key-store: /var/www/bahatife/uat/certs/bahati.jks
+    key-store-password: Emtech@25
+    key-store-type: JKS
+    key-password: Emtech@25
+    enabled: true
 
 spring:
   datasource:
@@ -60,7 +61,7 @@ google:
 ebs:
   url: https://sms.crossgatesolutions.com:18095/v1/bulksms/messages
   callbackurl:
-    one: http://18.219.121.50:9400/api/v1/sms-notifications/callback
+    one: https://bahatidairy.emtechhouse.co.ke:9400/api/v1/sms-notifications/callback
   messagetype: promotional
   apiKey : AJKSF28ldksjshkjjlsjadkljhajkjshajskdhsjdkajasdkjh
 #  apiKey : NDU4MThmODAxMzM2ODk3MUlELTQ2MmU4Y2QwZDA4YjQxOGU5ZjZjMTQ0ZGM0MmE4NDY5
