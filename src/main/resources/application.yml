@@ -2,18 +2,18 @@ server:
   error:
     include-message: always
   port: 9400
-  ssl:
-    key-store: /var/www/bahatife/uat/certs/bahati.jks
-    key-store-password: Emtech@25
-    key-store-type: JKS
-    key-password: Emtech@25
-    enabled: true
+#  ssl:
+#    key-store: /var/www/bahatife/uat/certs/bahati.jks
+#    key-store-password: Emtech@25
+#    key-store-type: JKS
+#    key-password: Emtech@25
+#    enabled: true
 
 spring:
   datasource:
-    url: jdbc:mariadb://localhost:3306/bahati_prod
-    username: jufred
-    password: Jufred@20
+    url: jdbc:mariadb://localhost:3306/bahati_local
+    username: opany
+    password: Hillary2020@
     driver-class-name: org.mariadb.jdbc.Driver
   jpa:
     properties:
