@@ -15,6 +15,7 @@ import java.time.ZoneId;
 import java.time.format.TextStyle;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 @Slf4j
@@ -30,6 +31,7 @@ public class FarmerFullProfileService {
         this.farmerRepo = farmerRepo;
         this.milkCollectionRepo = milkCollectionRepo;
     }
+
     @Value("${mifugo.maziwa-base-url}")
     private String maziwaBaseUrl;
 
@@ -53,19 +55,20 @@ public class FarmerFullProfileService {
                 ? (List<Map<String, Object>>) animalsObj
                 : Collections.emptyList();
 
-        animals = rewriteMuzzleImageUrls(animals); // <-- new line
+        animals = rewriteMuzzleImageUrls(animals);
 
         Map<String, Object> farmerWithoutAnimals = new LinkedHashMap<>(farmerEntity);
         farmerWithoutAnimals.remove("animals");
 
         result.put("farmer", farmerWithoutAnimals);
-        result.put("animals", animals);
 
         String nationalIdNo = (String) farmerEntity.get("nationalId");
         // 2. Bridge to local farmerNo, then pull milk collections summary
         Optional<Farmer> localFarmer = nationalIdNo != null
                 ? farmerRepo.findByIdNumber(nationalIdNo)
                 : Optional.empty();
+
+        Map<String, Object> milkSummary;
 
         if (localFarmer.isPresent()) {
             Integer farmerNo = localFarmer.get().getFarmerNo();
@@ -79,12 +82,19 @@ public class FarmerFullProfileService {
                 deliveries = milkCollectionRepo.findByFarmerNo(farmerNo);
             }
 
-            result.put("milkCollectionsSummary", summarizeCollections(deliveries));
+            milkSummary = summarizeCollections(deliveries);
+            result.put("milkCollectionsSummary", milkSummary);
         } else {
             result.put("localFarmerNo", null);
-            result.put("milkCollectionsSummary", summarizeCollections(Collections.emptyList()));
+            milkSummary = summarizeCollections(Collections.emptyList());
+            result.put("milkCollectionsSummary", milkSummary);
             result.put("note", "No matching local farmer record found by nationalId; productivity unavailable.");
         }
+
+        // 3. Distribute total milk quantity across animals (random but sums exactly to total)
+        double totalKg = (double) milkSummary.get("totalQuantityKg");
+        animals = distributeMilkAcrossAnimals(animals, totalKg);
+        result.put("animals", animals);
 
         result.put("message", "Success");
         result.put("statusCode", 200);
@@ -145,6 +155,7 @@ public class FarmerFullProfileService {
             throw new IllegalArgumentException("Invalid date format, expected yyyy-MM-dd: " + dateStr);
         }
     }
+
     private List<Map<String, Object>> rewriteMuzzleImageUrls(List<Map<String, Object>> animals) {
         List<Map<String, Object>> rewritten = new ArrayList<>(animals.size());
         for (Map<String, Object> animal : animals) {
@@ -153,7 +164,7 @@ public class FarmerFullProfileService {
             if (muzzleImageObj instanceof String) {
                 String key = extractMuzzleKey((String) muzzleImageObj);
                 if (key != null) {
-                    animal.put("muzzleImage", maziwaBaseUrl +"/muzzles/" + key);
+                    copy.put("muzzleImage", maziwaBaseUrl + "/muzzles/" + key);
                 }
             }
             rewritten.add(copy);
@@ -169,4 +180,87 @@ public class FarmerFullProfileService {
         return muzzleImageUrl.substring(lastSlash + 1);
     }
 
+    /**
+     * Splits totalKg across animals using random proportional weights.
+     * The last animal absorbs the rounding remainder so the sum is always
+     * EXACTLY equal to totalKg (never off by a few cents due to rounding drift).
+     */
+    private List<Map<String, Object>> distributeMilkAcrossAnimals(
+            List<Map<String, Object>> animals, double totalKg) {
+
+        if (animals == null || animals.isEmpty()) {
+            return animals;
+        }
+
+        int n = animals.size();
+        List<Map<String, Object>> result = new ArrayList<>(n);
+
+        if (n == 1) {
+            Map<String, Object> copy = new LinkedHashMap<>(animals.get(0));
+            copy.put("estimatedMilkContributionKg", round2(totalKg));
+            result.add(copy);
+            return result;
+        }
+
+        if (totalKg <= 0) {
+            for (Map<String, Object> a : animals) {
+                Map<String, Object> copy = new LinkedHashMap<>(a);
+                copy.put("estimatedMilkContributionKg", 0.0);
+                result.add(copy);
+            }
+            return result;
+        }
+
+        double[] weights = new double[n];
+        double weightSum = 0;
+        for (int i = 0; i < n; i++) {
+            weights[i] = ThreadLocalRandom.current().nextDouble(0.1, 1.0); // avoid near-zero shares
+            weightSum += weights[i];
+        }
+
+        double[] shares = new double[n];
+        double allocated = 0;
+        for (int i = 0; i < n - 1; i++) {
+            shares[i] = round2((weights[i] / weightSum) * totalKg);
+            allocated += shares[i];
+        }
+        shares[n - 1] = round2(totalKg - allocated);
+
+        if (shares[n - 1] < 0) {
+            return redistributeSafely(animals, totalKg);
+        }
+
+        for (int i = 0; i < n; i++) {
+            Map<String, Object> copy = new LinkedHashMap<>(animals.get(i));
+            copy.put("estimatedMilkContributionKg", shares[i]);
+            result.add(copy);
+        }
+        return result;
+    }
+
+    /**
+     * Fallback for the rare case where random rounding pushes the last
+     * share negative (very small totalKg with many animals). Splits evenly
+     * instead, still guaranteeing the sum equals totalKg exactly.
+     */
+    private List<Map<String, Object>> redistributeSafely(
+            List<Map<String, Object>> animals, double totalKg) {
+        int n = animals.size();
+        double base = round2(totalKg / n);
+        double allocated = base * (n - 1);
+        List<Map<String, Object>> result = new ArrayList<>(n);
+        for (int i = 0; i < n - 1; i++) {
+            Map<String, Object> copy = new LinkedHashMap<>(animals.get(i));
+            copy.put("estimatedMilkContributionKg", base);
+            result.add(copy);
+        }
+        Map<String, Object> last = new LinkedHashMap<>(animals.get(n - 1));
+        last.put("estimatedMilkContributionKg", round2(totalKg - allocated));
+        result.add(last);
+        return result;
+    }
+
+    private double round2(double value) {
+        return Math.round(value * 100.0) / 100.0;
+    }
 }
