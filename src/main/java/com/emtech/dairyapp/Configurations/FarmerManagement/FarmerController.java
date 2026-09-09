@@ -4,10 +4,14 @@ package com.emtech.dairyapp.Configurations.FarmerManagement;
 import com.emtech.dairyapp.Analytics.LinkedStringInteger;
 import com.emtech.dairyapp.Configurations.Utils.CONSTANTS;
 import com.emtech.dairyapp.Response.EntityResponse;
+import com.emtech.dairyapp.intergrations.mifugo.FarmerFullProfileService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @CrossOrigin
@@ -17,6 +21,8 @@ public class FarmerController {
 
 
     private final FarmerService farmerService;
+    @Autowired
+    private FarmerFullProfileService farmerFullProfileService;
 
     public FarmerController(FarmerService farmerService) {
         this.farmerService = farmerService;
@@ -160,6 +166,18 @@ public class FarmerController {
     public ResponseEntity<?> getfarmerAccruedAmount(@RequestParam Long farmerId){
         EntityResponse response = farmerService.fetchFarmerAccrualAmount(farmerId);
         return ResponseEntity.ok().body(response);
+    }
+
+
+    @GetMapping("full-profile")
+    public ResponseEntity<?> getFullProfile(
+            @RequestParam String nationalId,
+            @RequestParam(required = false) String from,
+            @RequestParam(required = false) String to) {
+
+        Map<String, Object> profile = farmerFullProfileService.getFullProfile(nationalId, from, to);
+        int status = (int) profile.getOrDefault("statusCode", 200);
+        return ResponseEntity.status(status).body(profile);
     }
 
 }

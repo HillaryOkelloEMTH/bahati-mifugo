@@ -20,6 +20,8 @@ import java.util.Optional;
 @Repository
 public interface MilkCollectionRepo extends JpaRepository<MilkCollections, Long> {
 //milk collection by routeId and date range
+
+    List<MilkCollections> findByFarmerNoAndCollectionDateBetween(Integer farmerNo, Date from, Date to);
 List<MilkCollections> findByRouteFk(Long routeFk);
     List<MilkCollections> findByRouteFkAndCollectionDate(Long routeFk, Date collectionDate);
     List<MilkCollections> findByRouteFkAndCollectionDateBetweenOrderByCollectionDateDesc(Long routeFk, Date start, Date end);

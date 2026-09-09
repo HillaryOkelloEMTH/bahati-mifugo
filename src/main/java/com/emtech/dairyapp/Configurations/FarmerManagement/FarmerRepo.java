@@ -17,7 +17,7 @@ import java.util.Optional;
 
 @Repository
 public interface FarmerRepo extends JpaRepository<Farmer,Long> {
-
+    Optional<Farmer> findByIdNumber(String idNumber);
 
 //filtering status of farmer per route
 @Query("SELECT f FROM Farmer f WHERE f.routeFk = :routeId")

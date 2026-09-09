@@ -82,7 +82,7 @@ public class HttpConfigurer {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.applyPermitDefaultValues();
         configuration.setAllowCredentials(true);
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:4200","http://localhost:51213","http://18.219.121.50:4500", "https://dairy.emtechhouse.co.ke","https://bahatidairy.emtechhouse.co.ke:4500","https://bahatidairy.emtechhouse.co.ke"));
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:4200","http://localhost:51213","http://18.219.121.50:4500", "https://dairy.emtechhouse.co.ke","https://bahatidairy.emtechhouse.co.ke:4500","https://bahatidairy.emtechhouse.co.ke","http://172.16.2.94:4200"));
         configuration.setAllowedMethods(Arrays.asList("GET","POST", "PATCH", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("X-Requested-With","Origin", "Content-Type", "Accept", "Authorization"));
         configuration.setExposedHeaders(List.of("X-Get-Header"));
