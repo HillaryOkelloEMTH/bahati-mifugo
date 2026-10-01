@@ -93,10 +93,10 @@ List<Integer> findActiveFarmerNosByRouteAndMonthYear(@Param("routeId") Long rout
     Optional<MilkCollections> findByCollectionNumber(String deliveryNo);
 
 
-    @Query(value = "select round(sum(quantity), 2) as qty, day(collection_date) as day from collections where month(collection_date)= :month and year(collection_date)= :year group by date(collection_date)", nativeQuery = true)
-    List<DailySummary> getBahatiDailySummary(Integer month, Integer year);
+    @Query(value = "select round(sum(quantity), 2) as qty, day(collection_date) as day from collections where month(collection_date)= :month and year(collection_date)= :year group by day(collection_date) order by day(collection_date) asc", nativeQuery = true)
+    List<DailySummary> getBahatiDailySummary(@Param("month") Integer month, @Param("year") Integer year);
 
-    @Query(value = " select round(sum(c.quantity), 2) as qty, day(c.collection_date) as day from collections c join route r on c.route_fk=r.id join pick_up_locations pul on r.location_id=pul.id where month(c.collection_date)= :month and year(c.collection_date)= :year and pul.id= :locationId group by date(c.collection_date)", nativeQuery = true)
+    @Query(value = " select round(sum(c.quantity), 2) as qty, day(c.collection_date) as day from collections c join route r on c.route_fk=r.id join pick_up_locations pul on r.location_id=pul.id where month(c.collection_date)= :month and year(c.collection_date)= :year and pul.id= :locationId group by day(c.collection_date) order by day(c.collection_date) asc", nativeQuery = true)
     List<DailySummary> getMccDailySummary(Long locationId, Integer month, Integer year);
 
     @Query(value = "SELECT f.first_name ,f.last_name ,f.farmer_no,c.updated_status as updateStatus,c.can_no as canNo,c.original_quantity as originalQuantity,c.id, c.session, c.collection_number as collectionCode,c.event,c.current_price as currentPrice,c.product_type as productType,c.payment_status as paymentStatus,f.id as farmerId,u.user_name as collector,f.username as farmer ,c.amount,c.quantity,c.collection_date,r.route as route from collections c join users u on c.collector_id =u.id join farmer f on f.farmer_no=c.farmer_no join route r on r.id=c.route_fk  where c.collector_id =:collectorId and c.event= 'Collection' and DATE(c.collection_date)= :date order by c.collection_date", nativeQuery = true)
@@ -243,7 +243,7 @@ List<Integer> findActiveFarmerNosByRouteAndMonthYear(@Param("routeId") Long rout
     @Query(value = "SELECT sum(c.amount) as amount,SUM(c.quantity) as quantity ,u.user_name as collector  from collections c join users u on u.id=c.collector_id  WHERE DATE(c.collection_date)=:date  GROUP BY c.collector_id", nativeQuery = true)
     List<AnalyticsData> getCollectorDataPerDate(String date);
 
-    @Query(value = "SELECT sum(c.amount) as amount,SUM(c.quantity) as quantity,MONTHNAME(c.collection_date) as month from collections c where YEAR (c.collection_date)=:year GROUP BY MONTH(c.collection_date)", nativeQuery = true)
+    @Query(value = "SELECT sum(c.amount) as amount,SUM(c.quantity) as quantity,MONTHNAME(c.collection_date) as month from collections c where YEAR (c.collection_date)=:year GROUP BY MONTH(c.collection_date), MONTHNAME(c.collection_date) ORDER BY MONTH(c.collection_date) asc", nativeQuery = true)
     List<AnalyticsData> getCollectorDataPerYear(Integer year);
 
     @Query(value = "SELECT  DATE_FORMAT(c.collection_date,'%Y-%m-%d %T') as date,u.user_name as collector,f.username as farmer,c.amount,c.quantity,r.route as route, c.collection_number as collectionCode,c.current_price as currentPrice ,c.event,p.name as pickUpLocation from collections c join users u on c.collector_id =u.id join farmer f on f.farmer_no=c.farmer_no join route r on r.id=c.route_fk join pick_up_locations p on p.id =r.location_id   where c.collection_number =:collection_code", nativeQuery = true)
@@ -285,7 +285,7 @@ List<Integer> findActiveFarmerNosByRouteAndMonthYear(@Param("routeId") Long rout
     @Query(value = "SELECT u.id,u.user_name as username,r.name as role  from users u join user_role ur on u.id=ur.user join roles r on r.id=ur.role where r.name='MILK_COLLECTOR'", nativeQuery = true)
     List<Roleusers> getCollectors();
 
-    @Query(value = "SELECT ROUND(sum(c.amount),2) as amount , ROUND(SUM(c.quantity),2) as quantity ,MONTHNAME(c.collection_date) as month  from collections c where YEAR(c.collection_date)=:year  and c.collector_id=:collectorId GROUP BY MONTH(c.collection_date)", nativeQuery = true)
+    @Query(value = "SELECT ROUND(sum(c.amount),2) as amount , ROUND(SUM(c.quantity),2) as quantity ,MONTHNAME(c.collection_date) as month  from collections c where YEAR(c.collection_date)=:year  and c.collector_id=:collectorId GROUP BY MONTH(c.collection_date), MONTHNAME(c.collection_date) ORDER BY MONTH(c.collection_date) asc", nativeQuery = true)
     List<AnalyticsData> getQuantityPerMonth(Integer year, Long collectorId);
 
     @Query(value = "SELECT ROUND(SUM(c.quantity),2) as quantity,ROUND(SUM(c.amount),2) as amount,u.user_name as collector,count(*) as ColectionsCount  from collections c join users u on u.id=c.collector_id where DATE(c.collection_date)=:date   GROUP BY c.collector_id", nativeQuery = true)
@@ -307,7 +307,7 @@ List<Integer> findActiveFarmerNosByRouteAndMonthYear(@Param("routeId") Long rout
     @Query(value = "SELECT c.amount ,c.quantity ,c.current_price ,DATE_FORMAT(c.collection_date,'%Y-%m-%d %T') as date,c.session,c.collection_number ,u.user_name as collector,r.route as route,p.name as pickUpLocation from collections c join users u on u.id=c.collector_id join route r on r.id=c.route_fk join pick_up_locations p on p.id=r.location_id where DATE(c.collection_date) =:date", nativeQuery = true)
     List<ReportData> getCollectorsPerDate(String date);
 
-    @Query(value = "SELECT COUNT(*) as colectionsCount,MONTHNAME(c.collection_date) as month  from collections c WHERE YEAR(c.collection_date)=:year and c.collector_id=:collectorId group by MONTH(c.collection_date)", nativeQuery = true)
+    @Query(value = "SELECT COUNT(*) as colectionsCount,MONTHNAME(c.collection_date) as month  from collections c WHERE YEAR(c.collection_date)=:year and c.collector_id=:collectorId GROUP BY MONTH(c.collection_date), MONTHNAME(c.collection_date) ORDER BY MONTH(c.collection_date) asc", nativeQuery = true)
     List<AnalyticsData> getCollectionCountPerMonth(Integer year, Long collectorId);
 
 

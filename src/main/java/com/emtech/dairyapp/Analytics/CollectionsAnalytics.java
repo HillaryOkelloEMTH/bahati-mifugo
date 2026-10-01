@@ -35,6 +35,7 @@ public class CollectionsAnalytics {
             log.error(e.toString());
             response.setMessage("An error occurred");
             response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            response.setEntity(new LinkedList<>());
         }
         return response;
     }
@@ -223,38 +224,14 @@ public class CollectionsAnalytics {
         EntityResponse response = new EntityResponse();
         try {
             List<AnalyticsData> collections = collectionRepo.getQuantityPerMonth(year, collectorId);
-            if (collections.size() > 0) {
-
-//                LinkedStringInteger data = new LinkedStringInteger();
-//                LinkedList<String> months = new LinkedList<>();
-//                LinkedList<Double> quantity = new LinkedList<>();
-//                LinkedList<Double> amount = new LinkedList<>();
-//
-//                for (AnalyticsData d : collections) {
-//                    months.add(d.getMonth());
-//                    quantity.add(d.getQuantity());
-//                    amount.add(d.getAmount());
-//                }
-//                data.setNames(months);
-//                data.setAmount(amount);
-//                data.setQuantiy(quantity);
-
-
-                response.setStatusCode(HttpStatus.OK.value());
-                response.setEntity(collections);
-                response.setMessage(HttpStatus.OK.getReasonPhrase());
-            } else {
-                response.setStatusCode(HttpStatus.NOT_FOUND.value());
-                response.setEntity(collections);
-                response.setMessage(HttpStatus.NOT_FOUND.getReasonPhrase());
-
-            }
-
-
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(collections);
+            response.setMessage(HttpStatus.OK.getReasonPhrase());
         } catch (Exception e) {
             log.error(e.getMessage());
             response.setStatusCode(HttpStatus.BAD_REQUEST.value());
             response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+            response.setEntity(new LinkedList<>());
         }
         return response;
     }
@@ -286,20 +263,14 @@ public class CollectionsAnalytics {
         EntityResponse response = new EntityResponse();
         try {
             List<AnalyticsData> collections = collectionRepo.getCollectionCountPerMonth(year, collectorId);
-            if (collections.size() > 0) {
-                response.setStatusCode(HttpStatus.OK.value());
-                response.setEntity(collections);
-                response.setMessage(HttpStatus.OK.getReasonPhrase());
-            } else {
-
-                response.setStatusCode(HttpStatus.NOT_FOUND.value());
-                response.setEntity(collections);
-                response.setMessage(HttpStatus.NOT_FOUND.getReasonPhrase());
-            }
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEntity(collections);
+            response.setMessage(HttpStatus.OK.getReasonPhrase());
         } catch (Exception e) {
             log.error(e.getMessage());
             response.setStatusCode(HttpStatus.BAD_REQUEST.value());
             response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
+            response.setEntity(new LinkedList<>());
         }
         return response;
     }
