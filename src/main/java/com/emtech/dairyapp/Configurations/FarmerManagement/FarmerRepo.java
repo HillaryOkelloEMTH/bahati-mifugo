@@ -175,11 +175,11 @@ FarmerAccruedAmount getFarmerAccruedAmount(Long id, Character paymentyStatus);
     @Query(value = "SELECT c.farmer_no AS fno, " +
             "ROUND(SUM(c.quantity), 2) AS qty, " +
             "ROUND(SUM(c.amount), 2) AS income, " +
-            "concat(f.first_name,' ', ifnull(f.middle_name, ' '), ' ',f.last_name) as farmer, " +
-            "f.mobile_no AS mobileNo, " +
-            "r.route, " +
-            "p.name AS mcc, " +
-            "c.current_price as price, " +
+            "MAX(concat(f.first_name,' ', ifnull(f.middle_name, ' '), ' ',f.last_name)) as farmer, " +
+            "MAX(f.mobile_no) AS mobileNo, " +
+            "MAX(r.route) AS route, " +
+            "MAX(p.name) AS mcc, " +
+            "MAX(c.current_price) as price, " +
             "(select round(coalesce(sum(case when fpa2.product_name like 'dairy%' then fpa2.amount else 0 end), 0), 2) " +
             "from farmer_product_allocations fpa2 WHERE MONTH(fpa2.approval_date) = :month " +
             "AND YEAR(fpa2.approval_date) = :year and fpa2.farmer_no=c.farmer_no) as dairyMeal, " +
@@ -197,20 +197,19 @@ FarmerAccruedAmount getFarmerAccruedAmount(Long id, Character paymentyStatus);
             "  WHERE MONTH(fpa.requested_on) = :month " +
             "    AND YEAR(fpa.requested_on) = :year " +
             "    AND fpa.farmer_no = c.farmer_no)) AS netpay, " +
-            "b.bank_name AS bname, " +
-            "b.account_number AS accno, " +
-            "b.branch " +
+            "MAX(b.bank_name) AS bname, " +
+            "MAX(b.account_number) AS accno, " +
+            "MAX(b.branch) AS branch " +
             "FROM collections c " +
             "LEFT JOIN farmer f ON c.farmer_no = f.farmer_no " +
-//            "LEFT JOIN farmer_product_allocations fpa ON f.farmer_no = fpa.farmer_no " + almost f*ckd -- up join
-            "LEFT JOIN route r ON c.route_fk = r.id " +
+            "LEFT JOIN route r ON COALESCE(c.route_fk, f.route_fk) = r.id " +
             "LEFT JOIN pick_up_locations p ON r.location_id = p.id " +
             "LEFT JOIN bank_details b ON f.bank_details_id = b.id " +
             "WHERE MONTH(c.collection_date) = :month " +
             "  AND YEAR(c.collection_date) = :year " +
             "  AND c.quantity > 0 " +
             "GROUP BY c.farmer_no " +
-            "ORDER BY p.id asc, c.farmer_no asc", nativeQuery = true)
+            "ORDER BY MAX(p.id) asc, c.farmer_no asc", nativeQuery = true)
     List<PayrollInterface> getFarmerPayroll(Integer month, String year);
 
     //Farmer payroll by Date Range
@@ -218,11 +217,11 @@ FarmerAccruedAmount getFarmerAccruedAmount(Long id, Character paymentyStatus);
             "c.farmer_no AS fno, " +
             "ROUND(SUM(c.quantity), 2) AS qty, " +
             "ROUND(SUM(c.amount), 2) AS income, " +
-            "CONCAT(f.first_name,' ', IFNULL(f.middle_name, ' '), ' ', f.last_name) AS farmer, " +
-            "f.mobile_no AS mobileNo, " +
-            "r.route, " +
-            "p.name AS mcc, " +
-            "c.current_price AS price, " +
+            "MAX(CONCAT(f.first_name,' ', IFNULL(f.middle_name, ' '), ' ', f.last_name)) AS farmer, " +
+            "MAX(f.mobile_no) AS mobileNo, " +
+            "MAX(r.route) AS route, " +
+            "MAX(p.name) AS mcc, " +
+            "MAX(c.current_price) AS price, " +
 
             "(SELECT ROUND(COALESCE(SUM(CASE WHEN fpa2.product_name LIKE 'dairy%' THEN fpa2.amount ELSE 0 END), 0), 2) " +
             " FROM farmer_product_allocations fpa2 " +
@@ -245,13 +244,13 @@ FarmerAccruedAmount getFarmerAccruedAmount(Long id, Character paymentyStatus);
             "  WHERE DATE(fpa.requested_on) BETWEEN :startDate AND :endDate " +
             "    AND fpa.farmer_no = c.farmer_no)) AS netpay, " +
 
-            "b.bank_name AS bname, " +
-            "b.account_number AS accno, " +
-            "b.branch " +
+            "MAX(b.bank_name) AS bname, " +
+            "MAX(b.account_number) AS accno, " +
+            "MAX(b.branch) AS branch " +
 
             "FROM collections c " +
             "LEFT JOIN farmer f ON c.farmer_no = f.farmer_no " +
-            "LEFT JOIN route r ON c.route_fk = r.id " +
+            "LEFT JOIN route r ON COALESCE(c.route_fk, f.route_fk) = r.id " +
             "LEFT JOIN pick_up_locations p ON r.location_id = p.id " +
             "LEFT JOIN bank_details b ON f.bank_details_id = b.id " +
 
@@ -259,7 +258,7 @@ FarmerAccruedAmount getFarmerAccruedAmount(Long id, Character paymentyStatus);
             "AND c.quantity > 0 " +
 
             "GROUP BY c.farmer_no " +
-            "ORDER BY p.id ASC, c.farmer_no ASC",
+            "ORDER BY MAX(p.id) ASC, c.farmer_no ASC",
             nativeQuery = true)
     List<PayrollInterface> getFarmerPayrollByDateRange(
             @Param("startDate") LocalDate startDate,
