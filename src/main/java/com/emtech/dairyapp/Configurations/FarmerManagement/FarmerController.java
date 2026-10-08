@@ -7,7 +7,9 @@ import com.emtech.dairyapp.Response.EntityResponse;
 import com.emtech.dairyapp.intergrations.mifugo.FarmerFullProfileService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -178,6 +180,42 @@ public class FarmerController {
         Map<String, Object> profile = farmerFullProfileService.getFullProfile(nationalId, from, to);
         int status = (int) profile.getOrDefault("statusCode", 200);
         return ResponseEntity.status(status).body(profile);
+    }
+
+    @GetMapping(value = "muzzle-image/{key}", produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
+    public ResponseEntity<byte[]> getMuzzleImage(@PathVariable String key) {
+        byte[] img = farmerFullProfileService.getMuzzleImage(key);
+        if (img != null && img.length > 0) {
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CACHE_CONTROL, "max-age=86400, public")
+                    .contentType(MediaType.IMAGE_JPEG)
+                    .body(img);
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+    @PostMapping("claim-verify")
+    public ResponseEntity<?> verifyClaimPost(@RequestBody Map<String, String> request) {
+        String nationalId = request.get("nationalId");
+        String animalId = request.get("animalId");
+        String claimType = request.get("claimType");
+        String incidentDate = request.get("incidentDate");
+        String notes = request.get("notes");
+        Map<String, Object> result = farmerFullProfileService.verifyClaim(nationalId, animalId, claimType, incidentDate, notes);
+        int status = (int) result.getOrDefault("statusCode", 200);
+        return ResponseEntity.status(status).body(result);
+    }
+
+    @GetMapping("claim-verify")
+    public ResponseEntity<?> verifyClaimGet(
+            @RequestParam String nationalId,
+            @RequestParam(required = false) String animalId,
+            @RequestParam(required = false) String claimType,
+            @RequestParam(required = false) String incidentDate,
+            @RequestParam(required = false) String notes) {
+        Map<String, Object> result = farmerFullProfileService.verifyClaim(nationalId, animalId, claimType, incidentDate, notes);
+        int status = (int) result.getOrDefault("statusCode", 200);
+        return ResponseEntity.status(status).body(result);
     }
 
 }

@@ -11,6 +11,10 @@ public class EndPoints {
             "/api/v1/authentication/**",
             "api/v1/sms-notifications/callback",
             "/bahati-*/**",
-            "/api/v1/quality/**"
+            "/api/v1/quality/**",
+            "/api/v1/farmer/muzzle-image/**",
+            "api/v1/farmer/muzzle-image/**",
+            "/api/v1/insurance/**",
+            "api/v1/insurance/**"
     );
 }

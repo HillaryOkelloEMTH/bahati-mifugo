@@ -44,9 +44,20 @@ public class MifugoClient {
         return null;
     }
 
-
-
-
-
-
+    /**
+     * Fetches raw bytes for a cow's muzzle biometric image from the Mifugo API.
+     */
+    @Cacheable(value = "maziwaMuzzleImage", key = "#key", unless = "#result == null")
+    public byte[] getMuzzleImage(String key) {
+        if (key == null || key.isBlank()) {
+            return null;
+        }
+        try {
+            String url = maziwaBaseUrl + "/muzzles/" + key;
+            return maziwaRestTemplate.getForObject(url, byte[].class);
+        } catch (Exception e) {
+            log.warn("Could not fetch muzzle image for key {}: {}", key, e.getMessage());
+            return null;
+        }
+    }
 }

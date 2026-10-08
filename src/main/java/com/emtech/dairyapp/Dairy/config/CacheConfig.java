@@ -14,7 +14,7 @@ public class CacheConfig {
 
     @Bean
     public CaffeineCacheManager cacheManager() {
-        CaffeineCacheManager manager = new CaffeineCacheManager("maziwaFarmerProfile");
+        CaffeineCacheManager manager = new CaffeineCacheManager("maziwaFarmerProfile", "maziwaMuzzleImage");
         manager.setCaffeine(Caffeine.newBuilder()
                 .expireAfterWrite(15, TimeUnit.MINUTES)
                 .maximumSize(2000));
