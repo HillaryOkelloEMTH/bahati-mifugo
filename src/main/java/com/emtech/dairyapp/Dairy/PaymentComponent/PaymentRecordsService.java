@@ -32,13 +32,13 @@ public class PaymentRecordsService {
                 response.setEntity(cdata);
                 response.setMessage(HttpStatus.OK.getReasonPhrase());
             }else {
-                response.setStatusCode(HttpStatus.NOT_FOUND.value());
+                response.setStatusCode(HttpStatus.OK.value());
                 response.setEntity(cdata);
-                response.setMessage(HttpStatus.NOT_FOUND.getReasonPhrase());
+                response.setMessage("No payment records found");
             }
 
         } catch (Exception e) {
-            log.error(e.getMessage());
+            log.error("Error retrieving farmer payment data: ", e);
             response.setStatusCode(HttpStatus.BAD_REQUEST.value());
             response.setMessage(HttpStatus.BAD_REQUEST.getReasonPhrase());
         }
