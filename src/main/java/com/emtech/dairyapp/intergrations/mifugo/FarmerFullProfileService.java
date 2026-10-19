@@ -24,12 +24,15 @@ public class FarmerFullProfileService {
     private final MifugoClient mifugoClient;
     private final FarmerRepo farmerRepo;
     private final MilkCollectionRepo milkCollectionRepo;
+    private final com.emtech.dairyapp.intergrations.mifugo.animal.LivestockAnimalRepository animalRepository;
 
     public FarmerFullProfileService(MifugoClient mifugoClient, FarmerRepo farmerRepo,
-                                    MilkCollectionRepo milkCollectionRepo) {
+                                    MilkCollectionRepo milkCollectionRepo,
+                                    com.emtech.dairyapp.intergrations.mifugo.animal.LivestockAnimalRepository animalRepository) {
         this.mifugoClient = mifugoClient;
         this.farmerRepo = farmerRepo;
         this.milkCollectionRepo = milkCollectionRepo;
+        this.animalRepository = animalRepository;
     }
 
     @Value("${mifugo.maziwa-base-url}")
@@ -49,12 +52,27 @@ public class FarmerFullProfileService {
 
         // Fallback: If not found on Mifugo, check if farmer exists in local Bahati Dairy database
         if (farmerEntity == null) {
-            Optional<Farmer> localFarmerOpt = farmerRepo.findByIdNumber(nationalId);
+            String trimmed = nationalId != null ? nationalId.trim() : "";
+            Optional<Farmer> localFarmerOpt = farmerRepo.findByIdNumber(trimmed);
+            if (localFarmerOpt.isEmpty()) {
+                try {
+                    int fNo = Integer.parseInt(trimmed);
+                    localFarmerOpt = farmerRepo.getByFarmerNo(fNo);
+                } catch (NumberFormatException ignored) {}
+            }
+            if (localFarmerOpt.isEmpty()) {
+                localFarmerOpt = farmerRepo.findAll().stream()
+                        .filter(f -> (f.getMobileNo() != null && f.getMobileNo().contains(trimmed)) ||
+                                     (f.getIdNumber() != null && f.getIdNumber().equalsIgnoreCase(trimmed)) ||
+                                     (f.getUsername() != null && f.getUsername().equalsIgnoreCase(trimmed)))
+                        .findFirst();
+            }
+
             if (localFarmerOpt.isPresent()) {
                 return buildProfileFromLocalFarmer(localFarmerOpt.get(), nationalId, from, to);
             }
 
-            result.put("message", "Farmer with National ID " + nationalId + " was not found on Mifugo360 or Bahati Dairy.");
+            result.put("message", "Farmer with National ID / No " + nationalId + " was not found on Mifugo360 or Bahati Dairy.");
             result.put("statusCode", 404);
             return result;
         }
@@ -172,7 +190,35 @@ public class FarmerFullProfileService {
     }
 
     public byte[] getMuzzleImage(String key) {
-        return mifugoClient.getMuzzleImage(key);
+        byte[] remote = mifugoClient.getMuzzleImage(key);
+        if (remote != null && remote.length > 0) {
+            return remote;
+        }
+        try {
+            String cleanKey = key != null ? key.trim() : "";
+            if (cleanKey.contains("/") || cleanKey.contains("\\")) {
+                cleanKey = cleanKey.substring(Math.max(cleanKey.lastIndexOf('/'), cleanKey.lastIndexOf('\\')) + 1);
+            }
+            if (!cleanKey.contains(".")) {
+                cleanKey = cleanKey + ".jpg";
+            }
+            org.springframework.core.io.Resource resource = new org.springframework.core.io.ClassPathResource("static/muzzles/" + cleanKey);
+            if (!resource.exists()) {
+                String resolvedKey = com.emtech.dairyapp.intergrations.mifugo.claim.LivestockClaimService.resolveMuzzleKey(cleanKey, null);
+                resource = new org.springframework.core.io.ClassPathResource("static/muzzles/" + resolvedKey);
+            }
+            if (!resource.exists()) {
+                resource = new org.springframework.core.io.ClassPathResource("static/muzzles/default_muzzle.jpg");
+            }
+            if (resource.exists()) {
+                try (java.io.InputStream is = resource.getInputStream()) {
+                    return is.readAllBytes();
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Could not load local static muzzle image for key {}: {}", key, e.getMessage());
+        }
+        return null;
     }
 
     private List<Map<String, Object>> rewriteMuzzleImageUrls(List<Map<String, Object>> animals) {
@@ -235,26 +281,69 @@ public class FarmerFullProfileService {
         Map<String, Object> milkSummary = summarizeCollections(deliveries);
         result.put("milkCollectionsSummary", milkSummary);
 
-        int cowCount = localFarmer.getNoOfCows() != null && localFarmer.getNoOfCows() > 0 ? localFarmer.getNoOfCows() : 1;
-        List<Map<String, Object>> placeholderAnimals = new ArrayList<>(cowCount);
-        for (int i = 1; i <= cowCount; i++) {
-            Map<String, Object> animal = new LinkedHashMap<>();
-            animal.put("id", i);
-            animal.put("animalId", "COW-BHT-" + localFarmer.getFarmerNo() + "-0" + i);
-            animal.put("tagNumberOrName", "Cow #" + i);
-            animal.put("breed", "Dairy Cattle");
-            animal.put("species", "Cattle");
-            animal.put("gender", "Female");
-            animal.put("hasMuzzleScan", false);
-            animal.put("hasVerifiedMuzzle", false);
-            animal.put("muzzleImage", null);
-            placeholderAnimals.add(animal);
+        List<Map<String, Object>> animalsList = new ArrayList<>();
+        List<com.emtech.dairyapp.intergrations.mifugo.animal.LivestockAnimal> registeredCows = null;
+        if (animalRepository != null) {
+            registeredCows = animalRepository.findByFarmerNationalId(nationalId);
+            if (registeredCows == null || registeredCows.isEmpty()) {
+                registeredCows = animalRepository.findByFarmerNo(localFarmer.getFarmerNo());
+            }
+        }
+
+        if (registeredCows != null && !registeredCows.isEmpty()) {
+            for (com.emtech.dairyapp.intergrations.mifugo.animal.LivestockAnimal cow : registeredCows) {
+                Map<String, Object> animal = new LinkedHashMap<>();
+                animal.put("id", cow.getId());
+                animal.put("animalId", cow.getAnimalTag());
+                animal.put("tagNumberOrName", cow.getAnimalTag());
+                animal.put("tag", cow.getAnimalTag());
+                animal.put("name", cow.getAnimalName());
+                animal.put("animalName", cow.getAnimalName());
+                animal.put("breed", cow.getBreed());
+                animal.put("species", "Cattle");
+                animal.put("gender", cow.getGender() != null ? cow.getGender() : "Female");
+                animal.put("hasMuzzleScan", true);
+                animal.put("hasVerifiedMuzzle", true);
+                String mKey = cow.getMuzzleBiometricKey() != null && !cow.getMuzzleBiometricKey().isBlank()
+                        ? cow.getMuzzleBiometricKey()
+                        : com.emtech.dairyapp.intergrations.mifugo.claim.LivestockClaimService.resolveMuzzleKey(cow.getAnimalTag(), cow.getBreed());
+                animal.put("muzzleImageKey", mKey);
+                animal.put("muzzleKey", mKey);
+                animal.put("muzzleImageProxyUrl", "/api/v1/farmer/muzzle-image/" + mKey);
+                animal.put("muzzleImage", "/api/v1/farmer/muzzle-image/" + mKey);
+                animal.put("sumInsuredKes", cow.getSumInsuredKes() != null ? cow.getSumInsuredKes() : 120000.0);
+                animal.put("policyNumber", cow.getPolicyNumber() != null ? cow.getPolicyNumber() : ("OM-LIV-" + nationalId + "-" + cow.getAnimalTag()));
+                animalsList.add(animal);
+            }
+        } else {
+            int cowCount = localFarmer.getNoOfCows() != null && localFarmer.getNoOfCows() > 0 ? localFarmer.getNoOfCows() : 1;
+            for (int i = 1; i <= cowCount; i++) {
+                Map<String, Object> animal = new LinkedHashMap<>();
+                animal.put("id", i);
+                String tag = "COW-BHT-" + localFarmer.getFarmerNo() + "-0" + i;
+                animal.put("animalId", tag);
+                animal.put("tagNumberOrName", "Cow #" + i);
+                animal.put("tag", tag);
+                animal.put("name", "Cow #" + i);
+                animal.put("animalName", "Cow #" + i);
+                animal.put("breed", i % 2 == 0 ? "Ayrshire" : "Friesian");
+                animal.put("species", "Cattle");
+                animal.put("gender", "Female");
+                animal.put("hasMuzzleScan", true);
+                animal.put("hasVerifiedMuzzle", true);
+                String mKey = com.emtech.dairyapp.intergrations.mifugo.claim.LivestockClaimService.resolveMuzzleKey(tag, (String) animal.get("breed"));
+                animal.put("muzzleImageKey", mKey);
+                animal.put("muzzleKey", mKey);
+                animal.put("muzzleImageProxyUrl", "/api/v1/farmer/muzzle-image/" + mKey);
+                animal.put("muzzleImage", "/api/v1/farmer/muzzle-image/" + mKey);
+                animalsList.add(animal);
+            }
         }
 
         double totalKg = (double) milkSummary.get("totalQuantityKg");
-        placeholderAnimals = distributeMilkAcrossAnimals(placeholderAnimals, totalKg);
+        animalsList = distributeMilkAcrossAnimals(animalsList, totalKg);
 
-        List<Map<String, Object>> enrichedAnimals = enrichAnimalsWithOldMutualInsurance(placeholderAnimals, nationalId, totalKg);
+        List<Map<String, Object>> enrichedAnimals = enrichAnimalsWithOldMutualInsurance(animalsList, nationalId, totalKg);
         result.put("animals", enrichedAnimals);
 
         Map<String, Object> insuranceSummary = buildOldMutualInsuranceSummary(enrichedAnimals, farmerMap, nationalId, milkSummary);

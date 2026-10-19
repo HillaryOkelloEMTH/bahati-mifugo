@@ -52,6 +52,16 @@ public class LivestockClaim {
     @Temporal(TemporalType.TIMESTAMP)
     private Date notificationDate;
 
+    // Co-operative Staff Duty Assignment to Vet for Post-Mortem Necropsy
+    private Long assignedVetId;
+    private String assignedVetName;
+    private String assignedVetUsername;
+    private String assignedVetPhone;
+    private String assignedVetKvb;
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date assignedDate;
+    private String assignedBy;
+
     // Veterinary Assessment details
     private String vetName;
     private String vetKvbNumber;

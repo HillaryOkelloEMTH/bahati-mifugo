@@ -142,10 +142,16 @@ List<Farmer> findAllByRouteFk(@Param("routeId") Long routeId);
 
     @Query(value = "SELECT f.id,f.username,r.route as routeName,r.id as routeFk ,f.first_name as name, f.alternative_mobile_no  ,f.id_number as idNumber,f.created_at ,f.payment_mode ,f.deleted_flag,f.mobile_no as mobileNo,f.farmer_no as farmerNo,p.name as pickUpLocation from farmer f left join route r on r.id=f.route_fk left join pick_up_locations p on p.id =r.location_id where r.location_id= :locationId", nativeQuery = true)
     List<FarmerInterface> getMccfarmers(Long locationId);
-    @Query(value = "\n" +
-            "SELECT DISTINCT  f.*  from farmer f left join route r on r.id=f.route_fk  left join subcounty s on s.id =f.subcounty_fk \n" +
-            "left join county c on c.id =s.county_fk left JOIN pick_up_locations p on p.id=r.location_id join collector c2 on c2.location_id =p.id \n" +
-            "join users u on u.user_name =c2.username where u.id =:collectorId group by f.id",nativeQuery = true)
+    @Query(value = "SELECT DISTINCT f.* " +
+            "FROM farmer f " +
+            "LEFT JOIN route r ON r.id = f.route_fk " +
+            "LEFT JOIN pick_up_locations p ON (p.id = r.location_id OR LOWER(TRIM(p.name)) = LOWER(TRIM(f.location)) OR CAST(p.id AS CHAR) = TRIM(f.location)) " +
+            "CROSS JOIN users u " +
+            "LEFT JOIN collector c2 ON p.id = c2.location_id AND LOWER(TRIM(c2.username)) = LOWER(TRIM(u.user_name)) " +
+            "WHERE u.id = :collectorId " +
+            "AND (c2.id IS NOT NULL OR (u.pick_up_location IS NOT NULL AND (LOWER(TRIM(p.name)) = LOWER(TRIM(u.pick_up_location)) OR CAST(p.id AS CHAR) = TRIM(u.pick_up_location)))) " +
+            "AND (f.deleted_flag = 'N' OR f.deleted_flag IS NULL) " +
+            "GROUP BY f.id", nativeQuery = true)
     List<Farmer> getfarmersPerCollector(Long collectorId);
 
     @Query(value = "SELECT DISTINCT  f.*  from farmer f left join route r on r.id=f.route_fk  left join subcounty s on s.id =f.subcounty_fk left join county c on c.id =s.county_fk left JOIN pick_up_locations p on p.id=r.location_id join transporter t on t.route_id =r.id join users u on u.user_name =t.username where u.id = :transporterId group by f.id", nativeQuery = true)

@@ -82,6 +82,9 @@ public class MilkCollectionService {
             String collectionNumber = codenerator.codeGenerator(collections.getFarmerNo());
             collections.setCollectionNumber(collectionNumber);
             collections.setProductType("Fresh Milk");
+            if (collections.getEvent() == null || collections.getEvent().isBlank() || "buying".equalsIgnoreCase(collections.getEvent())) {
+                collections.setEvent("Collection");
+            }
 
             SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
             String formattedDate = formatter.format(collections.getCollectionDate());

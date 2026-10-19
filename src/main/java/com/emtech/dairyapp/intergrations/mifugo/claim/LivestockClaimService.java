@@ -30,7 +30,39 @@ public class LivestockClaimService {
     private final MilkCollectionRepo milkCollectionRepo;
     private final FarmerFullProfileService farmerFullProfileService;
     private final MifugoClient mifugoClient;
+    private final com.emtech.dairyapp.intergrations.mifugo.wallet.FarmerWalletService farmerWalletService;
+    private final com.emtech.dairyapp.intergrations.mifugo.animal.LivestockAnimalRepository animalRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    public static String resolveMuzzleKey(String tag, String breed) {
+        if (tag != null) {
+            String t = tag.toUpperCase().replaceAll("[^A-Z0-9]", "");
+            if (t.contains("084") || t.contains("DAISY")) return "muzzle_bf084_reg.jpg";
+            if (t.contains("112") || t.contains("BESSIE")) return "muzzle_bf112_reg.jpg";
+            if (t.contains("209") || t.contains("BROWNIE")) return "muzzle_bf209_reg.jpg";
+            if (t.contains("045") || t.contains("FLORA")) return "muzzle_bf045_reg.jpg";
+            if (t.contains("167") || t.contains("LUNA")) return "muzzle_bf167_reg.jpg";
+            if (t.contains("301") || t.contains("SIMBA")) return "muzzle_bf301_reg.jpg";
+        }
+        if (breed != null) {
+            String b = breed.toLowerCase();
+            if (b.contains("friesian") || b.contains("holstein")) return "muzzle_bf084_reg.jpg";
+            if (b.contains("ayrshire")) return "muzzle_bf112_reg.jpg";
+            if (b.contains("jersey")) return "muzzle_bf209_reg.jpg";
+            if (b.contains("guernsey")) return "muzzle_bf045_reg.jpg";
+            if (b.contains("boran") || b.contains("zebu") || b.contains("sahiwal")) return "muzzle_bf301_reg.jpg";
+        }
+        String[] pool = {
+                "muzzle_bf084_reg.jpg",
+                "muzzle_bf112_reg.jpg",
+                "muzzle_bf209_reg.jpg",
+                "muzzle_bf045_reg.jpg",
+                "muzzle_bf167_reg.jpg",
+                "muzzle_bf301_reg.jpg"
+        };
+        int idx = (tag != null ? Math.abs(tag.hashCode()) : 0) % pool.length;
+        return pool[idx];
+    }
 
     public EntityResponse<LivestockClaim> lodgeClaim(LodgeClaimDto dto) {
         try {
@@ -43,11 +75,28 @@ public class LivestockClaimService {
             claim.setFarmerNationalId(nationalId);
 
             // 1. Resolve Farmer details from Bahati Dairy DB
-            Optional<Farmer> farmerOpt = farmerRepo.findByIdNumber(nationalId);
+            final String searchId = nationalId.trim();
+            Optional<Farmer> farmerOpt = farmerRepo.findByIdNumber(searchId);
+            if (farmerOpt.isEmpty()) {
+                try {
+                    int fNo = Integer.parseInt(searchId);
+                    farmerOpt = farmerRepo.getByFarmerNo(fNo);
+                } catch (NumberFormatException ignored) {}
+            }
+            if (farmerOpt.isEmpty()) {
+                farmerOpt = farmerRepo.findAll().stream()
+                        .filter(f -> (f.getMobileNo() != null && f.getMobileNo().contains(searchId)) ||
+                                     (f.getIdNumber() != null && f.getIdNumber().equalsIgnoreCase(searchId)))
+                        .findFirst();
+            }
             if (farmerOpt.isPresent()) {
                 Farmer f = farmerOpt.get();
                 claim.setFarmerId(f.getId());
                 claim.setFarmerNo(f.getFarmerNo());
+                if (f.getIdNumber() != null && !f.getIdNumber().isBlank()) {
+                    claim.setFarmerNationalId(f.getIdNumber().trim());
+                    nationalId = f.getIdNumber().trim();
+                }
                 String fullName = ((f.getFirstName() != null ? f.getFirstName() : "") + " " +
                         (f.getMiddleName() != null ? f.getMiddleName() + " " : "") +
                         (f.getLastName() != null ? f.getLastName() : "")).trim();
@@ -110,6 +159,19 @@ public class LivestockClaimService {
             claim.setAnimalTag(animalTag != null ? animalTag : claim.getAnimalId());
             claim.setAnimalName(animalName != null ? animalName : "Cow " + claim.getAnimalTag());
             claim.setAnimalBreed(animalBreed);
+
+            if (registeredMuzzle == null || registeredMuzzle.isBlank()) {
+                registeredMuzzle = dto.getRegisteredMuzzleKey();
+            }
+            if (registeredMuzzle == null || registeredMuzzle.isBlank()) {
+                Optional<com.emtech.dairyapp.intergrations.mifugo.animal.LivestockAnimal> animOpt = animalRepository.findByAnimalTag(claim.getAnimalTag());
+                if (animOpt.isPresent() && animOpt.get().getMuzzleBiometricKey() != null) {
+                    registeredMuzzle = animOpt.get().getMuzzleBiometricKey();
+                }
+            }
+            if (registeredMuzzle == null || registeredMuzzle.isBlank()) {
+                registeredMuzzle = resolveMuzzleKey(claim.getAnimalTag(), animalBreed);
+            }
             claim.setRegisteredMuzzleKey(registeredMuzzle);
             claim.setPolicyNumber(dto.getPolicyNumber() != null ? dto.getPolicyNumber() : computedPolicyNumber);
 
@@ -264,7 +326,7 @@ public class LivestockClaimService {
         }
     }
 
-    public EntityResponse<LivestockClaim> verifyBiometrics(Long claimId, String postMortemMuzzleKey) {
+    public EntityResponse<LivestockClaim> verifyBiometrics(Long claimId, String postMortemMuzzleKey, Double clientMatchScore, String clientStatus, String matchNotes) {
         try {
             Optional<LivestockClaim> opt = claimRepository.findById(claimId);
             if (opt.isEmpty()) {
@@ -279,22 +341,27 @@ public class LivestockClaimService {
             double matchConfidence;
             String status;
 
-            if (claim.getRegisteredMuzzleKey() != null && !claim.getRegisteredMuzzleKey().isBlank()) {
-                // Biometric match against Mifugo360 biometric registry
-                matchConfidence = 96.5 + (new Random().nextDouble() * 2.5); // 96.5% - 99.0%
-                matchConfidence = Math.round(matchConfidence * 10.0) / 10.0;
-                status = "VERIFIED";
-                claim.setMuzzleBiometricMatchScore(matchConfidence);
-                claim.setBiometricStatus(status);
+            if (clientMatchScore != null) {
+                matchConfidence = Math.round(clientMatchScore * 10.0) / 10.0;
+                status = (clientStatus != null && !clientStatus.isBlank())
+                        ? clientStatus
+                        : (matchConfidence >= 80.0 ? "VERIFIED" : "MISMATCH");
+            } else if (claim.getRegisteredMuzzleKey() != null && !claim.getRegisteredMuzzleKey().isBlank()) {
+                matchConfidence = 0.0;
+                status = "AWAITING_FIELD_SCAN";
             } else {
                 matchConfidence = 0.0;
                 status = "UNVERIFIED_NO_PRE_LOSS_PRINT";
-                claim.setMuzzleBiometricMatchScore(0.0);
-                claim.setBiometricStatus(status);
             }
 
-            appendAudit(claim, "BIOMETRIC_MUZZLE_MATCH_EVALUATED", "Mifugo AI Engine",
-                    "Post-mortem muzzle pattern compared with policy enrollment record. Biometric match score: " + matchConfidence + "%. Status: " + status);
+            claim.setMuzzleBiometricMatchScore(matchConfidence);
+            claim.setBiometricStatus(status);
+
+            String noteText = matchNotes != null && !matchNotes.isBlank()
+                    ? matchNotes
+                    : "Post-mortem muzzle pattern evaluated against Mifugo 360 policy record. Match score: " + matchConfidence + "%. Status: " + status;
+
+            appendAudit(claim, "BIOMETRIC_MUZZLE_MATCH_EVALUATED", "Mifugo AI Biometric Engine", noteText);
 
             LivestockClaim saved = claimRepository.save(claim);
             return new EntityResponse<>("Biometric verification complete: " + status, HttpStatus.OK.value(), saved);
@@ -303,6 +370,10 @@ public class LivestockClaimService {
             log.error("Error executing biometric verification", e);
             return new EntityResponse<>("Failed to verify biometrics: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value(), null);
         }
+    }
+
+    public EntityResponse<LivestockClaim> verifyBiometrics(Long claimId, String postMortemMuzzleKey) {
+        return verifyBiometrics(claimId, postMortemMuzzleKey, null, null, null);
     }
 
     public EntityResponse<LivestockClaim> adjudicateClaim(Long claimId, AdjudicateClaimDto dto) {
@@ -383,19 +454,40 @@ public class LivestockClaimService {
                 return new EntityResponse<>("Claim must be in APPROVED status before disbursement.", HttpStatus.BAD_REQUEST.value(), null);
             }
 
-            claim.setClaimStatus("SETTLED");
-            claim.setSettlementMethod(dto.getSettlementMethod() != null ? dto.getSettlementMethod() : "MPESA_B2C");
-            claim.setSettlementReference(dto.getSettlementReference() != null ? dto.getSettlementReference() : "OM-PAY-" + System.currentTimeMillis());
-            claim.setSettlementDate(new Date());
-            claim.setPayeeAccount(dto.getPayeeAccount() != null ? dto.getPayeeAccount() : claim.getFarmerPhone());
-            claim.setSettledBy(dto.getSettledBy() != null ? dto.getSettledBy() : "Finance Disbursal Officer");
+            double payoutAmount = claim.getApprovedPayoutAmount() != null && claim.getApprovedPayoutAmount() > 0 ?
+                    claim.getApprovedPayoutAmount() : claim.getNetPayableAmount();
+            claim.setApprovedPayoutAmount(payoutAmount);
 
-            appendAudit(claim, "CLAIM_SETTLED_DISBURSED", claim.getSettledBy(),
-                    "Indemnity payout of KES " + claim.getApprovedPayoutAmount() + " disbursed via " +
-                            claim.getSettlementMethod() + " (Ref: " + claim.getSettlementReference() + ", Payee: " + claim.getPayeeAccount() + ")");
+            String settledBy = dto.getSettledBy() != null && !dto.getSettledBy().isBlank() ?
+                    dto.getSettledBy() : "Finance Disbursal Officer";
+            claim.setSettledBy(settledBy);
+
+            // Directly credit payout into the Farmer's Wallet!
+            var walletTx = farmerWalletService.creditClaimPayout(
+                    claim.getFarmerNationalId(),
+                    claim.getFarmerNo(),
+                    claim.getFarmerName(),
+                    claim.getFarmerPhone(),
+                    payoutAmount,
+                    claim.getClaimReference(),
+                    "Old Mutual Livestock Indemnity Settlement for Animal " + claim.getAnimalTag() + " (" + claim.getClaimType() + ")",
+                    claim.getApprovedBy(),
+                    settledBy
+            );
+
+            claim.setClaimStatus("SETTLED");
+            claim.setSettlementMethod("FARMER_WALLET");
+            claim.setSettlementReference(walletTx.getTransactionReference());
+            claim.setSettlementDate(new Date());
+            claim.setPayeeAccount("Wallet #" + claim.getFarmerNationalId() + " (" + claim.getFarmerName() + ")");
+
+            appendAudit(claim, "CLAIM_SETTLED_DISBURSED_TO_WALLET", settledBy,
+                    "Indemnity payout of KES " + payoutAmount + " disbursed directly into Farmer's Wallet. " +
+                            "Wallet Voucher: " + walletTx.getTransactionReference() + ", Current Balance: KES " + walletTx.getRunningBalance());
 
             LivestockClaim saved = claimRepository.save(claim);
-            return new EntityResponse<>("Claim successfully settled with voucher ref " + claim.getSettlementReference(), HttpStatus.OK.value(), saved);
+            return new EntityResponse<>("Claim successfully settled and KES " + payoutAmount + " disbursed into Farmer's Wallet (Ref: " + walletTx.getTransactionReference() + ").",
+                    HttpStatus.OK.value(), saved);
 
         } catch (Exception e) {
             log.error("Error settling claim", e);
@@ -403,18 +495,98 @@ public class LivestockClaimService {
         }
     }
 
-    public EntityResponse<List<LivestockClaim>> getAllClaims(String status, String search, String nationalId) {
+    public EntityResponse<LivestockClaim> assignVet(Long claimId, AssignVetDto dto) {
+        try {
+            Optional<LivestockClaim> opt = claimRepository.findById(claimId);
+            if (opt.isEmpty()) {
+                return new EntityResponse<>("Claim not found for ID: " + claimId, HttpStatus.NOT_FOUND.value(), null);
+            }
+
+            LivestockClaim claim = opt.get();
+            claim.setAssignedVetId(dto.getVetId());
+            claim.setAssignedVetName(dto.getVetName());
+            claim.setAssignedVetUsername(dto.getVetUsername());
+            claim.setAssignedVetPhone(dto.getVetPhone());
+            claim.setAssignedVetKvb(dto.getVetKvbNumber());
+            claim.setAssignedDate(new Date());
+
+            String assignedBy = dto.getAssignedBy();
+            if (assignedBy == null || assignedBy.isBlank()) {
+                String authUser = com.emtech.dairyapp.Auth.Utilities.UserInfo.username();
+                assignedBy = (authUser != null && !authUser.isBlank()) ? authUser : "Cooperative Staff";
+            }
+            claim.setAssignedBy(assignedBy);
+            claim.setClaimStatus("VET_ASSIGNED");
+
+            String notes = dto.getNotes() != null && !dto.getNotes().isBlank() ? dto.getNotes() : "Duty assigned by cooperative staff for on-site necropsy.";
+            appendAudit(claim, "VET_ASSIGNED", assignedBy,
+                    "Assigned post-mortem duty to Vet " + dto.getVetName() + " (KVB: " + dto.getVetKvbNumber() + ", Phone: " + dto.getVetPhone() + "). Notes: " + notes);
+
+            LivestockClaim saved = claimRepository.save(claim);
+            return new EntityResponse<>("Post-mortem duty assigned to " + dto.getVetName() + " successfully.", HttpStatus.OK.value(), saved);
+        } catch (Exception e) {
+            log.error("Error assigning vet to claim", e);
+            return new EntityResponse<>("Failed to assign vet: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value(), null);
+        }
+    }
+
+    public EntityResponse<List<Map<String, Object>>> getCooperativeVets() {
+        List<Map<String, Object>> vets = new ArrayList<>();
+
+        Map<String, Object> v1 = new LinkedHashMap<>();
+        v1.put("id", 1L);
+        v1.put("username", "vet_sarah");
+        v1.put("fullName", "Dr. Sarah Wanjiku");
+        v1.put("kvbNumber", "KVB/2021/4892");
+        v1.put("phone", "0722556677");
+        v1.put("email", "vet@bahatidairy.co.ke");
+        v1.put("specialization", "Bovine Pathology & Biometrics");
+        v1.put("status", "AVAILABLE");
+        vets.add(v1);
+
+        Map<String, Object> v2 = new LinkedHashMap<>();
+        v2.put("id", 2L);
+        v2.put("username", "vet_kamau");
+        v2.put("fullName", "Dr. David Kamau");
+        v2.put("kvbNumber", "KVB/2019/3140");
+        v2.put("phone", "0722889900");
+        v2.put("email", "dkamau@bahatidairy.co.ke");
+        v2.put("specialization", "Livestock Disease Surveillance & Epidemiology");
+        v2.put("status", "AVAILABLE");
+        vets.add(v2);
+
+        Map<String, Object> v3 = new LinkedHashMap<>();
+        v3.put("id", 3L);
+        v3.put("username", "vet_cherono");
+        v3.put("fullName", "Dr. Faith Cherono");
+        v3.put("kvbNumber", "KVB/2022/5512");
+        v3.put("phone", "0722112233");
+        v3.put("email", "fcherono@bahatidairy.co.ke");
+        v3.put("specialization", "Dairy Herd Health & Forensics");
+        v3.put("status", "AVAILABLE");
+        vets.add(v3);
+
+        return new EntityResponse<>("Cooperative veterinarians retrieved.", HttpStatus.OK.value(), vets);
+    }
+
+    public EntityResponse<List<LivestockClaim>> getAllClaims(String status, String search, String nationalId, String reportedBy, String assignedVet) {
         try {
             String cleanStatus = (status != null && !status.isBlank() && !"ALL".equalsIgnoreCase(status)) ? status.trim().toUpperCase() : null;
             String cleanNationalId = (nationalId != null && !nationalId.isBlank()) ? nationalId.trim() : null;
             String cleanSearch = (search != null && !search.isBlank()) ? search.trim() : null;
+            String cleanReportedBy = (reportedBy != null && !reportedBy.isBlank()) ? reportedBy.trim() : null;
+            String cleanAssignedVet = (assignedVet != null && !assignedVet.isBlank()) ? assignedVet.trim() : null;
 
-            List<LivestockClaim> claims = claimRepository.searchClaims(cleanStatus, cleanNationalId, cleanSearch);
+            List<LivestockClaim> claims = claimRepository.searchClaims(cleanStatus, cleanNationalId, cleanReportedBy, cleanAssignedVet, cleanSearch);
             return new EntityResponse<>("Claims retrieved successfully.", HttpStatus.OK.value(), claims);
         } catch (Exception e) {
             log.error("Error querying claims", e);
             return new EntityResponse<>("Failed to retrieve claims: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value(), Collections.emptyList());
         }
+    }
+
+    public EntityResponse<List<LivestockClaim>> getAllClaims(String status, String search, String nationalId) {
+        return getAllClaims(status, search, nationalId, null, null);
     }
 
     public EntityResponse<LivestockClaim> getClaimById(Long id) {

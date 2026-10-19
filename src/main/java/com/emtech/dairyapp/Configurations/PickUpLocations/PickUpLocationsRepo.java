@@ -30,7 +30,13 @@ public interface PickUpLocationsRepo extends JpaRepository<PickUpLocations, Long
     @Query(value = "SELECT p.id,p.name ,p.land_mark as landmark,w.name as ward from pick_up_locations p join ward w on w.id =p.ward_fk  join collector c ON p.id =c.location_id join users u on c.username =u.user_name WHERE u.id = :collectorId and w.id = :ward_fk", nativeQuery = true)
     List<Locations> getPickUpLcoationsBywardandCollectorId(Long collectorId, Long ward_fk);
 
-    @Query(value = "SELECT p.id,p.name ,p.land_mark as landmark,w.name as ward from pick_up_locations p join ward w on w.id =p.ward_fk  join collector c ON p.id =c.location_id join users u on c.username =u.user_name WHERE u.id = :collectorId", nativeQuery = true)
+    @Query(value = "SELECT DISTINCT p.id, p.name, p.land_mark as landmark, w.name as ward " +
+            "FROM pick_up_locations p " +
+            "LEFT JOIN ward w ON w.id = p.ward_fk " +
+            "CROSS JOIN users u " +
+            "LEFT JOIN collector c ON p.id = c.location_id AND LOWER(TRIM(c.username)) = LOWER(TRIM(u.user_name)) " +
+            "WHERE u.id = :collectorId " +
+            "AND (c.id IS NOT NULL OR (u.pick_up_location IS NOT NULL AND (LOWER(TRIM(p.name)) = LOWER(TRIM(u.pick_up_location)) OR CAST(p.id AS CHAR) = TRIM(u.pick_up_location))))", nativeQuery = true)
     List<Locations> getPickUpLcoationsByCollectorId(Long collectorId);
 
     @Query(value = "SELECT p.id,p.name ,p.land_mark as landmark,w.name as ward from pick_up_locations p join ward w on w.id =p.ward_fk join route r ON p.id =r.location_id join transporter t on t.route_id = r.id join users u on u.user_name = t.username  WHERE u.id = :transporterId", nativeQuery = true)

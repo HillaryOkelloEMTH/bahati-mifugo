@@ -27,6 +27,7 @@ public class LodgeClaimDto {
 
     // Optional post-mortem muzzle image key if captured on-site
     private String postMortemMuzzleKey;
+    private String registeredMuzzleKey;
 
     // Financial overrides if custom sum insured
     private Double sumInsured;

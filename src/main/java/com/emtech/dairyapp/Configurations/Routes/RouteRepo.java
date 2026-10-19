@@ -23,7 +23,16 @@ public interface RouteRepo extends JpaRepository<Route,Long> {
     @Query(value = "select * from route where location_id = :locationId and active_flag = 'Y'", nativeQuery = true)
     List<Route> findCenterRoutes(Long locationId);
 
-    @Query(nativeQuery = true,value = "SELECT r.route, r.id, p.name as pickUpLocation,w.name as ward,p.land_mark as landmark from route r join pick_up_locations p on p.id =r.location_id join ward w on w.id =p.ward_fk  join collector c  on p.id =c.location_id  join users u on u.user_name =c.username where u.id =:collectorId and r.active_flag= 'Y'")
+    @Query(nativeQuery = true, value = "SELECT DISTINCT r.route, r.id, p.name as pickUpLocation, w.name as ward, p.land_mark as landmark " +
+            "FROM route r " +
+            "JOIN pick_up_locations p ON p.id = r.location_id " +
+            "LEFT JOIN ward w ON w.id = p.ward_fk " +
+            "CROSS JOIN users u " +
+            "LEFT JOIN collector c ON p.id = c.location_id AND LOWER(TRIM(c.username)) = LOWER(TRIM(u.user_name)) " +
+            "WHERE u.id = :collectorId " +
+            "AND (c.id IS NOT NULL OR (u.pick_up_location IS NOT NULL AND (LOWER(TRIM(p.name)) = LOWER(TRIM(u.pick_up_location)) OR CAST(p.id AS CHAR) = TRIM(u.pick_up_location)))) " +
+            "AND (r.active_flag = 'Y' OR r.active_flag IS NULL OR r.active_flag = '1') " +
+            "AND (r.deleted_flag = 'N' OR r.deleted_flag IS NULL)")
     List<CollectorRoutes> getRouteByCollector(Long collectorId);
     interface CollectorRoutes{
         Long getId();

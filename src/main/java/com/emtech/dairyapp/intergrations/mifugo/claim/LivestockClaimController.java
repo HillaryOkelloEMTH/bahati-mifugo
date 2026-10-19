@@ -28,8 +28,24 @@ public class LivestockClaimController {
     public ResponseEntity<EntityResponse<List<LivestockClaim>>> getAllClaims(
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String search,
-            @RequestParam(required = false) String nationalId) {
-        EntityResponse<List<LivestockClaim>> resp = claimService.getAllClaims(status, search, nationalId);
+            @RequestParam(required = false) String nationalId,
+            @RequestParam(required = false) String reportedBy,
+            @RequestParam(required = false) String assignedVet) {
+        EntityResponse<List<LivestockClaim>> resp = claimService.getAllClaims(status, search, nationalId, reportedBy, assignedVet);
+        return ResponseEntity.status(resp.getStatusCode()).body(resp);
+    }
+
+    @GetMapping("vets")
+    public ResponseEntity<EntityResponse<List<Map<String, Object>>>> getCooperativeVets() {
+        EntityResponse<List<Map<String, Object>>> resp = claimService.getCooperativeVets();
+        return ResponseEntity.status(resp.getStatusCode()).body(resp);
+    }
+
+    @PutMapping("{id}/assign-vet")
+    public ResponseEntity<EntityResponse<LivestockClaim>> assignVet(
+            @PathVariable Long id,
+            @RequestBody AssignVetDto dto) {
+        EntityResponse<LivestockClaim> resp = claimService.assignVet(id, dto);
         return ResponseEntity.status(resp.getStatusCode()).body(resp);
     }
 
@@ -56,9 +72,21 @@ public class LivestockClaimController {
     @PostMapping("{id}/verify-biometrics")
     public ResponseEntity<EntityResponse<LivestockClaim>> verifyBiometrics(
             @PathVariable Long id,
-            @RequestBody(required = false) Map<String, String> body) {
-        String postMortemKey = body != null ? body.get("postMortemMuzzleKey") : null;
-        EntityResponse<LivestockClaim> resp = claimService.verifyBiometrics(id, postMortemKey);
+            @RequestBody(required = false) Map<String, Object> body) {
+        String postMortemKey = body != null && body.get("postMortemMuzzleKey") != null
+                ? String.valueOf(body.get("postMortemMuzzleKey")) : null;
+        Double matchScore = null;
+        if (body != null && body.get("matchScore") != null) {
+            try {
+                matchScore = Double.valueOf(String.valueOf(body.get("matchScore")));
+            } catch (Exception ignored) {}
+        }
+        String biometricStatus = body != null && body.get("biometricStatus") != null
+                ? String.valueOf(body.get("biometricStatus")) : null;
+        String matchNotes = body != null && body.get("matchNotes") != null
+                ? String.valueOf(body.get("matchNotes")) : null;
+
+        EntityResponse<LivestockClaim> resp = claimService.verifyBiometrics(id, postMortemKey, matchScore, biometricStatus, matchNotes);
         return ResponseEntity.status(resp.getStatusCode()).body(resp);
     }
 

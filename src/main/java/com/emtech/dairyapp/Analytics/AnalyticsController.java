@@ -24,6 +24,12 @@ public class AnalyticsController {
         this.analyticsService = analyticsService;
     }
 
+    @GetMapping("cooperative-dashboard")
+    public ResponseEntity<?> getCooperativeDashboard() {
+        var response = analyticsService.getCooperativeDashboard();
+        return ResponseEntity.status(response.getStatusCode()).body(response);
+    }
+
 
     @GetMapping("daily-summary/{month}/{year}")
     public ResponseEntity<?> getBahatiDailySummary(@PathVariable Integer month, @PathVariable Integer year) {

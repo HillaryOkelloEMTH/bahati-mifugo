@@ -30,6 +30,24 @@ public class AuthController {
 
     @Autowired private AuthService authService;
     @Autowired RefreshTokenService tokenService;
+    @Autowired private UserRepository userRepository;
+
+    @GetMapping("find-by-username")
+    public ResponseEntity<?> findByUsername(@RequestParam String username) {
+        var userOpt = userRepository.findByUsername(username.trim());
+        if (userOpt.isPresent()) {
+            User u = userOpt.get();
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", u.getId());
+            map.put("username", u.getUsername());
+            map.put("mobile", u.getMobile());
+            map.put("status", u.getStatus());
+            EntityResponse<Map<String, Object>> response = new EntityResponse<>("User found", HttpStatus.OK.value(), map);
+            return ResponseEntity.ok(response);
+        }
+        EntityResponse<Object> response = new EntityResponse<>("User not found", HttpStatus.NOT_FOUND.value(), null);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
 
 //    @CrossOrigin(value = { "http://localhost:4200"}, allowedHeaders = {"Access-Control-Allow-Origin: *"})
     @PostMapping("login")

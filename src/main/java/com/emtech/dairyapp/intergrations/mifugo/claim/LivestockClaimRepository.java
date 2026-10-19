@@ -21,9 +21,15 @@ public interface LivestockClaimRepository extends JpaRepository<LivestockClaim, 
 
     List<LivestockClaim> findByAnimalIdOrderByCreatedAtDesc(String animalId);
 
+    List<LivestockClaim> findByAnimalTag(String animalTag);
+
+    List<LivestockClaim> findByAnimalTagOrderByNotificationDateDesc(String animalTag);
+
     @Query("SELECT c FROM LivestockClaim c WHERE " +
             "(:status IS NULL OR c.claimStatus = :status) AND " +
             "(:nationalId IS NULL OR c.farmerNationalId = :nationalId) AND " +
+            "(:reportedBy IS NULL OR LOWER(c.reportedBy) = LOWER(:reportedBy)) AND " +
+            "(:assignedVet IS NULL OR LOWER(c.assignedVetUsername) = LOWER(:assignedVet) OR LOWER(c.assignedVetName) = LOWER(:assignedVet)) AND " +
             "(:search IS NULL OR " +
             "LOWER(c.claimReference) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
             "LOWER(c.farmerName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
@@ -34,6 +40,8 @@ public interface LivestockClaimRepository extends JpaRepository<LivestockClaim, 
     List<LivestockClaim> searchClaims(
             @Param("status") String status,
             @Param("nationalId") String nationalId,
+            @Param("reportedBy") String reportedBy,
+            @Param("assignedVet") String assignedVet,
             @Param("search") String search);
 
     long countByClaimStatus(String claimStatus);
