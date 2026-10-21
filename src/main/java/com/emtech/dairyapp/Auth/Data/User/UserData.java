@@ -56,4 +56,10 @@ public class UserData implements Serializable {
 
     @Builder.Default
     private List<UserRoleData> roles = null;
+
+    @Builder.Default
+    private String nationalId = null;
+
+    @Builder.Default
+    private String farmerNumber = null;
 }

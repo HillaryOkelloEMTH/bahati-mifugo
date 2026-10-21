@@ -13,6 +13,8 @@ public interface LivestockAnimalRepository extends JpaRepository<LivestockAnimal
 
     Optional<LivestockAnimal> findByAnimalTag(String animalTag);
 
+    Optional<LivestockAnimal> findByMuzzleBiometricKey(String muzzleBiometricKey);
+
     List<LivestockAnimal> findByFarmerNationalId(String farmerNationalId);
 
     List<LivestockAnimal> findByFarmerNo(Integer farmerNo);

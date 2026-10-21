@@ -45,7 +45,7 @@ public class AuthController {
             EntityResponse<Map<String, Object>> response = new EntityResponse<>("User found", HttpStatus.OK.value(), map);
             return ResponseEntity.ok(response);
         }
-        EntityResponse<Object> response = new EntityResponse<>("User not found", HttpStatus.NOT_FOUND.value(), null);
+        EntityResponse<Object> response = new EntityResponse<>("User is not found", HttpStatus.NOT_FOUND.value(), null);
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 

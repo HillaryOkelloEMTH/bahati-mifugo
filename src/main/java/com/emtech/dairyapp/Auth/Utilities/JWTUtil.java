@@ -52,7 +52,13 @@ public class JWTUtil {
     public String generateToken(UserData user) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("username", user.getUsername());
-        return doGenerateToken(claims,user.getUsername());
+        if (user.getNationalId() != null) {
+            claims.put("nationalId", user.getNationalId());
+        }
+        if (user.getFarmerNumber() != null) {
+            claims.put("farmerNumber", user.getFarmerNumber());
+        }
+        return doGenerateToken(claims, user.getUsername());
     }
 
     // generate token with user details only

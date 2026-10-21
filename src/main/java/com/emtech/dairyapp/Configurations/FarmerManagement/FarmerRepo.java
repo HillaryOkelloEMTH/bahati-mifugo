@@ -19,6 +19,11 @@ import java.util.Optional;
 public interface FarmerRepo extends JpaRepository<Farmer,Long> {
     Optional<Farmer> findByIdNumber(String idNumber);
 
+    Optional<Farmer> findByMobileNo(String mobileNo);
+
+    @Query(value = "select * from farmer where mobile_no = :m1 or mobile_no = :m2 or mobile_no = :m3 limit 1", nativeQuery = true)
+    Optional<Farmer> findByMobileVariations(@Param("m1") String m1, @Param("m2") String m2, @Param("m3") String m3);
+
 //filtering status of farmer per route
 @Query("SELECT f FROM Farmer f WHERE f.routeFk = :routeId")
 List<Farmer> findAllByRouteFk(@Param("routeId") Long routeId);

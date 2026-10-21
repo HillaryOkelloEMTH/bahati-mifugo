@@ -11,6 +11,8 @@ public interface LivestockVaccinationRepository extends JpaRepository<LivestockV
 
     List<LivestockVaccination> findByAnimalTagOrderByAdministeredDateDesc(String animalTag);
 
+    List<LivestockVaccination> findByMuzzleBiometricKeyOrderByAdministeredDateDesc(String muzzleBiometricKey);
+
     List<LivestockVaccination> findByFarmerNationalIdOrderByAdministeredDateDesc(String farmerNationalId);
 
     long countByStatus(String status);

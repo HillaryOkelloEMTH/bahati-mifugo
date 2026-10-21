@@ -33,6 +33,18 @@ public class LivestockAnimalController {
         return ResponseEntity.status(resp.getStatusCode()).body(resp);
     }
 
+    @GetMapping("by-muzzle/{muzzleKey}")
+    public ResponseEntity<EntityResponse<LivestockAnimal>> getAnimalByMuzzle(@PathVariable String muzzleKey) {
+        EntityResponse<LivestockAnimal> resp = animalService.getAnimalByMuzzle(muzzleKey);
+        return ResponseEntity.status(resp.getStatusCode()).body(resp);
+    }
+
+    @GetMapping("{tag}/vaccinations")
+    public ResponseEntity<EntityResponse<List<LivestockVaccination>>> getVaccinations(@PathVariable String tag) {
+        EntityResponse<List<LivestockVaccination>> resp = animalService.getVaccinations(tag);
+        return ResponseEntity.status(resp.getStatusCode()).body(resp);
+    }
+
     @GetMapping("{tag}/full-history")
     public ResponseEntity<EntityResponse<AnimalFullHistoryDto>> getFullHistory(@PathVariable String tag) {
         EntityResponse<AnimalFullHistoryDto> resp = animalService.getFullHistory(tag);

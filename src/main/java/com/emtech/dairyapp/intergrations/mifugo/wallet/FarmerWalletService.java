@@ -187,12 +187,28 @@ public class FarmerWalletService {
     }
 
     public EntityResponse<FarmerWallet> getWalletByNationalId(String nationalId) {
-        Optional<FarmerWallet> opt = walletRepository.findByFarmerNationalId(nationalId);
+        if (nationalId == null || nationalId.isBlank()) {
+            return new EntityResponse<>("National ID / Member No is required.", HttpStatus.BAD_REQUEST.value(), null);
+        }
+        String cleanId = nationalId.trim();
+        Optional<FarmerWallet> opt = walletRepository.findByFarmerNationalId(cleanId);
+        if (opt.isEmpty()) {
+            try {
+                int fn = Integer.parseInt(cleanId);
+                opt = walletRepository.findByFarmerNo(fn);
+            } catch (NumberFormatException ignored) {}
+        }
+        if (opt.isEmpty() && farmerRepo != null) {
+            Optional<Farmer> fOpt = farmerRepo.findByIdNumber(cleanId);
+            if (fOpt.isPresent() && fOpt.get().getFarmerNo() != null) {
+                opt = walletRepository.findByFarmerNo(fOpt.get().getFarmerNo());
+            }
+        }
         if (opt.isPresent()) {
             return new EntityResponse<>("Wallet retrieved.", HttpStatus.OK.value(), opt.get());
         }
         // If not found, create active default wallet for farmer
-        FarmerWallet wallet = getOrCreateWallet(nationalId, null, null, null);
+        FarmerWallet wallet = getOrCreateWallet(cleanId, null, null, null);
         return new EntityResponse<>("Wallet created and retrieved.", HttpStatus.OK.value(), wallet);
     }
 
@@ -202,7 +218,26 @@ public class FarmerWalletService {
     }
 
     public EntityResponse<List<WalletTransaction>> getTransactionsByNationalId(String nationalId) {
-        List<WalletTransaction> list = transactionRepository.findByFarmerNationalIdOrderByTransactionDateDesc(nationalId);
+        if (nationalId == null || nationalId.isBlank()) {
+            return new EntityResponse<>("National ID / Member No required.", HttpStatus.OK.value(), Collections.emptyList());
+        }
+        String cleanId = nationalId.trim();
+        Integer fNo = null;
+        try {
+            fNo = Integer.parseInt(cleanId);
+        } catch (NumberFormatException ignored) {}
+        if (fNo == null && farmerRepo != null) {
+            Optional<Farmer> fOpt = farmerRepo.findByIdNumber(cleanId);
+            if (fOpt.isPresent()) {
+                fNo = fOpt.get().getFarmerNo();
+            }
+        }
+        List<WalletTransaction> list;
+        if (fNo != null) {
+            list = transactionRepository.findByFarmerNationalIdOrFarmerNoOrderByTransactionDateDesc(cleanId, fNo);
+        } else {
+            list = transactionRepository.findByFarmerNationalIdOrderByTransactionDateDesc(cleanId);
+        }
         return new EntityResponse<>("Transactions retrieved.", HttpStatus.OK.value(), list);
     }
 

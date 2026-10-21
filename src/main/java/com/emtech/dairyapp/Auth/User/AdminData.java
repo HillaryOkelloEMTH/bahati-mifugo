@@ -13,6 +13,9 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
+import com.emtech.dairyapp.Configurations.FarmerManagement.Farmer;
+import com.emtech.dairyapp.Configurations.FarmerManagement.FarmerRepo;
+
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
@@ -24,6 +27,9 @@ import java.util.Set;
 @Slf4j
 @Component
 public class AdminData implements CommandLineRunner {
+
+    @Autowired
+    private FarmerRepo farmerRepo;
 
     @Autowired
     private UserRepository repository;
@@ -166,9 +172,43 @@ public class AdminData implements CommandLineRunner {
 
         // 4. Registered Member / Farmer (Role: ROLE_FARMER, deliveries, slips, digital wallet)
         addUserIfMissing("farmer_john", "farmer123", "John", "Kiprono", "farmer192@bahatidairy.co.ke", "0722778899", "ROLE_FARMER");
+        addUserIfMissing("farmer_james", "james123", "James", "Mwangi", "farmer1042@bahatidairy.co.ke", "0722123456", "ROLE_FARMER");
+        addUserIfMissing("farmer_grace", "grace123", "Grace", "Wanjiku", "farmer1088@bahatidairy.co.ke", "0711987654", "ROLE_FARMER");
+        addUserIfMissing("farmer_peter", "peter123", "Peter", "Kiprono", "farmer1115@bahatidairy.co.ke", "0700543210", "ROLE_FARMER");
+        addUserIfMissing("farmer_samuel", "samuel123", "Samuel", "Otieno", "farmer1150@bahatidairy.co.ke", "0733876543", "ROLE_FARMER");
+        addUserIfMissing("farmer_mary", "mary123", "Mary", "Muthoni", "farmer1012@bahatidairy.co.ke", "0712348901", "ROLE_FARMER");
+
+        addFarmerIfMissing(192, "29482103", "John", "Kiprono", "0722778899");
+        addFarmerIfMissing(101, "31245678", "Mary", "Wambui", "0722112233");
+        addFarmerIfMissing(105, "25896314", "David", "Rotich", "0722445566");
+        addFarmerIfMissing(1042, "24891024", "James", "Mwangi", "0722123456");
+        addFarmerIfMissing(1088, "19827364", "Grace", "Wanjiku", "0711987654");
+        addFarmerIfMissing(1115, "30192847", "Peter", "Kiprono", "0700543210");
+        addFarmerIfMissing(1150, "28471920", "Samuel", "Otieno", "0733876543");
+        addFarmerIfMissing(1012, "18273645", "Mary", "Muthoni", "0712348901");
 
         // 5. Insurance Company Users
         addUserIfMissing("ins_officer", "officer123", "Insurance", "Officer", "officer@oldmutual.co.ke", "0722000002", "ROLE_INSURANCE_OFFICER");
         addUserIfMissing("ins_approver", "approver123", "Senior", "Approver", "approver@oldmutual.co.ke", "0722000003", "ROLE_INSURANCE_APPROVER");
+    }
+
+    void addFarmerIfMissing(Integer farmerNo, String idNumber, String firstName, String lastName, String mobile) {
+        if (farmerRepo.getByFarmerNo(farmerNo).isEmpty() && farmerRepo.findByIdNumber(idNumber).isEmpty()) {
+            Farmer f = new Farmer();
+            f.setFarmerNo(farmerNo);
+            f.setIdNumber(idNumber);
+            f.setFirstName(firstName);
+            f.setLastName(lastName);
+            f.setUsername(firstName + " " + lastName);
+            f.setMobileNo(mobile);
+            f.setMemberType("individual");
+            f.setNoOfCows(3);
+            f.setGender("Other");
+            f.setPaymentMode("mpesa");
+            f.setDeletedFlag('N');
+            f.setCreatedAt(new Date());
+            farmerRepo.save(f);
+            log.info("Seeded cooperative member '{}' (Farmer No: {}, ID: {})", f.getUsername(), farmerNo, idNumber);
+        }
     }
 }

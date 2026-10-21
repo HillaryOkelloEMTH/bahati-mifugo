@@ -24,6 +24,7 @@ public class LivestockAnimalService {
     private final LivestockHealthRecordRepository healthRecordRepository;
     private final LivestockClaimRepository claimRepository;
     private final MilkCollectionRepo milkCollectionRepo;
+    private final com.emtech.dairyapp.Configurations.FarmerManagement.FarmerRepo farmerRepo;
 
     public EntityResponse<List<LivestockAnimal>> getAllAnimals(String status, String breed, String search) {
         try {
@@ -46,7 +47,23 @@ public class LivestockAnimalService {
     }
 
     public EntityResponse<List<LivestockAnimal>> getAnimalsByFarmer(String nationalId) {
-        List<LivestockAnimal> list = animalRepository.findByFarmerNationalId(nationalId);
+        if (nationalId == null || nationalId.isBlank()) {
+            return new EntityResponse<>("No national ID provided.", HttpStatus.OK.value(), Collections.emptyList());
+        }
+        String cleanId = nationalId.trim();
+        List<LivestockAnimal> list = animalRepository.findByFarmerNationalId(cleanId);
+        if (list.isEmpty()) {
+            try {
+                int fNo = Integer.parseInt(cleanId);
+                list = animalRepository.findByFarmerNo(fNo);
+            } catch (NumberFormatException ignored) {}
+        }
+        if (list.isEmpty() && farmerRepo != null) {
+            Optional<com.emtech.dairyapp.Configurations.FarmerManagement.Farmer> fOpt = farmerRepo.findByIdNumber(cleanId);
+            if (fOpt.isPresent() && fOpt.get().getFarmerNo() != null) {
+                list = animalRepository.findByFarmerNo(fOpt.get().getFarmerNo());
+            }
+        }
         return new EntityResponse<>("Animals retrieved for farmer.", HttpStatus.OK.value(), list);
     }
 
@@ -107,24 +124,83 @@ public class LivestockAnimalService {
         }
     }
 
-    public EntityResponse<LivestockVaccination> addVaccination(String animalTag, LivestockVaccination vaccination) {
+    public static String calculateAgeAtDate(String dobStr, String targetDateStr) {
+        if (dobStr == null || dobStr.isBlank() || targetDateStr == null || targetDateStr.isBlank()) {
+            return "Unknown age";
+        }
         try {
-            Optional<LivestockAnimal> opt = animalRepository.findByAnimalTag(animalTag);
+            java.time.LocalDate birth = java.time.LocalDate.parse(dobStr.trim().substring(0, 10));
+            java.time.LocalDate target = java.time.LocalDate.parse(targetDateStr.trim().substring(0, 10));
+            if (target.isBefore(birth)) {
+                return "0 days";
+            }
+            java.time.Period period = java.time.Period.between(birth, target);
+            int years = period.getYears();
+            int months = period.getMonths();
+            int days = period.getDays();
+
+            if (years == 0 && months == 0) {
+                return days + " day" + (days == 1 ? "" : "s");
+            } else if (years == 0) {
+                return months + " month" + (months == 1 ? "" : "s");
+            } else if (months == 0) {
+                return years + " yr" + (years == 1 ? "" : "s");
+            } else {
+                return years + " yr" + (years == 1 ? " " : "s ") + months + " mo" + (months == 1 ? "" : "s");
+            }
+        } catch (Exception e) {
+            return "Recorded on " + targetDateStr;
+        }
+    }
+
+    public EntityResponse<LivestockVaccination> addVaccination(String animalTagOrMuzzle, LivestockVaccination vaccination) {
+        try {
+            Optional<LivestockAnimal> opt = animalRepository.findByAnimalTag(animalTagOrMuzzle);
             if (opt.isEmpty()) {
-                return new EntityResponse<>("Animal not found with tag: " + animalTag, HttpStatus.NOT_FOUND.value(), null);
+                opt = animalRepository.findByMuzzleBiometricKey(animalTagOrMuzzle);
+            }
+            if (opt.isEmpty() && vaccination.getMuzzleBiometricKey() != null && !vaccination.getMuzzleBiometricKey().isBlank()) {
+                opt = animalRepository.findByMuzzleBiometricKey(vaccination.getMuzzleBiometricKey());
+            }
+            if (opt.isEmpty()) {
+                return new EntityResponse<>("Animal not found with tag or muzzle identifier: " + animalTagOrMuzzle, HttpStatus.NOT_FOUND.value(), null);
             }
             LivestockAnimal animal = opt.get();
-            vaccination.setAnimalTag(animalTag);
+            vaccination.setAnimalTag(animal.getAnimalTag());
             vaccination.setAnimalId(animal.getId());
             vaccination.setFarmerNationalId(animal.getFarmerNationalId());
+
+            if (vaccination.getMuzzleBiometricKey() == null || vaccination.getMuzzleBiometricKey().isBlank()) {
+                vaccination.setMuzzleBiometricKey(animal.getMuzzleBiometricKey());
+            }
+            if (vaccination.getIdentificationMethod() == null || vaccination.getIdentificationMethod().isBlank()) {
+                vaccination.setIdentificationMethod("MUZZLE_BIOMETRICS");
+            }
+            if (vaccination.getAnimalAgeAtVaccination() == null || vaccination.getAnimalAgeAtVaccination().isBlank()) {
+                vaccination.setAnimalAgeAtVaccination(calculateAgeAtDate(animal.getDateOfBirth(), vaccination.getAdministeredDate()));
+            }
             if (vaccination.getStatus() == null) vaccination.setStatus("COMPLETED");
 
             LivestockVaccination saved = vaccinationRepository.save(vaccination);
-            return new EntityResponse<>("Vaccination record successfully added.", HttpStatus.CREATED.value(), saved);
+            return new EntityResponse<>("Vaccination record successfully added with biometric muzzle verification.", HttpStatus.CREATED.value(), saved);
         } catch (Exception e) {
             log.error("Error adding vaccination: ", e);
             return new EntityResponse<>("Failed to add vaccination: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value(), null);
         }
+    }
+
+    public EntityResponse<LivestockAnimal> getAnimalByMuzzle(String muzzleKey) {
+        Optional<LivestockAnimal> opt = animalRepository.findByMuzzleBiometricKey(muzzleKey);
+        return opt.map(animal -> new EntityResponse<>("Animal successfully identified via biometric muzzle print.", HttpStatus.OK.value(), animal))
+                .orElseGet(() -> new EntityResponse<>("No animal found matching biometric muzzle key: " + muzzleKey, HttpStatus.NOT_FOUND.value(), null));
+    }
+
+    public EntityResponse<List<LivestockVaccination>> getVaccinations(String tagOrMuzzle) {
+        List<LivestockVaccination> list = vaccinationRepository.findByAnimalTagOrderByAdministeredDateDesc(tagOrMuzzle);
+        if (list.isEmpty()) {
+            list = vaccinationRepository.findByMuzzleBiometricKeyOrderByAdministeredDateDesc(tagOrMuzzle);
+        }
+        return new EntityResponse<>("Vaccinations retrieved for animal.", HttpStatus.OK.value(), list);
     }
 
     public EntityResponse<LivestockHealthRecord> addHealthRecord(String animalTag, LivestockHealthRecord record) {
@@ -510,6 +586,8 @@ public class LivestockAnimalService {
 
     private void seedVaccinationsForDaisy(LivestockAnimal animal) {
         String tag = animal.getAnimalTag();
+        String muzzle = animal.getMuzzleBiometricKey();
+        String dob = animal.getDateOfBirth();
         List<LivestockVaccination> list = new ArrayList<>();
 
         // 1. ECF ITM Vaccine (East Coast Fever)
@@ -517,12 +595,15 @@ public class LivestockAnimalService {
         v1.setAnimalTag(tag);
         v1.setAnimalId(animal.getId());
         v1.setFarmerNationalId(animal.getFarmerNationalId());
+        v1.setMuzzleBiometricKey(muzzle);
+        v1.setIdentificationMethod("MUZZLE_BIOMETRICS");
         v1.setVaccineName("East Coast Fever (ECF) - Muguga Cocktail (ITM)");
         v1.setTargetDisease("East Coast Fever (Theileriosis)");
         v1.setDoseAdministered("1.0 ml Subcutaneous");
         v1.setBatchNumber("ECF-KEV-2021-884");
         v1.setManufacturer("Kenya Agricultural & Livestock Research Organization (KALRO)");
         v1.setAdministeredDate("2021-06-15");
+        v1.setAnimalAgeAtVaccination(calculateAgeAtDate(dob, "2021-06-15"));
         v1.setNextDueDate("2024-06-15");
         v1.setVetName("Dr. Patrick Ochieng");
         v1.setVetKvbNumber("KVB/2019/4412");
@@ -535,12 +616,15 @@ public class LivestockAnimalService {
         v2.setAnimalTag(tag);
         v2.setAnimalId(animal.getId());
         v2.setFarmerNationalId(animal.getFarmerNationalId());
+        v2.setMuzzleBiometricKey(muzzle);
+        v2.setIdentificationMethod("MUZZLE_BIOMETRICS");
         v2.setVaccineName("Foot and Mouth Disease (FMD) - Quadrivalent (O, A, SAT1, SAT2)");
         v2.setTargetDisease("Foot and Mouth Disease (Aphthovirus)");
         v2.setDoseAdministered("2.0 ml Deep Intramuscular");
         v2.setBatchNumber("FMD-BVI-2025-102");
         v2.setManufacturer("Botswana Vaccine Institute / KEVEVAPI");
         v2.setAdministeredDate("2026-03-10");
+        v2.setAnimalAgeAtVaccination(calculateAgeAtDate(dob, "2026-03-10"));
         v2.setNextDueDate("2026-09-10");
         v2.setVetName("Dr. Patrick Ochieng");
         v2.setVetKvbNumber("KVB/2019/4412");
@@ -553,12 +637,15 @@ public class LivestockAnimalService {
         v3.setAnimalTag(tag);
         v3.setAnimalId(animal.getId());
         v3.setFarmerNationalId(animal.getFarmerNationalId());
+        v3.setMuzzleBiometricKey(muzzle);
+        v3.setIdentificationMethod("MUZZLE_BIOMETRICS");
         v3.setVaccineName("Blanthrax (Bacillus anthracis & Clostridium chauvoei)");
         v3.setTargetDisease("Anthrax & Blackleg");
         v3.setDoseAdministered("2.0 ml Subcutaneous");
         v3.setBatchNumber("BLN-KEV-2025-441");
         v3.setManufacturer("KEVEVAPI");
         v3.setAdministeredDate("2025-11-20");
+        v3.setAnimalAgeAtVaccination(calculateAgeAtDate(dob, "2025-11-20"));
         v3.setNextDueDate("2026-11-20");
         v3.setVetName("Dr. Sarah Chebet");
         v3.setVetKvbNumber("KVB/2021/5891");
@@ -571,12 +658,15 @@ public class LivestockAnimalService {
         v4.setAnimalTag(tag);
         v4.setAnimalId(animal.getId());
         v4.setFarmerNationalId(animal.getFarmerNationalId());
+        v4.setMuzzleBiometricKey(muzzle);
+        v4.setIdentificationMethod("MUZZLE_BIOMETRICS");
         v4.setVaccineName("Brucella abortus Strain 19 (Live Attenuated)");
         v4.setTargetDisease("Bovine Brucellosis (Contagious Abortion)");
         v4.setDoseAdministered("2.0 ml Subcutaneous");
         v4.setBatchNumber("BRU-S19-2021-09");
         v4.setManufacturer("KEVEVAPI");
         v4.setAdministeredDate("2021-08-20");
+        v4.setAnimalAgeAtVaccination(calculateAgeAtDate(dob, "2021-08-20"));
         v4.setNextDueDate("LIFETIME_COVERAGE");
         v4.setVetName("Dr. Patrick Ochieng");
         v4.setVetKvbNumber("KVB/2019/4412");
@@ -589,12 +679,15 @@ public class LivestockAnimalService {
         v5.setAnimalTag(tag);
         v5.setAnimalId(animal.getId());
         v5.setFarmerNationalId(animal.getFarmerNationalId());
+        v5.setMuzzleBiometricKey(muzzle);
+        v5.setIdentificationMethod("MUZZLE_BIOMETRICS");
         v5.setVaccineName("Lumpy Skin Disease Vaccine (Neethling Strain)");
         v5.setTargetDisease("Lumpy Skin Disease (Capripoxvirus)");
         v5.setDoseAdministered("2.0 ml Subcutaneous");
         v5.setBatchNumber("LSD-KEV-2025-312");
         v5.setManufacturer("KEVEVAPI");
         v5.setAdministeredDate("2025-10-05");
+        v5.setAnimalAgeAtVaccination(calculateAgeAtDate(dob, "2025-10-05"));
         v5.setNextDueDate("2026-10-05");
         v5.setVetName("Dr. Patrick Ochieng");
         v5.setVetKvbNumber("KVB/2019/4412");
@@ -653,17 +746,22 @@ public class LivestockAnimalService {
 
     private void seedVaccinationsForBessie(LivestockAnimal animal) {
         String tag = animal.getAnimalTag();
+        String muzzle = animal.getMuzzleBiometricKey();
+        String dob = animal.getDateOfBirth();
         List<LivestockVaccination> list = new ArrayList<>();
 
         LivestockVaccination v1 = new LivestockVaccination();
         v1.setAnimalTag(tag);
         v1.setAnimalId(animal.getId());
         v1.setFarmerNationalId(animal.getFarmerNationalId());
+        v1.setMuzzleBiometricKey(muzzle);
+        v1.setIdentificationMethod("MUZZLE_BIOMETRICS");
         v1.setVaccineName("Foot and Mouth Disease (FMD)");
         v1.setTargetDisease("Foot and Mouth Disease");
         v1.setDoseAdministered("2.0 ml IM");
         v1.setBatchNumber("FMD-KEV-2026-09");
         v1.setAdministeredDate("2026-04-12");
+        v1.setAnimalAgeAtVaccination(calculateAgeAtDate(dob, "2026-04-12"));
         v1.setNextDueDate("2026-10-12");
         v1.setVetName("Dr. Sarah Chebet");
         v1.setVetKvbNumber("KVB/2021/5891");
@@ -675,11 +773,14 @@ public class LivestockAnimalService {
         v2.setAnimalTag(tag);
         v2.setAnimalId(animal.getId());
         v2.setFarmerNationalId(animal.getFarmerNationalId());
+        v2.setMuzzleBiometricKey(muzzle);
+        v2.setIdentificationMethod("MUZZLE_BIOMETRICS");
         v2.setVaccineName("Anthrax & Blackleg (Blanthrax)");
         v2.setTargetDisease("Anthrax / Blackquarter");
         v2.setDoseAdministered("2.0 ml Subcutaneous");
         v2.setBatchNumber("BLN-2025-992");
         v2.setAdministeredDate("2025-12-01");
+        v2.setAnimalAgeAtVaccination(calculateAgeAtDate(dob, "2025-12-01"));
         v2.setNextDueDate("2026-12-01");
         v2.setVetName("Dr. Sarah Chebet");
         v2.setVetKvbNumber("KVB/2021/5891");
@@ -710,17 +811,21 @@ public class LivestockAnimalService {
 
     private void seedVaccinationsGeneric(LivestockAnimal animal, String dob) {
         String tag = animal.getAnimalTag();
+        String muzzle = animal.getMuzzleBiometricKey();
         List<LivestockVaccination> list = new ArrayList<>();
 
         LivestockVaccination v1 = new LivestockVaccination();
         v1.setAnimalTag(tag);
         v1.setAnimalId(animal.getId());
         v1.setFarmerNationalId(animal.getFarmerNationalId());
+        v1.setMuzzleBiometricKey(muzzle);
+        v1.setIdentificationMethod("MUZZLE_BIOMETRICS");
         v1.setVaccineName("Foot and Mouth Disease (FMD)");
         v1.setTargetDisease("Foot and Mouth Disease");
         v1.setDoseAdministered("2.0 ml IM");
         v1.setBatchNumber("FMD-KEV-2026-14");
         v1.setAdministeredDate("2026-05-02");
+        v1.setAnimalAgeAtVaccination(calculateAgeAtDate(dob, "2026-05-02"));
         v1.setNextDueDate("2026-11-02");
         v1.setVetName("Dr. Patrick Ochieng");
         v1.setVetKvbNumber("KVB/2019/4412");
@@ -731,11 +836,14 @@ public class LivestockAnimalService {
         v2.setAnimalTag(tag);
         v2.setAnimalId(animal.getId());
         v2.setFarmerNationalId(animal.getFarmerNationalId());
+        v2.setMuzzleBiometricKey(muzzle);
+        v2.setIdentificationMethod("MUZZLE_BIOMETRICS");
         v2.setVaccineName("Anthrax & Blackleg (Blanthrax)");
         v2.setTargetDisease("Anthrax & Blackquarter");
         v2.setDoseAdministered("2.0 ml Subcutaneous");
         v2.setBatchNumber("BLN-2025-780");
         v2.setAdministeredDate("2025-11-14");
+        v2.setAnimalAgeAtVaccination(calculateAgeAtDate(dob, "2025-11-14"));
         v2.setNextDueDate("2026-11-14");
         v2.setVetName("Dr. Sarah Chebet");
         v2.setVetKvbNumber("KVB/2021/5891");

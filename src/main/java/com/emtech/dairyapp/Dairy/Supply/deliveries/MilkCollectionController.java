@@ -34,6 +34,9 @@ public class MilkCollectionController {
     @Autowired
     private MilkReturnService milkReturnService;
 
+    @Autowired
+    private com.emtech.dairyapp.Configurations.FarmerManagement.FarmerRepo farmerRepo;
+
     @PostMapping("add")
     public ResponseEntity<?> addNewRecord(@RequestBody MilkCollections collections){
         var response = collectionService.addCollection(collections);
@@ -300,7 +303,26 @@ public class MilkCollectionController {
     }
 
     @GetMapping("farmer")
-    public ResponseEntity<EntityResponse> getMemberCollections(@RequestParam Integer farmerNo){
+    public ResponseEntity<EntityResponse> getMemberCollections(
+            @RequestParam(required = false) Integer farmerNo,
+            @RequestParam(required = false) String nationalId) {
+        if (farmerNo == null && nationalId != null && !nationalId.isBlank()) {
+            var fOpt = farmerRepo.findByIdNumber(nationalId.trim());
+            if (fOpt.isPresent()) {
+                farmerNo = fOpt.get().getFarmerNo();
+            } else {
+                try {
+                    farmerNo = Integer.parseInt(nationalId.trim());
+                } catch (NumberFormatException ignored) {}
+            }
+        }
+        if (farmerNo == null) {
+            EntityResponse resp = new EntityResponse();
+            resp.setStatusCode(200);
+            resp.setMessage("No farmer record found for provided identifier.");
+            resp.setEntity(java.util.Collections.emptyList());
+            return ResponseEntity.ok().body(resp);
+        }
         EntityResponse response = collectionService.getCollectionsByMember(farmerNo);
         return ResponseEntity.ok().body(response);
     }

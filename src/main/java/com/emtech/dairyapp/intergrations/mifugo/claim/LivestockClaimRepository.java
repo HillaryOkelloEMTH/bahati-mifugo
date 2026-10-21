@@ -27,7 +27,7 @@ public interface LivestockClaimRepository extends JpaRepository<LivestockClaim, 
 
     @Query("SELECT c FROM LivestockClaim c WHERE " +
             "(:status IS NULL OR c.claimStatus = :status) AND " +
-            "(:nationalId IS NULL OR c.farmerNationalId = :nationalId) AND " +
+            "(:nationalId IS NULL OR c.farmerNationalId = :nationalId OR CONCAT(c.farmerNo, '') = :nationalId) AND " +
             "(:reportedBy IS NULL OR LOWER(c.reportedBy) = LOWER(:reportedBy)) AND " +
             "(:assignedVet IS NULL OR LOWER(c.assignedVetUsername) = LOWER(:assignedVet) OR LOWER(c.assignedVetName) = LOWER(:assignedVet)) AND " +
             "(:search IS NULL OR " +

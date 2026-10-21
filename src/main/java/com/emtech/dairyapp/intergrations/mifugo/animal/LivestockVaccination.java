@@ -32,9 +32,14 @@ public class LivestockVaccination {
     private String batchNumber;
     private String manufacturer;
 
-    // Timeline
+    // Timeline & Animal Age
     private String administeredDate; // yyyy-MM-dd
     private String nextDueDate;      // yyyy-MM-dd (booster date)
+    private String animalAgeAtVaccination; // e.g. "4 months", "1 yr 2 mos", "2 yrs 4 mos"
+
+    // Biometric Muzzle Verification Link
+    private String muzzleBiometricKey; // Reference to bovine muzzle print
+    private String identificationMethod = "MUZZLE_BIOMETRICS"; // MUZZLE_BIOMETRICS, EARTAG_FALLBACK
 
     // Attending Veterinary Personnel
     private String vetName;

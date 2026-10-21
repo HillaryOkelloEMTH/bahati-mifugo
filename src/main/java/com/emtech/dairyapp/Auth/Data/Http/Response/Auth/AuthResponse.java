@@ -29,4 +29,12 @@ public class AuthResponse {
     @Builder.Default
     private String token = null;
 
+    @Builder.Default
+    private String nationalId = null;
+
+    @Builder.Default
+    private String farmerNumber = null;
+
+    @Builder.Default
+    private String fullName = null;
 }
